@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gharmitra.online - Secure Login & Signup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+      <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body class="hero-bg min-h-screen flex flex-col justify-between text-gray-800">
+
+    <header class="liquid-header w-full py-4 px-6 flex justify-between items-center border-b border-white/20">
+        <div class="flex items-center space-x-3">
+            <div class="brand-mark p-2 rounded-full font-bold text-blue-600 text-xl">🏠 GK</div>
+            <div>
+                <h1 class="text-white text-2xl font-bold">GHARMITRA<span class="text-yellow-400">.online</span></h1>
+                <p class="text-xs text-blue-200">Pune City Services</p>
+            </div>
+        </div>
+        <div>
+            <span id="location-status" class="text-xs bg-yellow-400 text-gray-900 px-3 py-1.5 rounded-full font-semibold shadow-inner">📍 Pune Verified</span>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center px-4 py-10">
+        <div class="max-w-md w-full glass-card p-8">
+            
+             <div class="role-switch flex mb-6 p-1 rounded-xl">
+                <button onclick="setRole('customer')" id="tabCustomer" class="flex-1 py-2 text-sm font-bold rounded-lg bg-blue-600 text-white transition">Customer</button>
+                <button onclick="setRole('worker')" id="tabWorker" class="flex-1 py-2 text-sm font-bold rounded-lg text-gray-700 transition">Worker</button>
+            </div>
+
+            <div class="text-center mb-6">
+                <h2 id="formTitle" class="text-2xl font-bold text-gray-800">Customer Signup</h2>
+                <p id="formSub" class="text-xs text-gray-500 mt-1">Create account using Email OTP</p>
+            </div>
+
+             <div id="statusMsg" class="status-glass hidden mb-4 p-3 rounded-xl text-center text-xs font-semibold"></div>
+
+            <form id="authForm" onsubmit="handleSubmit(event)" class="space-y-4">
+                
+                <div id="fullNameContainer">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Full Name:</label>
+                    <input type="text" id="fullName" placeholder="Enter full name" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Mobile Number:</label>
+                    <input type="tel" id="mobile" placeholder="10-digit mobile number" pattern="[0-9]{10}" required class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                </div>
+
+                <div id="emailContainer">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Email ID:</label>
+                    <input type="email" id="email" placeholder="E.g., name@gmail.com" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                </div>
+
+                <div id="passwordContainer">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Password:</label>
+                    <input type="password" id="password" placeholder="Enter password" minlength="6" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                </div>
+
+                <div id="workTypeContainer" class="hidden">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Work Expertise (Services):</label>
+                    <select id="workType" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none text-sm bg-white">
+                        <option value="Cleaning">🧹 Cleaning</option>
+                        <option value="Electrician">⚡ Electrician</option>
+                        <option value="Plumbing">🪠 Plumbing</option>
+                        <option value="Painting">🎨 Painting</option>
+                        <option value="Carpenter">🪚 Carpenter</option>
+                        <option value="Electronics repair"> 🔌Electronics repair</option>
+                        <option value="Locksmith">🔑 Locksmith</option>
+                        <option value="Pest Control">🦟 Pest Control</option>
+                        <option value="Gardening">🌿 Gardening</option>
+                        <option value="Moving & Shifting">📦 Moving & Shifting</option>
+                        
+                    </select>
+                </div>
+
+                <div id="forgotPasswordLinkContainer" class="hidden text-right">
+                    <button type="button" onclick="showForgotPasswordUI()" class="text-xs text-blue-600 font-semibold hover:underline">Forgot Password?</button>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition duration-300">
+                    Send OTP & Verify
+                </button>
+
+                <div id="otpContainer" class="hidden otp-panel space-y-3 pt-4 mt-2 border-t">
+                    <span class="otp-handle" aria-hidden="true"></span>
+                    <div class="otp-visual" aria-hidden="true">🔐</div>
+                    <div class="text-center">
+                        <p id="otpTitle" class="text-sm font-bold">Let's verify your number</p>
+                        <label id="otpLabel" class="block text-xs font-semibold mt-1">We've sent a 4-digit code to your email. It will auto-verify once entered.</label>
+                    </div>
+
+                    <div id="otpBoxes" class="otp-boxes" role="group" aria-label="4 digit OTP">
+                        <input class="otp-digit" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="OTP digit 1">
+                        <input class="otp-digit" maxlength="1" inputmode="numeric" aria-label="OTP digit 2">
+                        <input class="otp-digit" maxlength="1" inputmode="numeric" aria-label="OTP digit 3">
+                        <input class="otp-digit" maxlength="1" inputmode="numeric" aria-label="OTP digit 4">
+                    </div>
+                    <input type="hidden" id="otpInput">
+
+                    <div id="otpProgress" class="hidden text-center text-xs font-semibold text-blue-600">
+                        <span class="inline-block animate-spin mr-1">⟳</span> Verifying securely...
+                    </div>
+
+                    <button type="button" id="verifyOtpBtn" onclick="verifyOTPAndRegister(event)" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-xs transition">Verify & Signup</button>
+
+                    <div class="flex justify-between items-center text-xs pt-1">
+                        <button type="button" onclick="resendOTP()" id="resendBtn" class="text-blue-600 hover:underline font-semibold">🔄 Resend OTP</button>
+                        <span class="text-gray-400">Secure verification</span>
+                    </div>
+
+                    <div id="otpSuccess" class="otp-success hidden">
+                        <div class="otp-success-check">✓</div>
+                        <strong>Verified successfully!</strong>
+                        <span class="text-[10px]">Your account is ready</span>
+                        <div id="otpParticles" aria-hidden="true"></div>
+                    </div>
+                </div>
+
+                <div id="newPasswordContainer" class="hidden space-y-3 pt-3 border-t">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">New Password:</label>
+                        <input type="password" id="newPassword" placeholder="Enter new password" minlength="6" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Confirm New Password:</label>
+                        <input type="password" id="confirmNewPassword" placeholder="Re-enter new password" minlength="6" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                    </div>
+                    <button type="button" onclick="updateNewPassword()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg transition">
+                        Update Password
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-6">
+                <p id="toggleText" class="text-xs text-gray-600">
+                    Already have an account? <a href="#" onclick="toggleMode()" class="text-blue-600 font-bold hover:underline">Sign In</a>
+                </p>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="text-center py-4 text-blue-200 text-xs bg-black/20">
+        &copy; 2026 Gharmitra.online | Pune City
+    </footer>
+
+    <script src="js/index.js"></script>
+</body>
+</html>

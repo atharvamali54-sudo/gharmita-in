@@ -1,0 +1,374 @@
+:root {
+            --liquid-blue: #5b8cff;
+            --liquid-cyan: #6ee7f9;
+            --liquid-purple: #9b8cff;
+            --ink: #17213c;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            color: var(--ink);
+        }
+
+        .hero-bg {
+            position: relative;
+            isolation: isolate;
+            background:
+                radial-gradient(circle at 12% 8%, rgba(109, 220, 255, 0.4), transparent 28%),
+                radial-gradient(circle at 88% 86%, rgba(164, 122, 255, 0.34), transparent 30%),
+                linear-gradient(135deg, #111b46 0%, #204f9e 48%, #322a73 100%);
+        }
+
+        .hero-bg::before,
+        .hero-bg::after {
+            content: "";
+            position: fixed;
+            z-index: -1;
+            width: 22rem;
+            height: 22rem;
+            border-radius: 42% 58% 63% 37% / 42% 34% 66% 58%;
+            filter: blur(2px);
+            opacity: .58;
+            pointer-events: none;
+            animation: liquidFloat 14s ease-in-out infinite alternate;
+        }
+
+        .hero-bg::before {
+            top: 14%;
+            left: -8rem;
+            background: linear-gradient(135deg, rgba(113, 237, 255, .72), rgba(76, 112, 255, .2));
+        }
+
+        .hero-bg::after {
+            right: -7rem;
+            bottom: 8%;
+            background: linear-gradient(135deg, rgba(200, 138, 255, .48), rgba(75, 218, 255, .24));
+            animation-delay: -5s;
+        }
+
+        @keyframes liquidFloat {
+            0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+            100% { transform: translate3d(2rem, -1.5rem, 0) rotate(18deg) scale(1.12); }
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-20%) rotate(-8deg); opacity: .25; }
+            50% { transform: translateX(20%) rotate(8deg); opacity: .5; }
+        }
+
+        .liquid-header {
+            background: linear-gradient(110deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+            backdrop-filter: blur(22px) saturate(150%);
+            -webkit-backdrop-filter: blur(22px) saturate(150%);
+            box-shadow: 0 1px 0 rgba(255,255,255,.18), 0 12px 35px rgba(4, 12, 44, .12);
+        }
+
+        .glass-card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg, rgba(255,255,255,.82), rgba(255,255,255,.53));
+            backdrop-filter: blur(28px) saturate(155%);
+            -webkit-backdrop-filter: blur(28px) saturate(155%);
+            border: 1px solid rgba(255,255,255,.72);
+            border-radius: 30px;
+            box-shadow:
+                0 30px 80px rgba(5, 15, 55, .28),
+                inset 0 1px 0 rgba(255,255,255,.9),
+                inset 0 -1px 0 rgba(255,255,255,.22);
+        }
+
+        .glass-card::before {
+            content: "";
+            position: absolute;
+            top: -45%;
+            left: -15%;
+            width: 130%;
+            height: 55%;
+            background: linear-gradient(110deg, transparent 20%, rgba(255,255,255,.55), transparent 78%);
+            transform: rotate(-8deg);
+            pointer-events: none;
+            animation: shimmer 9s ease-in-out infinite;
+        }
+
+        .glass-card > * { position: relative; z-index: 1; }
+
+        .brand-mark {
+            background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(213,239,255,.74));
+            box-shadow: 0 8px 24px rgba(8, 21, 73, .2), inset 0 1px 0 white;
+        }
+
+        .role-switch {
+            background: rgba(75, 97, 148, .12) !important;
+            border: 1px solid rgba(255,255,255,.42);
+            box-shadow: inset 0 1px 3px rgba(24, 43, 88, .12);
+        }
+
+        .role-switch button {
+            transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+        }
+
+        .role-switch button:hover { transform: translateY(-1px); }
+        #tabCustomer.bg-blue-600,
+        #tabWorker.bg-yellow-500 {
+            box-shadow: 0 7px 18px rgba(30, 77, 170, .25), inset 0 1px 0 rgba(255,255,255,.3);
+        }
+
+        #authForm input,
+        #authForm select {
+            background: rgba(255,255,255,.62);
+            border-color: rgba(111, 133, 177, .27);
+            box-shadow: inset 0 1px 2px rgba(36, 55, 100, .05);
+            transition: border-color .2s ease, box-shadow .2s ease, background .2s ease, transform .2s ease;
+        }
+
+        #authForm input:focus,
+        #authForm select:focus {
+            background: rgba(255,255,255,.9);
+            border-color: rgba(91, 140, 255, .72);
+            box-shadow: 0 0 0 4px rgba(91, 140, 255, .14), 0 8px 18px rgba(53, 85, 160, .08);
+            transform: translateY(-1px);
+        }
+
+        #submitBtn,
+        #verifyOtpBtn,
+        #newPasswordContainer button {
+            box-shadow: 0 10px 22px rgba(35, 82, 190, .22), inset 0 1px 0 rgba(255,255,255,.25);
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+
+        #submitBtn:hover,
+        #verifyOtpBtn:hover,
+        #newPasswordContainer button:hover {
+            transform: translateY(-2px);
+            filter: saturate(1.1);
+            box-shadow: 0 14px 26px rgba(35, 82, 190, .28), inset 0 1px 0 rgba(255,255,255,.3);
+        }
+
+        .status-glass {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Modern OTP verification animation */
+        .otp-panel {
+            position: relative;
+            overflow: hidden;
+            animation: otpPanelIn .45s cubic-bezier(.2,.8,.2,1);
+        }
+
+        @keyframes otpPanelIn {
+            from { opacity: 0; transform: translateY(14px) scale(.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .otp-visual {
+            position: relative;
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 10px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            color: #2563eb;
+            background: linear-gradient(145deg, #eff6ff, #dbeafe);
+            box-shadow: inset 0 1px 0 #fff, 0 10px 22px rgba(37,99,235,.16);
+        }
+
+        .otp-visual::before,
+        .otp-visual::after {
+            content: "";
+            position: absolute;
+            inset: -7px;
+            border: 1px solid rgba(91,140,255,.22);
+            border-radius: 22px;
+            animation: otpRing 2.4s ease-out infinite;
+        }
+
+        .otp-visual::after { animation-delay: 1.2s; }
+
+        @keyframes otpRing {
+            0% { opacity: .75; transform: scale(.82); }
+            100% { opacity: 0; transform: scale(1.35); }
+        }
+
+        .otp-boxes {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 7px;
+        }
+
+        .otp-digit {
+            width: 100%;
+            min-width: 0;
+            height: 46px;
+            padding: 0;
+            border: 1px solid rgba(111, 133, 177, .28);
+            border-radius: 13px;
+            background: rgba(255,255,255,.7);
+            color: #17213c;
+            font: 700 1.15rem 'Poppins', sans-serif;
+            text-align: center;
+            outline: none;
+            transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .otp-digit:focus {
+            transform: translateY(-3px) scale(1.04);
+            border-color: #5b8cff;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(91,140,255,.15), 0 8px 16px rgba(53,85,160,.12);
+        }
+
+        .otp-digit.filled {
+            animation: otpDigitPop .24s ease-out;
+            border-color: rgba(91,140,255,.58);
+            background: rgba(239,246,255,.92);
+        }
+
+        @keyframes otpDigitPop {
+            0% { transform: scale(.72); opacity: .5; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .otp-boxes.otp-error { animation: otpShake .42s ease-in-out; }
+
+        @keyframes otpShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-7px); }
+            50% { transform: translateX(7px); }
+            75% { transform: translateX(-4px); }
+        }
+
+        .otp-panel.is-verifying .otp-digit {
+            color: #2563eb;
+            border-color: rgba(37,99,235,.35);
+            animation: verifyingPulse 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes verifyingPulse {
+            from { box-shadow: 0 0 0 0 rgba(37,99,235,.08); }
+            to { box-shadow: 0 0 0 5px rgba(37,99,235,.12); }
+        }
+
+        .otp-success {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            display: grid;
+            place-items: center;
+            align-content: center;
+            gap: 6px;
+            border-radius: 17px;
+            background: rgba(240,253,244,.96);
+            color: #15803d;
+            text-align: center;
+            animation: successReveal .5s cubic-bezier(.2,.8,.2,1);
+        }
+
+        .otp-success-check {
+            width: 54px;
+            height: 54px;
+            display: grid;
+            place-items: center;
+            border: 3px solid #22c55e;
+            border-radius: 50%;
+            color: #16a34a;
+            font-size: 1.7rem;
+            font-weight: 700;
+            background: #dcfce7;
+            box-shadow: 0 0 0 9px rgba(34,197,94,.1);
+            animation: successCheck .55s .1s both cubic-bezier(.2,.8,.2,1);
+        }
+
+        @keyframes successReveal {
+            from { opacity: 0; transform: scale(.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes successCheck {
+            from { opacity: 0; transform: scale(.4) rotate(-18deg); }
+            to { opacity: 1; transform: scale(1) rotate(0); }
+        }
+
+        .otp-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: particleBurst .8s ease-out forwards;
+        }
+
+        @keyframes particleBurst {
+            from { opacity: 1; transform: translate(0, 0) scale(1); }
+            to { opacity: 0; transform: translate(var(--x), var(--y)) scale(.2); }
+        }
+
+        @media (max-width: 380px) {
+            .otp-boxes { gap: 5px; }
+            .otp-digit { height: 42px; border-radius: 11px; }
+        }
+
+        footer {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 -1px 0 rgba(255,255,255,.08);
+        }
+
+        @media (max-width: 480px) {
+            .glass-card { border-radius: 24px; padding: 1.35rem !important; }
+            .hero-bg::before, .hero-bg::after { width: 16rem; height: 16rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+
+        /* 4-digit OTP experience, based on the supplied reference animation. */
+        .otp-panel {
+            isolation: isolate;
+            margin-top: 1.25rem;
+            padding: 1.45rem 1.2rem 1.1rem !important;
+            border: 1px solid rgba(255,255,255,.08) !important;
+            border-radius: 1.45rem;
+            color: #f7f4fb;
+            background: linear-gradient(145deg, #1b191f, #111015);
+            box-shadow: 0 20px 40px rgba(8,6,10,.3), inset 0 1px 0 rgba(255,255,255,.07);
+        }
+
+        .otp-handle { display: block; width: 2rem; height: .22rem; margin: -.35rem auto .55rem; border-radius: 99px; background: #4b4652; }
+        .otp-visual { width: 2.25rem; height: 2.25rem; margin: 0 auto .45rem; border-radius: .75rem; font-size: 1rem; background: #28242d; box-shadow: none; }
+        .otp-visual::before, .otp-visual::after { display: none; }
+        #otpTitle { color: #f6f4f8; font-size: 1.08rem; }
+        #otpLabel { color: #938d9d; line-height: 1.45; }
+
+        .otp-boxes { position: relative; grid-template-columns: repeat(4, 1fr); max-width: 15rem; margin: .85rem auto .45rem; gap: .55rem; }
+        .otp-digit { height: 3.45rem; border: 1px solid #302c37; border-radius: .85rem; color: #f7f4fb; background: #222028; font-size: 1.25rem; box-shadow: inset 0 1px 0 rgba(255,255,255,.035); }
+        .otp-digit:focus, .otp-digit.filled { transform: none; border-color: #ef4b43; background: #272129; box-shadow: 0 0 0 3px rgba(239,75,67,.13), 0 0 18px rgba(239,75,67,.25); }
+
+        .otp-panel.is-verifying #otpTitle { font-size: 0; }
+        .otp-panel.is-verifying #otpTitle::after { content: 'Verifying…'; font-size: 1.08rem; }
+        .otp-panel.is-verifying #otpLabel { font-size: 0; }
+        .otp-panel.is-verifying #otpLabel::after { content: 'Processing secure authentication'; font-size: .75rem; }
+        .otp-panel.is-verifying .otp-boxes { height: 6rem; display: block; border: 1px dashed rgba(239,75,67,.4); border-radius: 50%; animation: otpOrbit 1s linear infinite; }
+        .otp-panel.is-verifying .otp-digit { position: absolute; width: 2.25rem; height: 2.25rem; display: grid; place-items: center; border-color: #ef4b43; border-radius: .65rem; box-shadow: 0 0 14px rgba(239,75,67,.32); }
+        .otp-panel.is-verifying .otp-digit:nth-child(1) { top: .25rem; left: .55rem; }
+        .otp-panel.is-verifying .otp-digit:nth-child(2) { top: .3rem; right: .45rem; }
+        .otp-panel.is-verifying .otp-digit:nth-child(3) { bottom: .25rem; right: .45rem; }
+        .otp-panel.is-verifying .otp-digit:nth-child(4) { bottom: .25rem; left: .55rem; }
+        @keyframes otpOrbit { to { transform: rotate(360deg); } }
+
+        #otpProgress { color: #f4726a; }
+        #verifyOtpBtn { background: linear-gradient(135deg, #ef4b43, #c93336); }
+        #verifyOtpBtn:hover { background: linear-gradient(135deg, #fb5c52, #d93c3f); }
+        #resendBtn { color: #f06a60; }
+        .otp-success { border-radius: 1.45rem; color: #2fd16d; background: rgba(18,18,23,.98); }
+        .otp-success-check { width: 3.7rem; height: 3.7rem; border: 0; color: white; background: linear-gradient(135deg, #33d66f, #0cae4e); box-shadow: 0 0 0 10px rgba(44,211,105,.08), 0 0 28px rgba(44,211,105,.3); }
+        .otp-particle { background: #f4bd55; }
