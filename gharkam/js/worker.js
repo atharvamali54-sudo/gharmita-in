@@ -14,6 +14,129 @@ let workerTripPathPoints = [];
 let workerTripLastLocation = null;
 let workerTripMapOrderId = null;
 
+// Dispatch policy.  Offers are reserved for one matching on-duty worker for
+// 30 seconds.  Once accepted, the worker has 15 minutes to mark "On The Way".
+// Server-side timestamps are preferable, but these deadlines are deliberately
+// stored on the order so every open worker dashboard sees the same state.
+const OFFER_WINDOW_MS = 30 * 1000;
+const ON_THE_WAY_WINDOW_MS = 15 * 60 * 1000;
+let dispatchTimerId = null;
+let offerClaimInFlight = false;
+
+function orderNow() {
+    return Date.now();
+}
+
+function queueNotification(orderId, type, data) {
+    // A Cloud Function / webhook can listen here and send the real EmailJS or
+    // WhatsApp Business message.  Browser JavaScript must not contain WhatsApp
+    // credentials and cannot send WhatsApp messages in the background.
+    return database.ref('notificationEvents').push({
+        orderId,
+        type,
+        data: data || {},
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        status: 'pending'
+    }).catch(error => console.warn('Notification event could not be queued:', error));
+}
+
+function isMatchingPendingOrder(order, selectedArea) {
+    if (!order || order.status !== 'Pending') return false;
+    const jobService = (order.service || '').replace(/^\/+/, '').trim().toLowerCase();
+    const workerService = (currentWorkerService || '').replace(/^\/+/, '').trim().toLowerCase();
+    return (order.area === selectedArea || !order.area) && jobService === workerService;
+}
+
+function claimNextOffer() {
+    if (offerClaimInFlight || !isDutyOn || !currentWorkerUid || getActiveOrderForCurrentWorker() || !allOrdersData) return;
+    const selectedArea = document.getElementById('workingAreaSelect')?.value;
+    const candidate = Object.entries(allOrdersData)
+        .map(([id, order]) => ({ id, order }))
+        .find(({ order }) => isMatchingPendingOrder(order, selectedArea) &&
+            (!order.offerExpiresAt || Number(order.offerExpiresAt) <= orderNow()) &&
+            !(order.offerDeclines && Number(order.offerDeclines[currentWorkerUid]) > orderNow() - OFFER_WINDOW_MS));
+    if (!candidate) return;
+
+    offerClaimInFlight = true;
+    database.ref('orders/' + candidate.id).transaction(order => {
+        const now = orderNow();
+        if (!isMatchingPendingOrder(order, selectedArea)) return;
+        if (order.offerExpiresAt && Number(order.offerExpiresAt) > now) return;
+        if (order.offerDeclines && Number(order.offerDeclines[currentWorkerUid]) > now - OFFER_WINDOW_MS) return;
+        return {
+            ...order,
+            offerWorkerUid: currentWorkerUid,
+            offeredAt: now,
+            offerExpiresAt: now + OFFER_WINDOW_MS
+        };
+    }, () => {
+        offerClaimInFlight = false;
+    });
+}
+
+function expireCurrentOffer() {
+    if (!currentWorkerUid || !allOrdersData) return;
+    const now = orderNow();
+    Object.entries(allOrdersData).forEach(([orderId, order]) => {
+        if (order.status !== 'Pending' || order.offerWorkerUid !== currentWorkerUid || Number(order.offerExpiresAt) > now) return;
+        database.ref('orders/' + orderId).transaction(current => {
+            if (!current || current.status !== 'Pending' || current.offerWorkerUid !== currentWorkerUid || Number(current.offerExpiresAt) > orderNow()) return;
+            return {
+                ...current,
+                offerWorkerUid: null,
+                offeredAt: null,
+                offerExpiresAt: null,
+                offerDeclines: { ...(current.offerDeclines || {}), [currentWorkerUid]: orderNow() }
+            };
+        });
+    });
+}
+
+function releaseExpiredAcceptedOrder() {
+    const active = getActiveOrderForCurrentWorker();
+    if (!active || active.order.status !== 'Accepted' || Number(active.order.onTheWayDeadline) > orderNow()) return;
+    const orderId = active.orderId;
+    database.ref('orders/' + orderId).transaction(order => {
+        if (!order || order.status !== 'Accepted' || order.workerUid !== currentWorkerUid || Number(order.onTheWayDeadline) > orderNow()) return;
+        return {
+            ...order,
+            status: 'Pending',
+            workerUid: null,
+            workerMobile: null,
+            acceptedAt: null,
+            onTheWayDeadline: null,
+            offerWorkerUid: null,
+            offeredAt: null,
+            offerExpiresAt: null,
+            reassignedAt: orderNow(),
+            reassignmentReason: 'Worker did not start within 15 minutes'
+        };
+    }, (_, committed) => {
+        if (committed) releaseActiveOrderLock(orderId);
+    });
+}
+
+function updateDeadlineLabels() {
+    const now = orderNow();
+    document.querySelectorAll('[data-offer-expires]').forEach(el => {
+        el.textContent = Math.max(0, Math.ceil((Number(el.dataset.offerExpires) - now) / 1000)) + ' sec left';
+    });
+    document.querySelectorAll('[data-on-the-way-deadline]').forEach(el => {
+        const seconds = Math.max(0, Math.ceil((Number(el.dataset.onTheWayDeadline) - now) / 1000));
+        el.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')} left to start`;
+    });
+}
+
+function startDispatchTimers() {
+    if (dispatchTimerId) return;
+    dispatchTimerId = setInterval(() => {
+        expireCurrentOffer();
+        releaseExpiredAcceptedOrder();
+        claimNextOffer();
+        updateDeadlineLabels();
+    }, 1000);
+}
+
 // Page Load Var Local Session Check
 document.addEventListener("DOMContentLoaded", () => {
     loadLocalWorkerSession();
@@ -552,6 +675,8 @@ function filterAreaJobs() { renderJobs(); }
 database.ref("orders").on("value", (snapshot) => {
     allOrdersData = snapshot.val();
     renderJobs();
+    claimNextOffer();
+    startDispatchTimers();
 });
 
 function renderJobs() {
@@ -595,8 +720,10 @@ function renderJobs() {
         const isServiceMatch = (jobService === workerService);
 
         // An assigned worker must finish the active order before seeing any
-        // other pending order, including orders from the same area.
-        if (!activeOrderId && item.status === 'Pending' && isAreaMatch && isServiceMatch) {
+        // other pending order.  A pending job is visible only during this
+        // worker's exclusive 30-second offer window.
+        const isCurrentWorkersOffer = item.offerWorkerUid === currentWorkerUid && Number(item.offerExpiresAt) > orderNow();
+        if (!activeOrderId && item.status === 'Pending' && isAreaMatch && isServiceMatch && isCurrentWorkersOffer) {
             pendingCount++;
             const jobCard = document.createElement('div');
             jobCard.className = "bg-slate-50 border border-slate-200 p-4 rounded-2xl hover:border-blue-400 transition shadow-sm space-y-3";
@@ -612,6 +739,9 @@ function renderJobs() {
             <p><i class="fa-solid fa-phone text-emerald-500 mr-1.5"></i><strong>संपर्क:</strong> <a href="tel:${item.customerMobile}" class="text-blue-600 font-bold">${item.customerMobile}</a></p>
             </div>
             ${photoHtml}
+            <div class="flex items-center justify-between text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg">
+                <span>Exclusive job offer</span><span data-offer-expires="${item.offerExpiresAt}">30 sec left</span>
+            </div>
             <div class="grid grid-cols-2 gap-2">
             <button onclick="acceptOrder('${key}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">🤝 Accept Order</button>
             <a href="https://maps.google.com/?q=${encodeURIComponent(item.address)}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">📍 Map</a>
@@ -633,6 +763,7 @@ function renderJobs() {
             <p><strong>मोबाइल:</strong> <a href="tel:${item.customerMobile}" class="text-blue-600 font-bold underline">${item.customerMobile}</a></p>
             <p><strong>पत्ता:</strong> ${item.address}</p>
             </div>
+            ${item.status === 'Accepted' ? `<div class="flex items-center justify-between text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg"><span>Mark On The Way within 15 minutes</span><span data-on-the-way-deadline="${item.onTheWayDeadline || orderNow()}">15:00 left to start</span></div>` : ''}
              <div class="worker-live-card">
                  <div class="flex items-center justify-between gap-3 mb-3">
                      <span class="text-xs font-black tracking-[.12em] text-slate-900 flex items-center gap-2">
@@ -687,6 +818,7 @@ function renderJobs() {
     }
 
     jobCountBadge.innerText = `${pendingCount} New Jobs`;
+    updateDeadlineLabels();
 }
 
 function acceptOrder(orderId) {
@@ -721,7 +853,8 @@ function acceptOrder(orderId) {
 
             database.ref("orders/" + orderId).transaction(
                 order => {
-                    if (!order || order.status !== 'Pending' || order.workerUid) {
+                    if (!order || order.status !== 'Pending' || order.workerUid ||
+                        order.offerWorkerUid !== currentWorkerUid || Number(order.offerExpiresAt) <= orderNow()) {
                         return;
                     }
 
@@ -730,7 +863,11 @@ function acceptOrder(orderId) {
                         status: "Accepted",
                         workerUid: currentWorkerUid,
                         workerMobile: getCurrentWorkerMobile(),
-                        acceptedAt: firebase.database.ServerValue.TIMESTAMP
+                        acceptedAt: firebase.database.ServerValue.TIMESTAMP,
+                        onTheWayDeadline: orderNow() + ON_THE_WAY_WINDOW_MS,
+                        offerWorkerUid: null,
+                        offeredAt: null,
+                        offerExpiresAt: null
                     };
                 },
                 (orderError, orderCommitted) => {
@@ -740,7 +877,11 @@ function acceptOrder(orderId) {
                         return;
                     }
 
-                    alert("तुम्ही हे काम यशस्वीरीत्या स्वीकारले आहे!");
+                    queueNotification(orderId, 'order_accepted', {
+                        workerMobile: getCurrentWorkerMobile(),
+                        customerMobile: allOrdersData?.[orderId]?.customerMobile || ''
+                    });
+                    alert("तुम्ही हे काम यशस्वीरीत्या स्वीकारले आहे! 15 मिनिटांच्या आत On The Way करा.");
                 }
             );
         }
@@ -754,6 +895,12 @@ function updateStatus(orderId, newStatus) {
         return;
     }
 
+    if (newStatus === 'On The Way' && activeOrder.order.status === 'Accepted' && Number(activeOrder.order.onTheWayDeadline) <= orderNow()) {
+        releaseExpiredAcceptedOrder();
+        alert('15 मिनिटांची वेळ संपली आहे. ही order दुसऱ्या worker कडे पाठवली जात आहे.');
+        return;
+    }
+
     const updateOrder = newStatus === 'Completed'
         ? stopLocationSharing(orderId, true).then(() =>
             database.ref("orders/" + orderId).update({
@@ -762,11 +909,19 @@ function updateStatus(orderId, newStatus) {
                 completedAt: firebase.database.ServerValue.TIMESTAMP
             })
         )
-        : database.ref("orders/" + orderId).update({ status: newStatus });
+        : database.ref("orders/" + orderId).update({
+            status: newStatus,
+            onTheWayAt: firebase.database.ServerValue.TIMESTAMP,
+            onTheWayDeadline: null
+        });
 
     updateOrder.then(() => {
         if (newStatus === 'On The Way') {
             startLocationSharing(orderId);
+            queueNotification(orderId, 'worker_on_the_way', {
+                workerMobile: getCurrentWorkerMobile(),
+                customerMobile: activeOrder.order.customerMobile || ''
+            });
         }
 
         const lockRelease = newStatus === 'Completed'
