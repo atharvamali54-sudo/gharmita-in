@@ -13,6 +13,7 @@ let workerTripPath = null;
 let workerTripPathPoints = [];
 let workerTripLastLocation = null;
 let workerTripMapOrderId = null;
+const auth = firebase.auth();
 
 // Dispatch policy.  Offers are reserved for one matching on-duty worker for
 // 30 seconds.  Once accepted, the worker has 15 minutes to mark "On The Way".
@@ -145,7 +146,19 @@ document.addEventListener("DOMContentLoaded", () => {
 function loadLocalWorkerSession() {
     let session = localStorage.getItem('current_user_session');
     if (session) {
-        let userData = JSON.parse(session);
+        let userData;
+        try {
+            userData = JSON.parse(session);
+        } catch (error) {
+            console.warn('Invalid local worker session:', error);
+            return;
+        }
+
+        // A customer must never become a worker merely by opening worker.html.
+        if (userData.role !== 'worker') {
+            currentWorkerUid = null;
+            return;
+        }
         if (!currentWorkerUid) {
             currentWorkerUid = getLocalWorkerId();
         }
@@ -162,12 +175,12 @@ function loadLocalWorkerSession() {
 
 function getLocalWorkerId() {
     const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
-    return session.mobile ? "local_worker_" + session.mobile : null;
+    return session.role === 'worker' && session.mobile ? "local_worker_" + session.mobile : null;
 }
 
 function getCurrentWorkerMobile() {
     const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
-    return session.mobile || "";
+    return session.role === 'worker' ? (session.mobile || "") : "";
 }
 
 function getActiveOrderForCurrentWorker() {

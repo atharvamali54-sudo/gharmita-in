@@ -7,10 +7,176 @@ let currentOrderId = null;
         let workerLocationPath = null;
         let workerPathPoints = [];
         let selectedRating = 5;
-        let activeCustomerChatOrderId = null;
-        let activeCustomerChatListener = null;
+let activeCustomerChatOrderId = null;
+let activeCustomerChatListener = null;
+let customerProfile = null;
+let pendingProfileChanges = null;
+let profileOtpCode = null;
 
-        document.getElementById('bookingDate').valueAsDate = new Date();
+const EMAILJS_PUBLIC_KEY = 'PfAaODZ_GPiBPHvOi';
+const EMAILJS_SERVICE_ID = 'service_lst67g7';
+const EMAILJS_TEMPLATE_ID = 'template_ope5xzi';
+
+if (window.emailjs) {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+}
+
+function customerStorageKey(mobile) {
+    return 'gharmitra_user_customer_' + mobile;
+}
+
+function readCustomerSession() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('current_user_session') || 'null');
+        return saved && saved.role === 'customer' ? saved : null;
+    } catch (error) {
+        console.warn('Could not read customer session:', error);
+        return null;
+    }
+}
+
+function setProfileStatus(message, type = 'info') {
+    const status = document.getElementById('profileStatus');
+    if (!status) return;
+    status.textContent = message;
+    status.className = 'mt-4 p-3 rounded-xl text-xs font-semibold ' + (
+        type === 'error' ? 'bg-red-50 border border-red-200 text-red-700' :
+        type === 'success' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' :
+        'bg-blue-50 border border-blue-200 text-blue-700'
+    );
+    status.classList.remove('hidden');
+}
+
+function populateBookingProfile() {
+    customerProfile = readCustomerSession();
+    if (!customerProfile) return;
+
+    const nameInput = document.getElementById('customerName');
+    const mobileInput = document.getElementById('customerMobile');
+    if (nameInput) nameInput.value = customerProfile.fullName || customerProfile.name || '';
+    if (mobileInput) mobileInput.value = customerProfile.mobile || '';
+}
+
+function openProfileModal() {
+    customerProfile = readCustomerSession();
+    if (!customerProfile) {
+        alert('Profile edit करण्यासाठी आधी sign in करा.');
+        window.location.href = './index.html';
+        return;
+    }
+
+    document.getElementById('profileName').value = customerProfile.fullName || customerProfile.name || '';
+    document.getElementById('profileEmail').value = customerProfile.email || '';
+    document.getElementById('profileMobile').value = customerProfile.mobile || '';
+    document.getElementById('profileOtp').value = '';
+    document.getElementById('profileOtpArea').classList.add('hidden');
+    document.getElementById('profileSaveBtn').classList.remove('hidden');
+    document.getElementById('profileStatus').classList.add('hidden');
+    pendingProfileChanges = null;
+    profileOtpCode = null;
+    document.getElementById('profileModal').classList.remove('hidden');
+    document.getElementById('profileModal').classList.add('flex');
+}
+
+function closeProfileModal() {
+    document.getElementById('profileModal').classList.remove('flex');
+    document.getElementById('profileModal').classList.add('hidden');
+}
+
+function writeCustomerProfile(profile, previousMobile) {
+    const oldMobile = previousMobile || profile.mobile;
+    const serialized = JSON.stringify(profile);
+    localStorage.setItem(customerStorageKey(profile.mobile), serialized);
+    localStorage.setItem('gharmitra_user_' + profile.mobile, serialized);
+    localStorage.setItem('current_user_session', serialized);
+
+    if (oldMobile !== profile.mobile) {
+        localStorage.removeItem(customerStorageKey(oldMobile));
+        localStorage.removeItem('gharmitra_user_' + oldMobile);
+    }
+
+    customerProfile = profile;
+    populateBookingProfile();
+}
+
+function saveProfile(event) {
+    event.preventDefault();
+    customerProfile = readCustomerSession();
+    if (!customerProfile) return;
+
+    const nextName = document.getElementById('profileName').value.trim();
+    const nextEmail = document.getElementById('profileEmail').value.trim().toLowerCase();
+    const nextMobile = document.getElementById('profileMobile').value.trim();
+    if (!nextName || !nextEmail || !/^\d{10}$/.test(nextMobile)) {
+        setProfileStatus('पूर्ण नाव, योग्य email आणि 10-digit mobile number द्या.', 'error');
+        return;
+    }
+
+    const currentName = customerProfile.fullName || customerProfile.name || '';
+    const emailChanged = nextEmail !== String(customerProfile.email || '').toLowerCase();
+    const mobileChanged = nextMobile !== String(customerProfile.mobile || '');
+    const nextProfile = { ...customerProfile, fullName: nextName, name: nextName, email: nextEmail, mobile: nextMobile, role: 'customer' };
+
+    if (!emailChanged && !mobileChanged) {
+        if (nextName === currentName) {
+            setProfileStatus('कोणताही बदल केलेला नाही.', 'info');
+            return;
+        }
+        writeCustomerProfile(nextProfile, customerProfile.mobile);
+        setProfileStatus('नाव अपडेट झाले. Booking form मध्येही बदल दिसेल.', 'success');
+        setTimeout(closeProfileModal, 900);
+        return;
+    }
+
+    pendingProfileChanges = { profile: nextProfile, previousMobile: customerProfile.mobile };
+    profileOtpCode = String(Math.floor(100000 + Math.random() * 900000));
+    setProfileStatus('OTP पाठवत आहोत…', 'info');
+
+    if (!window.emailjs) {
+        setProfileStatus('OTP सेवा उपलब्ध नाही. कृपया पुन्हा प्रयत्न करा.', 'error');
+        return;
+    }
+
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        to_email: customerProfile.email,
+        email: customerProfile.email,
+        user_email: customerProfile.email,
+        otp_code: profileOtpCode,
+        message: 'Your Gharmitra profile update OTP is: ' + profileOtpCode
+    }).then(() => {
+        document.getElementById('profileOtpArea').classList.remove('hidden');
+        document.getElementById('profileSaveBtn').classList.add('hidden');
+        setProfileStatus('OTP तुमच्या जुन्या email वर पाठवला आहे. तो टाकून बदल save करा.', 'success');
+        document.getElementById('profileOtp').focus();
+    }).catch(error => {
+        console.error('Profile OTP error:', error);
+        pendingProfileChanges = null;
+        profileOtpCode = null;
+        setProfileStatus('OTP पाठवता आला नाही. EmailJS setup तपासा आणि पुन्हा प्रयत्न करा.', 'error');
+    });
+}
+
+function verifyProfileOtp() {
+    const enteredOtp = document.getElementById('profileOtp').value.replace(/\D/g, '');
+    if (!pendingProfileChanges || !profileOtpCode) {
+        setProfileStatus('आधी Save Profile दाबून OTP मागवा.', 'error');
+        return;
+    }
+    if (enteredOtp !== profileOtpCode) {
+        setProfileStatus('OTP चुकीचा आहे. जुन्या email मधील OTP पुन्हा तपासा.', 'error');
+        return;
+    }
+
+    writeCustomerProfile(pendingProfileChanges.profile, pendingProfileChanges.previousMobile);
+    pendingProfileChanges = null;
+    profileOtpCode = null;
+    document.getElementById('profileOtpArea').classList.add('hidden');
+    setProfileStatus('Profile सुरक्षितपणे अपडेट झाले. Booking form मध्ये नवीन details दिसतील.', 'success');
+    setTimeout(closeProfileModal, 1000);
+}
+
+document.getElementById('bookingDate').valueAsDate = new Date();
+populateBookingProfile();
 
         function ensureWorkerLiveMap() {
             if (workerLiveMap) {
