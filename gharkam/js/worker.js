@@ -749,7 +749,9 @@ function renderJobs() {
             </div>
             <div class="text-xs text-slate-600 space-y-1 bg-white p-3 rounded-xl border border-slate-100">
             <p><i class="fa-solid fa-location-dot text-red-500 mr-1.5"></i><strong>पत्ता:</strong> ${item.address}</p>
-            <p><i class="fa-solid fa-phone text-emerald-500 mr-1.5"></i><strong>संपर्क:</strong> <a href="tel:${item.customerMobile}" class="text-blue-600 font-bold">${item.customerMobile}</a></p>
+            <p><i class="fa-regular fa-calendar text-blue-500 mr-1.5"></i><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
+            <p><i class="fa-regular fa-clock text-blue-500 mr-1.5"></i><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
+            <p class="text-slate-400"><i class="fa-solid fa-lock mr-1.5"></i>मोबाइल नंबर On The Way केल्यानंतर दिसेल.</p>
             </div>
             ${photoHtml}
             <div class="flex items-center justify-between text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg">
@@ -773,8 +775,12 @@ function renderJobs() {
             <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-100 text-xs space-y-1.5 text-slate-700">
             <p><strong>ग्राहक:</strong> ${item.customerName}</p>
             <p><strong>सेवा:</strong> ${item.service}</p>
-            <p><strong>मोबाइल:</strong> <a href="tel:${item.customerMobile}" class="text-blue-600 font-bold underline">${item.customerMobile}</a></p>
             <p><strong>पत्ता:</strong> ${item.address}</p>
+            <p><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
+            <p><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
+            ${item.status === 'On The Way'
+                ? `<p><strong>मोबाइल:</strong> <a href="tel:${item.customerMobile}" class="text-blue-600 font-bold underline">${item.customerMobile || 'Not available'}</a></p>`
+                : `<p class="text-slate-500"><i class="fa-solid fa-lock mr-1"></i>मोबाइल नंबर On The Way केल्यानंतर दिसेल.</p>`}
             </div>
             ${item.status === 'Accepted' ? `<div class="flex items-center justify-between text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg"><span>Mark On The Way within 15 minutes</span><span data-on-the-way-deadline="${item.onTheWayDeadline || orderNow()}">15:00 left to start</span></div>` : ''}
              <div class="worker-live-card">
