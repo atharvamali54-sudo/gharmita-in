@@ -170,6 +170,9 @@ function loadLocalWorkerSession() {
             wallet: userData.balance || 50,
             workerIndex: userData.mobile ? userData.mobile.slice(-6) : 100001
         });
+        loadWorkerEarnings(currentWorkerUid);
+    } else {
+        renderEarningsChart([0, 0, 0, 0, 0, 0, 0]);
     }
 }
 
@@ -441,37 +444,95 @@ function updateWorkerUI(data) {
 }
 
 function loadWorkerEarnings(workerUid) {
-    database.ref('orders').orderByChild('workerUid').equalTo(workerUid).on('value', (snapshot) => {
-        const orders = snapshot.val();
+    const uid = workerUid || currentWorkerUid || getLocalWorkerId();
+    const mobile = getCurrentWorkerMobile();
+
+    function processOrders(orders) {
         let todaySum = 0;
         let todayCount = 0;
-        let weeklyData = [0, 0, 0, 0, 0, 0, 0]; 
-        
-        const todayStr = new Date().toLocaleDateString();
+        let weeklyData = [0, 0, 0, 0, 0, 0, 0];
 
-        if (orders) {
+        const now = new Date();
+        const todayYear = now.getFullYear();
+        const todayMonth = now.getMonth();
+        const todayDate = now.getDate();
+
+        // Calculate Monday 00:00:00 of the current week
+        const currentDayOfWeek = (now.getDay() + 6) % 7; // 0 = Mon, 6 = Sun
+        const startOfWeek = new Date(todayYear, todayMonth, todayDate - currentDayOfWeek, 0, 0, 0, 0).getTime();
+        const endOfWeek = startOfWeek + (7 * 24 * 60 * 60 * 1000);
+
+        if (orders && (uid || mobile)) {
             Object.values(orders).forEach(order => {
-                if (order.status === 'Completed') {
-                    const amount = parseInt(order.budget ? order.budget.replace(/[^0-9]/g, '') : '500') || 500;
-                    if (order.date === todayStr) {
-                        todaySum += amount;
-                        todayCount++;
-                    }
-                    let dayIndex = new Date(order.timestamp || Date.now()).getDay(); 
+                if (!order || order.status !== 'Completed') return;
+
+                // Match worker: by UID or Mobile number
+                const isMatch = (
+                    (uid && (order.workerUid === uid || order.workerUid === ('local_worker_' + mobile))) ||
+                    (mobile && (order.workerMobile === mobile || order.workerUid === ('local_worker_' + mobile)))
+                );
+
+                if (!isMatch) return;
+
+                const amount = parseInt(order.budget ? String(order.budget).replace(/[^0-9]/g, '') : '500') || 500;
+
+                // Determine order completion time / date
+                let orderTime = order.completedAt || order.timestamp;
+                if (!orderTime && order.date) {
+                    const parsed = new Date(order.date).getTime();
+                    if (!isNaN(parsed)) orderTime = parsed;
+                }
+                if (!orderTime) orderTime = Date.now();
+
+                const orderDateObj = new Date(orderTime);
+
+                // Today's check (calendar day match or order.date match)
+                const isToday = (
+                    orderDateObj.getFullYear() === todayYear &&
+                    orderDateObj.getMonth() === todayMonth &&
+                    orderDateObj.getDate() === todayDate
+                ) || (order.date && (
+                    order.date === (todayYear + '-' + String(todayMonth + 1).padStart(2, '0') + '-' + String(todayDate).padStart(2, '0'))
+                ));
+
+                if (isToday) {
+                    todaySum += amount;
+                    todayCount++;
+                }
+
+                // Current week check
+                if (orderTime >= startOfWeek && orderTime < endOfWeek) {
+                    const dayIndex = (orderDateObj.getDay() + 6) % 7; // Mon=0 .. Sun=6
                     weeklyData[dayIndex] += amount;
                 }
             });
         }
 
-        document.getElementById('todayEarnings').innerText = todaySum;
-        document.getElementById('todayJobsCount').innerText = todayCount;
+        const todayEarningsEl = document.getElementById('todayEarnings');
+        const todayJobsCountEl = document.getElementById('todayJobsCount');
+        if (todayEarningsEl) todayEarningsEl.innerText = todaySum;
+        if (todayJobsCountEl) todayJobsCountEl.innerText = todayCount;
 
         renderEarningsChart(weeklyData);
-    });
+    }
+
+    if (allOrdersData) {
+        processOrders(allOrdersData);
+    } else {
+        database.ref('orders').once('value').then(snapshot => {
+            processOrders(snapshot.val());
+        }).catch(err => {
+            console.warn('Error loading worker earnings:', err);
+            renderEarningsChart([0, 0, 0, 0, 0, 0, 0]);
+        });
+    }
 }
 
 function renderEarningsChart(dataVals) {
-    const ctx = document.getElementById('weeklyEarningsChart').getContext('2d');
+    const canvas = document.getElementById('weeklyEarningsChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    const ctx = canvas.getContext('2d');
     if (earningsChartInstance) earningsChartInstance.destroy();
 
     earningsChartInstance = new Chart(ctx, {
@@ -690,6 +751,7 @@ database.ref("orders").on("value", (snapshot) => {
     renderJobs();
     claimNextOffer();
     startDispatchTimers();
+    loadWorkerEarnings();
 });
 
 function renderJobs() {
