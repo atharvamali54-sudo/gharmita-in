@@ -253,6 +253,43 @@ function orderNow() {
     return Date.now();
 }
 
+
+function triggerWhatsAppAlertsOnOrderAccept(orderId, orderItem, workerMobile) {
+    if (!orderItem) return;
+    const custMobile = orderItem.customerMobile;
+    const custName = orderItem.customerName || 'Customer';
+    const service = orderItem.service || 'सेवा';
+    const budget = orderItem.budget || '';
+
+    const customerMsg = `*नमस्कार ${custName} जी!* 🏠\nतुमची Gharmitra ऑर्डर यशस्वीरीत्या CONFIRMED झाली आहे!\n\n⚡ *सेवा:* ${service}\n👷 *कामगार मोबाईल:* ${workerMobile}\n💰 *रक्कम:* ${budget}\n\nकामगार लवकरच तुमच्या पत्त्यावर पोहोचेल. धन्यवाद!\n- Gharmitra.online पुणे`;
+    const workerMsg = `*नवीन काम CONFIRMED!* 🛠️\n\n⚡ *सेवा:* ${service}\n👤 *ग्राहक:* ${custName}\n📞 *मोबाईल:* ${custMobile}\n📍 *पत्ता:* ${orderItem.address}\n💰 *रक्कम:* ${budget}\n\n१५ मिनिटांच्या आत On The Way करा!\n- Gharmitra`;
+
+    // Queue notification event in Firebase
+    queueNotification(orderId, 'whatsapp_order_accepted', {
+        customerMobile: custMobile,
+        workerMobile: workerMobile,
+        customerMessage: customerMsg,
+        workerMessage: workerMsg
+    });
+
+    // Check if background WhatsApp webhook gateway is configured in Firebase settings
+    database.ref('settings/whatsapp').once('value').then(snap => {
+        const cfg = snap.val();
+        if (cfg && cfg.webhookUrl && cfg.enabled) {
+            fetch(cfg.webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: custMobile,
+                    message: customerMsg,
+                    apiKey: cfg.apiKey || '',
+                    instanceId: cfg.instanceId || ''
+                })
+            }).catch(e => console.warn('WhatsApp gateway send error:', e));
+        }
+    }).catch(() => {});
+}
+
 function queueNotification(orderId, type, data) {
     // A Cloud Function / webhook can listen here and send the real EmailJS or
     // WhatsApp Business message.  Browser JavaScript must not contain WhatsApp
@@ -1333,9 +1370,12 @@ function renderJobs() {
                      </a>
                  </div>
              </div>
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-3 gap-2">
             <a href="https://maps.google.com/?q=${encodeURIComponent(item.address)}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">📍 Map</a>
             <button onclick="openChatModal('${key}', '${item.customerName}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">💬 Chat</button>
+            <a href="https://wa.me/91${item.customerMobile}?text=${encodeURIComponent('नमस्कार ' + (item.customerName || '') + ' जी! मी Gharmitra चा कामगार आहे. तुमचे ' + item.service + ' चे काम स्वीकारले असून मी लवकरच येत आहे.')}" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5" title="ग्राहकाला WhatsApp वर मेसेज करा">
+                <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
+            </a>
             </div>
             <div class="grid grid-cols-2 gap-2 pt-1">
             <button onclick="updateStatus('${key}', 'On The Way')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-3 rounded-xl text-[11px] transition shadow-sm">🚗 On The Way</button>
@@ -1435,6 +1475,9 @@ function acceptOrder(orderId) {
                         workerMobile: getCurrentWorkerMobile(),
                         customerMobile: allOrdersData?.[orderId]?.customerMobile || ''
                     });
+                    if (allOrdersData?.[orderId]) {
+                        triggerWhatsAppAlertsOnOrderAccept(orderId, allOrdersData[orderId], getCurrentWorkerMobile());
+                    }
                     alert("तुम्ही हे काम यशस्वीरीत्या स्वीकारले आहे! 15 मिनिटांच्या आत On The Way करा.");
                 }
             );

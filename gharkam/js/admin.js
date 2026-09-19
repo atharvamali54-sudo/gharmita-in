@@ -63,6 +63,10 @@ function lockAdminDashboard() {
 function saveAdminSettings() {
     const pinInput = document.getElementById('newAdminPin');
     const commInput = document.getElementById('adminCommissionRate');
+    const waAuto = document.getElementById('whatsappAutoAlerts')?.checked;
+    const waUrl = document.getElementById('whatsappWebhookUrl')?.value?.trim();
+    const waInstance = document.getElementById('whatsappInstanceId')?.value?.trim();
+    const waToken = document.getElementById('whatsappToken')?.value?.trim();
 
     if (pinInput && pinInput.value.trim().length >= 4) {
         localStorage.setItem('gharmitra_admin_pin', pinInput.value.trim());
@@ -72,8 +76,67 @@ function saveAdminSettings() {
         localStorage.setItem('gharmitra_admin_commission_rate', commInput.value);
     }
 
-    alert("ॲडमिन सेटिंग्ज यशस्वीरीत्या सेव्ह झाल्या!");
+    const waSettings = {
+        autoAlerts: waAuto !== false,
+        webhookUrl: waUrl || "",
+        instanceId: waInstance || "",
+        token: waToken || "",
+        updatedAt: Date.now()
+    };
+    localStorage.setItem('gharmitra_whatsapp_settings', JSON.stringify(waSettings));
+
+    if (typeof database !== 'undefined') {
+        database.ref('settings/whatsapp').set(waSettings).catch(err => console.warn("Firebase WA settings save:", err));
+    }
+
+    alert("ॲडमिन आणि व्हॉट्सॲप सेटिंग्ज यशस्वीरीत्या सेव्ह झाल्या!");
     calculateKpisAndRender();
+}
+
+function loadAdminWhatsAppSettings() {
+    const local = localStorage.getItem('gharmitra_whatsapp_settings');
+    let data = null;
+    if (local) {
+        try { data = JSON.parse(local); } catch(e) {}
+    }
+
+    if (typeof database !== 'undefined') {
+        database.ref('settings/whatsapp').once('value').then(snap => {
+            const dbData = snap.val();
+            if (dbData) populateWhatsAppInputs(dbData);
+            else if (data) populateWhatsAppInputs(data);
+        }).catch(() => {
+            if (data) populateWhatsAppInputs(data);
+        });
+    } else if (data) {
+        populateWhatsAppInputs(data);
+    }
+}
+
+function populateWhatsAppInputs(cfg) {
+    if (!cfg) return;
+    const waAuto = document.getElementById('whatsappAutoAlerts');
+    const waUrl = document.getElementById('whatsappWebhookUrl');
+    const waInstance = document.getElementById('whatsappInstanceId');
+    const waToken = document.getElementById('whatsappToken');
+
+    if (waAuto && typeof cfg.autoAlerts !== 'undefined') waAuto.checked = !!cfg.autoAlerts;
+    if (waUrl && cfg.webhookUrl) waUrl.value = cfg.webhookUrl;
+    if (waInstance && cfg.instanceId) waInstance.value = cfg.instanceId;
+    if (waToken && cfg.token) waToken.value = cfg.token;
+}
+
+function testAdminWhatsApp() {
+    const testNumber = prompt("टेस्ट मेसेज पाठवण्यासाठी व्हॉट्सॲप मोबाईल नंबर टाका (10 अंक):", "9876543210");
+    if (!testNumber) return;
+    const cleanNum = testNumber.replace(/[^0-9]/g, '');
+    if (cleanNum.length < 10) {
+        alert("कृपया योग्य १० अंकी मोबाईल नंबर टाका.");
+        return;
+    }
+    const msg = "नमस्कार! घरमित्र (Gharmitra) ॲडमिन कडून हा टेस्ट व्हॉट्सॲप मेसेज आहे. सिस्टीम व्यवस्थित जोडली गेली आहे!";
+    const waUrl = `https://wa.me/91${cleanNum.slice(-10)}?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank');
 }
 
 // --- 2. Tab Navigation ---
@@ -102,6 +165,7 @@ function switchTab(tabId) {
 
 function initDashboard() {
     const savedComm = localStorage.getItem('gharmitra_admin_commission_rate') || '10';
+    loadAdminWhatsAppSettings();
     const commEl = document.getElementById('adminCommissionRate');
     if (commEl) commEl.value = savedComm;
 
@@ -403,7 +467,10 @@ function renderOrdersTable() {
             </td>
             <td class="p-3.5">
                 <strong class="text-slate-800 block">${item.customerName || 'अज्ञात ग्राहक'}</strong>
-                <a href="tel:${item.customerMobile}" class="text-blue-600 hover:underline font-semibold text-[11px]"><i class="fa-solid fa-phone text-[10px]"></i> ${item.customerMobile || '-'}</a>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                    <a href="tel:${item.customerMobile}" class="text-blue-600 hover:underline font-semibold text-[11px]"><i class="fa-solid fa-phone text-[10px]"></i> ${item.customerMobile || '-'}</a>
+                    ${item.customerMobile ? `<a href="https://wa.me/91${String(item.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (item.customerName || '') + ', घरमित्र (Gharmitra) कडून आपल्या ऑर्डर #' + item.id.slice(-6).toUpperCase() + ' बाबत...')}" target="_blank" title="व्हॉट्सॲपवर चॅट करा" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> चॅट</a>` : ''}
+                </div>
             </td>
             <td class="p-3.5">
                 <span class="font-bold text-slate-800 block">⚡ ${item.service || '-'}</span>
@@ -607,10 +674,18 @@ function openAdminOrderModal(orderId) {
             ${order.completionOtp ? `<p><strong>Work OTP:</strong> <strong class="text-emerald-600 font-black text-sm">${order.completionOtp}</strong></p>` : ''}
         </div>
         ${photoHtml}
-        <div class="pt-2">
-            <a href="https://maps.google.com/?q=${encodeURIComponent(order.address || order.area || 'Pune')}" target="_blank" class="text-blue-600 font-bold text-xs flex items-center gap-1 hover:underline">
-                <i class="fa-solid fa-map-location-dot"></i> Google Maps वर पत्ता पहा
+        <div class="pt-2 flex flex-wrap gap-2">
+            <a href="https://maps.google.com/?q=${encodeURIComponent(order.address || order.area || 'Pune')}" target="_blank" class="bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-blue-200 inline-flex items-center gap-1">
+                <i class="fa-solid fa-map-location-dot"></i> Google Maps
             </a>
+            ${order.customerMobile ? `
+            <a href="https://wa.me/91${String(order.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (order.customerName || '') + ', घरमित्र (Gharmitra) कडून आपल्या ऑर्डर #' + orderId.slice(-6).toUpperCase() + ' बाबत: आपली ' + (order.service || 'काम') + ' सेवा सध्या ' + (order.status || 'Pending') + ' आहे. काही अडचण असल्यास संपर्क साधा.')}" target="_blank" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-300 inline-flex items-center gap-1">
+                <i class="fa-brands fa-whatsapp text-emerald-600"></i> ग्राहक WhatsApp
+            </a>` : ''}
+            ${order.workerMobile ? `
+            <a href="https://wa.me/91${String(order.workerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('घरमित्र ॲडमिन अलर्ट: ऑर्डर #' + orderId.slice(-6).toUpperCase() + ' साठी ग्राहक: ' + (order.customerName || '') + ' (' + (order.customerMobile || '') + '), पत्ता: ' + (order.address || order.area || 'Pune') + '. त्वरित सेवा द्या.')}" target="_blank" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-300 inline-flex items-center gap-1">
+                <i class="fa-brands fa-whatsapp text-emerald-600"></i> कामगार WhatsApp
+            </a>` : ''}
         </div>
     `;
 

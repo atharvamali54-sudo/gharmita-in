@@ -340,6 +340,45 @@
                     <input type="number" id="adminCommissionRate" min="0" max="50" value="10" class="w-full bg-slate-50 border border-slate-300 text-slate-800 font-bold py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                     <p class="text-[11px] text-slate-400 mt-1">प्रत्येक पूर्ण झालेल्या कामावर मालकाचे अंदाजे कमिशन.</p>
                 </div>
+                                <!-- WhatsApp Notification Gateway Settings -->
+                <div class="pt-4 border-t border-slate-200 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-emerald-600 text-base"></i> व्हॉट्सॲप नोटिफिकेशन्स (WhatsApp Gateway)
+                            </h4>
+                            <p class="text-xs text-slate-400">ऑर्डर कन्फर्म झाल्यावर ग्राहक व कामगाराला ऑटोमॅटिक मेसेज</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="whatsappAutoAlerts" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">WhatsApp Provider / Webhook URL</label>
+                        <input type="url" id="whatsappWebhookUrl" placeholder="https://api.ultramsg.com/... किंवा Webhook URL" class="w-full bg-slate-50 border border-slate-300 text-slate-800 py-2.5 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs">
+                        <p class="text-[10px] text-slate-400 mt-1">रिकामे ठेवल्यास सिस्टीम 1-क्लिक डायरेक्ट WhatsApp Web / App द्वारे त्वरित मेसेज उघडेल.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Instance ID / App ID</label>
+                            <input type="text" id="whatsappInstanceId" placeholder="उदा. instance10204" class="w-full bg-slate-50 border border-slate-300 text-slate-800 py-2.5 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">API Token / Secret Key</label>
+                            <input type="password" id="whatsappToken" placeholder="उदा. tok_abcdef123" class="w-full bg-slate-50 border border-slate-300 text-slate-800 py-2.5 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs">
+                        </div>
+                    </div>
+
+                    <div class="pt-1">
+                        <button type="button" onclick="testAdminWhatsApp()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-2 px-3 rounded-xl border border-emerald-300 text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fa-brands fa-whatsapp text-emerald-600"></i> टेस्ट व्हॉट्सॲप मेसेज पाठवा (Test Alert)
+                        </button>
+                    </div>
+                </div>
+
                 <button onclick="saveAdminSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition text-xs shadow-md">
                     सेटिंग्ज सेव्ह करा
                 </button>
