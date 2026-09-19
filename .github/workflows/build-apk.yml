@@ -25,19 +25,18 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.5
 
-      - name: Build Debug APK
+      - name: Accept Android Licenses & Build APK
         working-directory: ./android
-        run: gradle assembleDebug --stacktrace
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          gradle assembleDebug --stacktrace
 
-      - name: Rename APK for Download
+      - name: Prepare APK
         run: |
           mkdir -p release-apk
           cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/Gharmitra-Secure.apk
@@ -61,7 +60,7 @@ jobs:
             - ⚡ रिअल-टाईम लोकेशन ट्रॅकिंग आणि लाऊड डिलिव्हरी रिंगटोन.
             - 🏠 पुणे शहरासाठी सर्व घरगुती सेवा.
             
-            **डाउनलोड करण्यासाठी खालील Gharmitra-Secure.apk वर क्लिक करा.**
+            **डाउनलोड करण्यासाठी खाली Assets मधील Gharmitra-Secure.apk वर क्लिक करा.**
           files: release-apk/Gharmitra-Secure.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
