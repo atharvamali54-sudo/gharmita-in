@@ -89,6 +89,146 @@ function getCustomerCoordinates(order) {
     return { lat: 18.5204, lng: 73.8567 };
 }
 
+// =========================================================
+// Loud Delivery Alert Sound & Vibration System (Swiggy / Zomato style)
+// =========================================================
+let audioCtx = null;
+let orderAlertInterval = null;
+let isAlertRinging = false;
+let currentAlertOrderId = null;
+
+function getAudioContext() {
+    if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+        }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+    }
+    return audioCtx;
+}
+
+// Ensure audio context unlocks on any user touch or click
+['click', 'touchstart', 'keydown'].forEach(evtName => {
+    document.addEventListener(evtName, () => {
+        getAudioContext();
+    }, { once: false, passive: true });
+});
+
+function playLoudDeliveryChime() {
+    try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+
+        const now = ctx.currentTime;
+        // High-energy loud delivery notification chord (Zomato/Swiggy chime)
+        const notes = [
+            { freq: 784, start: 0.00, dur: 0.12 },     // G5
+            { freq: 988, start: 0.13, dur: 0.12 },     // B5
+            { freq: 1175, start: 0.26, dur: 0.15 },    // D6
+            { freq: 1568, start: 0.42, dur: 0.26 },    // G6
+            { freq: 1175, start: 0.72, dur: 0.13 },    // D6
+            { freq: 1568, start: 0.86, dur: 0.36 }     // G6
+        ];
+
+        notes.forEach(n => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(n.freq, now + n.start);
+
+            gain.gain.setValueAtTime(0.001, now + n.start);
+            gain.gain.exponentialRampToValueAtTime(0.95, now + n.start + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + n.start + n.dur);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(now + n.start);
+            osc.stop(now + n.start + n.dur + 0.05);
+        });
+
+        // Mobile Vibration
+        if (navigator.vibrate) {
+            navigator.vibrate([350, 150, 350, 150, 500]);
+        }
+    } catch (err) {
+        console.warn("Loud chime error:", err);
+    }
+}
+
+function startOrderAlert(orderId, orderDetails) {
+    if (isAlertRinging && currentAlertOrderId === orderId) return;
+
+    isAlertRinging = true;
+    currentAlertOrderId = orderId;
+
+    const alertModal = document.getElementById('incomingOrderAlertModal');
+    const alertSub = document.getElementById('incomingOrderAlertSub');
+    if (alertModal) {
+        if (alertSub && orderDetails) {
+            const budgetVal = (orderDetails.budget || '₹500').replace('₹', '');
+            alertSub.innerText = `${orderDetails.service || 'नवीन काम'} • ₹${budgetVal} • ${orderDetails.area || 'Pune'}`;
+        }
+        alertModal.classList.remove('hidden');
+    }
+
+    playLoudDeliveryChime();
+
+    if (orderAlertInterval) clearInterval(orderAlertInterval);
+    orderAlertInterval = setInterval(() => {
+        if (!isAlertRinging) {
+            clearInterval(orderAlertInterval);
+            orderAlertInterval = null;
+            return;
+        }
+        playLoudDeliveryChime();
+    }, 1600);
+}
+
+function stopOrderAlert() {
+    isAlertRinging = false;
+    currentAlertOrderId = null;
+    if (orderAlertInterval) {
+        clearInterval(orderAlertInterval);
+        orderAlertInterval = null;
+    }
+    const alertModal = document.getElementById('incomingOrderAlertModal');
+    if (alertModal) {
+        alertModal.classList.add('hidden');
+    }
+    if (navigator.vibrate) {
+        try { navigator.vibrate(0); } catch(e) {}
+    }
+}
+
+function stopOrderAlertSoundOnly() {
+    if (orderAlertInterval) {
+        clearInterval(orderAlertInterval);
+        orderAlertInterval = null;
+    }
+    isAlertRinging = false;
+    if (navigator.vibrate) {
+        try { navigator.vibrate(0); } catch(e) {}
+    }
+}
+
+function acceptCurrentActiveOffer() {
+    if (currentAlertOrderId) {
+        acceptOrder(currentAlertOrderId);
+    }
+}
+
+function testOrderAlertSound() {
+    getAudioContext();
+    playLoudDeliveryChime();
+    alert("🔔 रिंगटोन आणि व्हायब्रेशन यशस्वीरीत्या टेस्ट झाले! नवीन काम आल्यावर असाच मोठा आवाज वाजेल.");
+}
+
+
 const auth = firebase.auth();
 
 // Dispatch policy.  Offers are reserved for one matching on-duty worker for
@@ -153,6 +293,7 @@ function claimNextOffer() {
 
 function expireCurrentOffer() {
     if (!currentWorkerUid || !allOrdersData) return;
+    stopOrderAlert();
     const now = orderNow();
     Object.entries(allOrdersData).forEach(([orderId, order]) => {
         if (order.status !== 'Pending' || order.offerWorkerUid !== currentWorkerUid || Number(order.offerExpiresAt) > now) return;
@@ -980,6 +1121,10 @@ function closeImagePreview() {
 
 function toggleDuty() {
     isDutyOn = !isDutyOn;
+    getAudioContext();
+    if (!isDutyOn) {
+        stopOrderAlert();
+    }
     const btn = document.getElementById('dutyToggleBtn');
     const headerDot = document.getElementById('dutyDot');
     const headerText = document.getElementById('dutyText');
@@ -1018,6 +1163,7 @@ function renderJobs() {
     acceptedContainer.innerHTML = "";
 
     if (!isDutyOn) {
+        stopOrderAlert();
         jobsContainer.innerHTML = `<div class="text-center py-10"><span class="text-5xl block mb-3">😴</span><p class="font-bold text-slate-700 text-sm">तुम्ही सध्या Duty OFF वर आहात</p></div>`;
         jobCountBadge.innerText = "0 New Jobs";
         return;
@@ -1054,6 +1200,8 @@ function renderJobs() {
         const isCurrentWorkersOffer = item.offerWorkerUid === currentWorkerUid && Number(item.offerExpiresAt) > orderNow();
         if (!activeOrderId && item.status === 'Pending' && isAreaMatch && isServiceMatch && isCurrentWorkersOffer) {
             pendingCount++;
+            foundExclusiveOfferKey = key;
+            foundExclusiveOfferItem = item;
             const jobCard = document.createElement('div');
             jobCard.className = "bg-slate-50 border border-slate-200 p-4 rounded-2xl hover:border-blue-400 transition shadow-sm space-y-3";
             const photoHtml = imgUrl ? `<div class="my-2"><div class="relative cursor-pointer group rounded-xl overflow-hidden border border-slate-200" onclick="openImagePreview('${imgUrl}')"><img src="${imgUrl}" class="w-full h-44 object-cover"></div></div>` : '';
@@ -1160,6 +1308,13 @@ function renderJobs() {
         if (activeOrderEntry.order.status === 'Accepted') {
             stopLocationSharing(activeOrderId, false);
         }
+        stopOrderAlert();
+    } else {
+        if (foundExclusiveOfferKey) {
+            startOrderAlert(foundExclusiveOfferKey, foundExclusiveOfferItem);
+        } else {
+            stopOrderAlert();
+        }
     }
 
     jobCountBadge.innerText = `${pendingCount} New Jobs`;
@@ -1167,6 +1322,7 @@ function renderJobs() {
 }
 
 function acceptOrder(orderId) {
+    stopOrderAlert();
     if (!currentWorkerUid) {
         currentWorkerUid = getLocalWorkerId();
     }
