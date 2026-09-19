@@ -411,3 +411,154 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => openShareModal(), 400);
     }
 });
+
+// =========================================================
+// Anti-Screenshot & Screen Recording Prevention Suite
+// =========================================================
+
+(function initAntiScreenshotSecurity() {
+    // 1. Create Security Shield Element
+    function createSecurityShield() {
+        if (document.getElementById('securityScreenShield')) return;
+        const shield = document.createElement('div');
+        shield.id = 'securityScreenShield';
+        shield.style.display = 'none';
+        shield.innerHTML = `
+            <div style="max-width:320px;padding:24px;background:#1e293b;border-radius:24px;border:1px solid #334155;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+                <div style="width:56px;height:56px;border-radius:18px;background:rgba(239,68,68,0.2);color:#ef4444;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    🛡️
+                </div>
+                <h3 style="font-weight:900;font-size:16px;color:#ffffff;margin-bottom:8px;">सुरक्षित स्क्रीन (Protected)</h3>
+                <p style="font-size:12px;color:#94a3b8;line-height:1.5;margin:0;">
+                    गोपनीयतेसाठी Gharmitra वर स्क्रीनशॉट किंवा स्क्रीन रेकॉर्डिंग घेण्यास सक्त मनाई आहे.
+                </p>
+            </div>
+        `;
+        document.body.appendChild(shield);
+    }
+
+    function triggerScreenProtection(reason = "screenshot") {
+        createSecurityShield();
+        const shield = document.getElementById('securityScreenShield');
+        if (shield) {
+            shield.style.display = 'flex';
+        }
+        document.body.classList.add('screen-protected-blur');
+
+        // Clear clipboard buffer if screenshot tool copied image/data
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                navigator.clipboard.writeText("Gharmitra security: Screenshots are prohibited.");
+            } catch(e) {}
+        }
+
+        showPwaToast("🚫 सुरक्षेच्या कारणास्तव स्क्रीनशॉट घेण्यास मनाई आहे!");
+
+        // Auto restore after 1.5 seconds if triggered by key
+        setTimeout(() => {
+            if (!document.hidden) {
+                if (shield) shield.style.display = 'none';
+                document.body.classList.remove('screen-protected-blur');
+            }
+        }, 1500);
+    }
+
+    // 2. Intercept Screenshot, Print, and DevTools Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+        // PrintScreen key
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            e.preventDefault();
+            triggerScreenProtection('printscreen');
+            return false;
+        }
+
+        // Windows Snipping tool (Win + Shift + S) or Ctrl + Shift + S
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'S' || e.key === 's')) {
+            e.preventDefault();
+            triggerScreenProtection('snipping_tool');
+            return false;
+        }
+
+        // Ctrl + P (Print / Save PDF)
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+            e.preventDefault();
+            triggerScreenProtection('print');
+            return false;
+        }
+
+        // Ctrl + S (Save Page)
+        if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S') && !e.shiftKey) {
+            e.preventDefault();
+            showPwaToast("🔒 सुरक्षित पेज सेव्ह करता येत नाही.");
+            return false;
+        }
+
+        // Ctrl + U (View Source)
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U')) {
+            e.preventDefault();
+            return false;
+        }
+
+        // F12 or Inspect shortcuts
+        if (e.key === 'F12' || ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C'))) {
+            e.preventDefault();
+            return false;
+        }
+    }, true);
+
+    // Also listen to keyup for PrintScreen
+    window.addEventListener('keyup', (e) => {
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            triggerScreenProtection('printscreen');
+        }
+    }, true);
+
+    // 3. Obscure / Blur Screen when Window Loses Focus or on App Switcher (Recent Apps)
+    window.addEventListener('blur', () => {
+        createSecurityShield();
+        const shield = document.getElementById('securityScreenShield');
+        if (shield) shield.style.display = 'flex';
+        document.body.classList.add('screen-protected-blur');
+    });
+
+    window.addEventListener('focus', () => {
+        const shield = document.getElementById('securityScreenShield');
+        if (shield) shield.style.display = 'none';
+        document.body.classList.remove('screen-protected-blur');
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        createSecurityShield();
+        const shield = document.getElementById('securityScreenShield');
+        if (document.hidden) {
+            if (shield) shield.style.display = 'flex';
+            document.body.classList.add('screen-protected-blur');
+        } else {
+            if (shield) shield.style.display = 'none';
+            document.body.classList.remove('screen-protected-blur');
+        }
+    });
+
+    // 4. Block Right-Click Context Menu and Dragging
+    document.addEventListener('contextmenu', (e) => {
+        // Allow right-click on input/textarea if needed for pasting
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            return true;
+        }
+        e.preventDefault();
+        showPwaToast("🔒 सुरक्षित मोड: राइट-क्लिक बंद केले आहे.");
+        return false;
+    });
+
+    document.addEventListener('dragstart', (e) => {
+        e.preventDefault();
+        return false;
+    });
+
+    // Ensure shield exists on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', createSecurityShield);
+    } else {
+        createSecurityShield();
+    }
+})();

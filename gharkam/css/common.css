@@ -106,3 +106,62 @@
     line-height: 1.2;
     letter-spacing: -0.02em;
 }
+
+/* =========================================================
+   Anti-Screenshot & Privacy Protection Suite
+   ========================================================= */
+
+/* 1. Prevent Browser Printing and Print-to-PDF */
+@media print {
+    html, body {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+}
+
+/* 2. Global Text and Image Selection Protection */
+body {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important;
+}
+
+/* Allow users to type into form inputs and textareas */
+input, textarea, [contenteditable="true"] {
+    -webkit-user-select: auto !important;
+    -moz-user-select: auto !important;
+    -ms-user-select: auto !important;
+    user-select: auto !important;
+}
+
+/* Disable Image Dragging */
+img {
+    -webkit-user-drag: none !important;
+    user-select: none !important;
+    pointer-events: auto;
+}
+
+/* 3. Screen Obscure on App Switcher / Screenshot Attempt */
+.screen-protected-blur {
+    filter: blur(24px) grayscale(50%) !important;
+    transition: filter 0.15s ease !important;
+}
+
+#securityScreenShield {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: #0f172a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    text-align: center;
+    padding: 1.5rem;
+    transition: opacity 0.2s ease;
+}
