@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -251,6 +252,41 @@ Service: <strong id="workerService" class="text-white">Loading...</strong>
     <img id="previewModalImg" src="" alt="Full Preview" class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/20">
     <p class="text-white/70 text-xs mt-3 flex items-center gap-1"><i class="fa-solid fa-circle-info"></i> बंद करण्यासाठी बाहेर क्लिक करा</p>
   </div>
+</div>
+
+<!-- Work Completion OTP Verification Modal -->
+<div id="completionOtpModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4 relative">
+        <button onclick="closeCompletionOtpModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">✕</button>
+        
+        <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 text-3xl flex items-center justify-center mx-auto shadow-sm">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        
+        <div>
+            <h3 class="font-bold text-slate-800 text-base">काम पूर्ण करण्यासाठी OTP टाका</h3>
+            <p class="text-xs text-slate-500 mt-1">ग्राहकाच्या ईमेलवर व स्क्रीनवर ४-अंकी OTP पाठवला आहे. ग्राहकाकडून तो घेऊन खाली टाका.</p>
+        </div>
+
+        <div id="completionOtpStatusMsg" class="hidden text-xs font-bold p-2.5 rounded-xl text-center"></div>
+
+        <div>
+            <input type="text" id="workCompletionOtpInput" maxlength="4" inputmode="numeric" placeholder="••••" class="w-full text-center text-3xl font-black tracking-[0.4em] bg-slate-50 border-2 border-slate-300 focus:border-blue-600 rounded-2xl py-3 px-4 outline-none transition shadow-inner">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+            <button type="button" onclick="closeCompletionOtpModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-xs transition">
+                रद्द करा
+            </button>
+            <button type="button" onclick="verifyAndCompleteWork()" id="verifyOtpBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-check"></i> व्हेरिफाय करा
+            </button>
+        </div>
+
+        <button type="button" onclick="resendCompletionOtp()" id="resendOtpBtn" class="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline block mx-auto pt-1">
+            <i class="fa-solid fa-rotate-right mr-1"></i> OTP पुन्हा पाठवा (Resend OTP)
+        </button>
+    </div>
 </div>
 
 <script src="js/firebase.js"></script>

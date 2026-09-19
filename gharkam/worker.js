@@ -1,3 +1,12 @@
+const EMAILJS_PUBLIC_KEY = 'PfAaODZ_GPiBPHvOi';
+const EMAILJS_SERVICE_ID = 'service_lst67g7';
+const EMAILJS_TEMPLATE_ID = 'template_ope5xzi';
+
+if (window.emailjs) {
+    try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
+}
+
+let currentCompletingOrderId = null;
 let isDutyOn = false;
 let allOrdersData = null;
 let currentWorkerUid = null;
@@ -1433,6 +1442,170 @@ function acceptOrder(orderId) {
     );
 }
 
+
+// =========================================================
+// Work Completion OTP Verification Functions
+// =========================================================
+
+function openWorkCompletionOtpModal(orderId) {
+    const activeOrder = getActiveOrderForCurrentWorker();
+    if (!activeOrder || activeOrder.orderId !== orderId) {
+        alert("ही order तुमची active order नाही.");
+        return;
+    }
+
+    currentCompletingOrderId = orderId;
+    const orderData = activeOrder.order;
+    const modal = document.getElementById('completionOtpModal');
+    const input = document.getElementById('workCompletionOtpInput');
+    const statusMsg = document.getElementById('completionOtpStatusMsg');
+
+    if (input) input.value = '';
+    if (statusMsg) {
+        statusMsg.className = 'hidden';
+        statusMsg.innerText = '';
+    }
+
+    // Generate or read 4-digit OTP
+    let otp = orderData.completionOtp;
+    if (!otp) {
+        otp = String(Math.floor(1000 + Math.random() * 9000));
+        database.ref("orders/" + orderId).update({
+            completionOtp: otp,
+            otpGeneratedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+    }
+
+    // Send email to customer via EmailJS
+    sendCompletionOtpEmail(orderData, otp);
+
+    if (modal) modal.classList.remove('hidden');
+    if (input) setTimeout(() => input.focus(), 150);
+}
+
+function closeCompletionOtpModal() {
+    const modal = document.getElementById('completionOtpModal');
+    if (modal) modal.classList.add('hidden');
+    const input = document.getElementById('workCompletionOtpInput');
+    if (input) input.value = '';
+}
+
+function sendCompletionOtpEmail(orderData, otp) {
+    let customerEmail = orderData.customerEmail || '';
+    if (!customerEmail && orderData.customerMobile) {
+        const savedUser = localStorage.getItem('gharmitra_user_customer_' + orderData.customerMobile) || localStorage.getItem('gharmitra_user_' + orderData.customerMobile);
+        if (savedUser) {
+            try { customerEmail = JSON.parse(savedUser).email || ''; } catch(e) {}
+        }
+    }
+
+    if (customerEmail && window.emailjs) {
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            to_email: customerEmail,
+            email: customerEmail,
+            user_email: customerEmail,
+            otp_code: otp,
+            message: `Gharmitra.online काम पूर्ण करण्यासाठी OTP आहे: ${otp}. काम पूर्ण झाल्यावर हा ४-अंकी OTP कामगाराला सांगा.`
+        }).then(() => {
+            console.log("Work Completion OTP sent to email:", customerEmail);
+        }).catch(err => {
+            console.warn("EmailJS sending error:", err);
+        });
+    }
+}
+
+function resendCompletionOtp() {
+    if (!currentCompletingOrderId) return;
+    const activeOrder = getActiveOrderForCurrentWorker();
+    if (!activeOrder) return;
+
+    const resendBtn = document.getElementById('resendOtpBtn');
+    if (resendBtn) resendBtn.innerText = "पाठवत आहे...";
+
+    const newOtp = String(Math.floor(1000 + Math.random() * 9000));
+    database.ref("orders/" + currentCompletingOrderId).update({
+        completionOtp: newOtp,
+        otpGeneratedAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        sendCompletionOtpEmail(activeOrder.order, newOtp);
+        const statusMsg = document.getElementById('completionOtpStatusMsg');
+        if (statusMsg) {
+            statusMsg.className = 'text-xs font-bold p-2.5 rounded-xl text-center bg-blue-50 text-blue-700 border border-blue-200 block';
+            statusMsg.innerText = 'नवा ४-अंकी OTP ग्राहकाच्या ईमेलवर व स्क्रीनवर पाठवला आहे!';
+        }
+    }).finally(() => {
+        if (resendBtn) resendBtn.innerHTML = '<i class="fa-solid fa-rotate-right mr-1"></i> OTP पुन्हा पाठवा (Resend OTP)';
+    });
+}
+
+function verifyAndCompleteWork() {
+    if (!currentCompletingOrderId) return;
+    const input = document.getElementById('workCompletionOtpInput');
+    const enteredOtp = (input ? input.value : '').trim();
+    const statusMsg = document.getElementById('completionOtpStatusMsg');
+
+    if (enteredOtp.length !== 4) {
+        if (statusMsg) {
+            statusMsg.className = 'text-xs font-bold p-2.5 rounded-xl text-center bg-red-50 text-red-600 border border-red-200 block';
+            statusMsg.innerText = 'कृपया ग्राहकाकडून ४-अंकी OTP घेऊन येथे टाका.';
+        }
+        return;
+    }
+
+    // Verify OTP from Firebase directly to prevent any bypass
+    database.ref("orders/" + currentCompletingOrderId).once("value").then(snap => {
+        const orderData = snap.val();
+        if (!orderData) {
+            alert("ऑर्डर सापडली नाही.");
+            return;
+        }
+
+        const validOtp = String(orderData.completionOtp || '').trim();
+        if (!validOtp || enteredOtp !== validOtp) {
+            if (statusMsg) {
+                statusMsg.className = 'text-xs font-bold p-2.5 rounded-xl text-center bg-red-50 text-red-600 border border-red-200 block animate-shake';
+                statusMsg.innerText = '❌ चुकीचा OTP! ग्राहकाच्या ईमेल किंवा स्क्रीनवरील योग्य OTP टाका.';
+            }
+            return;
+        }
+
+        // OTP Verified Successfully! Finalize work completion
+        finalizeOrderCompletion(currentCompletingOrderId);
+    });
+}
+
+function finalizeOrderCompletion(orderId) {
+    const btn = document.getElementById('verifyOtpBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> पूर्ण करत आहे...';
+    }
+
+    stopLocationSharing(orderId, true).then(() =>
+        database.ref("orders/" + orderId).update({
+            status: 'Completed',
+            workerLocation: null,
+            completionOtpVerified: true,
+            completedAt: firebase.database.ServerValue.TIMESTAMP
+        })
+    ).then(() => {
+        return releaseActiveOrderLock(orderId);
+    }).then(() => {
+        closeCompletionOtpModal();
+        loadWorkerEarnings();
+        alert("🎉 OTP यशस्वीरीत्या व्हेरिफाय झाला! काम पूर्ण झाले आहे.");
+        renderJobs();
+    }).catch(error => {
+        console.error("Completion error:", error);
+        alert("काम पूर्ण करताना अडचण आली: " + error.message);
+    }).finally(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> व्हेरिफाय करा';
+        }
+    });
+}
+
 function updateStatus(orderId, newStatus) {
     const activeOrder = getActiveOrderForCurrentWorker();
     if (!activeOrder || activeOrder.orderId !== orderId) {
@@ -1446,21 +1619,17 @@ function updateStatus(orderId, newStatus) {
         return;
     }
 
-    const updateOrder = newStatus === 'Completed'
-        ? stopLocationSharing(orderId, true).then(() =>
-            database.ref("orders/" + orderId).update({
-                status: newStatus,
-                workerLocation: null,
-                completedAt: firebase.database.ServerValue.TIMESTAMP
-            })
-        )
-        : database.ref("orders/" + orderId).update({
-            status: newStatus,
-            onTheWayAt: firebase.database.ServerValue.TIMESTAMP,
-            onTheWayDeadline: null
-        });
+    // Work Completion REQUIRES Customer OTP Verification
+    if (newStatus === 'Completed') {
+        openWorkCompletionOtpModal(orderId);
+        return;
+    }
 
-    updateOrder.then(() => {
+    database.ref("orders/" + orderId).update({
+        status: newStatus,
+        onTheWayAt: firebase.database.ServerValue.TIMESTAMP,
+        onTheWayDeadline: null
+    }).then(() => {
         if (newStatus === 'On The Way') {
             startLocationSharing(orderId);
             queueNotification(orderId, 'worker_on_the_way', {
@@ -1468,13 +1637,6 @@ function updateStatus(orderId, newStatus) {
                 customerMobile: activeOrder.order.customerMobile || ''
             });
         }
-
-        const lockRelease = newStatus === 'Completed'
-            ? releaseActiveOrderLock(orderId)
-            : Promise.resolve();
-
-        return lockRelease;
-    }).then(() => {
         alert("स्टेटस अपडेट केले: " + newStatus);
     }).catch(error => {
         console.error("Status update error:", error);

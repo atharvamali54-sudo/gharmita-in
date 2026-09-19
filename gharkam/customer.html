@@ -212,6 +212,25 @@
                             </div>
                         </div>
 
+                        <!-- Work Completion OTP Display Card -->
+                        <div id="customerCompletionOtpCard" class="hidden rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-4 shadow-lg border border-emerald-400/40 space-y-2">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-200 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-key text-amber-300"></i> काम पूर्ण करण्यासाठी OTP
+                                    </span>
+                                    <p class="text-xs text-white/95 mt-0.5">कामगाराने काम पूर्ण केल्यावर हा OTP त्यांना सांगा:</p>
+                                </div>
+                                <div class="bg-white text-emerald-800 font-black text-2xl tracking-[0.25em] px-4 py-2 rounded-xl shadow-inner text-center border-2 border-emerald-300 shrink-0">
+                                    <span id="customerOtpCodeDisplay">----</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-emerald-100 pt-1 border-t border-emerald-500/50">
+                                <span><i class="fa-solid fa-envelope mr-1"></i> हा OTP तुमच्या Email वरही पाठवला आहे</span>
+                                <span class="text-[10px] bg-emerald-800/60 px-2 py-0.5 rounded-md text-emerald-200">सुरक्षित पडताळणी</span>
+                            </div>
+                        </div>
+
                         <div id="customerChatAction" class="hidden border border-blue-100 bg-blue-50/70 rounded-2xl p-3">
                             <div class="flex items-center justify-between gap-3">
                                 <div>

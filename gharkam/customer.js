@@ -636,10 +636,19 @@ populateBookingProfile();
                 const newOrderRef = database.ref("orders").push();
                 currentOrderId = newOrderRef.key;
 
+                let customerEmail = (customerProfile && customerProfile.email) ? customerProfile.email : "";
+                if (!customerEmail) {
+                    const savedUser = localStorage.getItem('gharmitra_user_customer_' + mobile) || localStorage.getItem('gharmitra_user_' + mobile);
+                    if (savedUser) {
+                        try { customerEmail = JSON.parse(savedUser).email || ""; } catch(e) {}
+                    }
+                }
+
                 const payload = {
                     service: service,
                     customerName: name,
                     customerMobile: mobile,
+                    customerEmail: customerEmail,
                     area: area,
                     address: address,
                     budget: "₹" + budget,
@@ -739,7 +748,17 @@ populateBookingProfile();
                     stopWorkerLocationTracking();
                 }
 
+                const otpCard = document.getElementById('customerCompletionOtpCard');
+                const otpDisplay = document.getElementById('customerOtpCodeDisplay');
+                if (data.completionOtp && data.status !== 'Completed' && data.status !== 'Cancelled') {
+                    if (otpCard) otpCard.classList.remove('hidden');
+                    if (otpDisplay) otpDisplay.innerText = data.completionOtp;
+                } else {
+                    if (otpCard) otpCard.classList.add('hidden');
+                }
+
                 if (data.status === 'Completed' || data.status === 'Cancelled') {
+                    if (otpCard) otpCard.classList.add('hidden');
                     stepsContainer.classList.add('hidden');
                     cancelContainer.classList.add('hidden');
                     completedMsgBox.classList.remove('hidden');
