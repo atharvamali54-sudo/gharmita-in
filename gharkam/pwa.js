@@ -124,7 +124,10 @@ function ensurePwaModalHtml() {
                 <button onclick="triggerPwaInstall()" id="pwaInstallBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg transition text-sm flex items-center justify-center gap-2">
                     <i class="fa-solid fa-download"></i> 📲 आत्ताच इन्स्टॉल करा
                 </button>
-                <button onclick="dismissPwaModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition text-xs">
+                <button onclick="shareGharmitraApp()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-2.5 px-4 rounded-xl border border-emerald-200 transition text-xs flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i> 📤 मित्रांना ॲप शेअर करा (Share App)
+                </button>
+                <button onclick="dismissPwaModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-4 rounded-xl transition text-xs">
                     नंतर करा (Maybe Later)
                 </button>
             </div>
