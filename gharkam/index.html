@@ -16,7 +16,8 @@
     <meta name="apple-mobile-web-app-title" content="Gharmitra">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
-    <link rel="stylesheet" href="css/common.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/index.css">
 </head>
 <body class="hero-bg min-h-screen flex flex-col justify-between text-gray-800">
@@ -30,8 +31,8 @@
             </div>
         </div>
                 <div class="flex items-center gap-2">
-            <button onclick="shareGharmitraApp()" title="Gharmitra ॲप मित्रांना शेअर करा" class="bg-white/20 hover:bg-white/30 text-white font-bold text-xs py-1.5 px-3 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer border border-white/20">
-                <i class="fa-solid fa-share-nodes text-emerald-300"></i> <span class="hidden sm:inline">शेअर करा</span>
+            <button type="button" onclick="shareGharmitraApp()" title="Gharmitra ॲप व्हॉट्सॲपवर शेअर करा" class="bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-xs py-1.5 px-3 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer border border-white/30 shrink-0">
+                <i class="fa-brands fa-whatsapp text-sm"></i> <span>शेअर करा</span>
             </button>
             <button onclick="showPwaInstallModal()" class="pwa-install-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-1.5 px-3 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-download"></i> <span>Install App</span>

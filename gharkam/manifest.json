@@ -37,6 +37,13 @@
   ],
   "shortcuts": [
     {
+      "name": "मित्रांना ॲप शेअर करा (Share App)",
+      "short_name": "Share App",
+      "description": "घरमित्र ॲप व्हॉट्सॲपवर शेअर करा",
+      "url": "./index.html?action=share",
+      "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
       "name": "ग्राहक बुकिंग (Customer)",
       "short_name": "Customer",
       "description": "नवीन घरकाम ऑर्डर बुक करा",
