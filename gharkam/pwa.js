@@ -1,5 +1,5 @@
 // =========================================================
-// Gharmitra PWA Controller (Service Worker & Install Banner)
+// Gharmitra PWA Controller & Instant App Sharing System
 // =========================================================
 
 let deferredInstallPrompt = null;
@@ -18,7 +18,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// --- 2. Check if already running in Standalone (App) Mode ---
+// --- 2. Check if running in Standalone Mode (Already Installed) ---
 function isAppAlreadyInstalled() {
     return window.matchMedia('(display-mode: standalone)').matches ||
            window.navigator.standalone === true ||
@@ -35,22 +35,17 @@ function isIosSafari() {
 
 // --- 4. Listen for beforeinstallprompt Event (Android/Chrome/Edge) ---
 window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent default mini-infobar
     e.preventDefault();
     deferredInstallPrompt = e;
 
-    // Show header install button if exists
     showInstallButtons();
 
-    // Check if user recently dismissed banner (within 24 hours)
     const dismissedTime = localStorage.getItem(PWA_DISMISSED_KEY);
     const now = Date.now();
     if (dismissedTime && (now - Number(dismissedTime) < 24 * 60 * 60 * 1000)) {
-        console.log('[Gharmitra PWA] Prompt deferred due to recent dismissal.');
         return;
     }
 
-    // Auto display the install popup after a short comfortable delay
     setTimeout(() => {
         if (!isAppAlreadyInstalled()) {
             showPwaInstallModal();
@@ -58,7 +53,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
     }, 1500);
 });
 
-// --- 5. Handle App Installed Event ---
+// --- 5. App Installed Handler ---
 window.addEventListener('appinstalled', () => {
     console.log('[Gharmitra PWA] App was successfully installed!');
     deferredInstallPrompt = null;
@@ -67,7 +62,7 @@ window.addEventListener('appinstalled', () => {
     showPwaToast("🎉 अभिनंदन! Gharmitra ॲप आपल्या होम स्क्रीनवर इन्स्टॉल झाले आहे.");
 });
 
-// --- 6. Render & Show Custom PWA Install Modal / Banner ---
+// --- 6. PWA Install Modal / Banner ---
 function ensurePwaModalHtml() {
     if (document.getElementById('gharmitraPwaModal')) return;
 
@@ -77,10 +72,6 @@ function ensurePwaModalHtml() {
     
     modal.innerHTML = `
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4 animate-in relative overflow-hidden">
-            <!-- Decorative top banner -->
-            <div class="absolute -top-10 -right-10 w-28 h-28 bg-blue-500/10 rounded-full pointer-events-none"></div>
-            <div class="absolute -bottom-10 -left-10 w-28 h-28 bg-emerald-500/10 rounded-full pointer-events-none"></div>
-
             <button onclick="dismissPwaModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm transition">
                 ✕
             </button>
@@ -121,13 +112,13 @@ function ensurePwaModalHtml() {
 
             <!-- Action buttons -->
             <div class="space-y-2 pt-1">
-                <button onclick="triggerPwaInstall()" id="pwaInstallBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg transition text-sm flex items-center justify-center gap-2">
+                <button onclick="triggerPwaInstall()" id="pwaInstallBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg transition text-sm flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-download"></i> 📲 आत्ताच इन्स्टॉल करा
                 </button>
-                <button onclick="shareGharmitraApp()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-2.5 px-4 rounded-xl border border-emerald-200 transition text-xs flex items-center justify-center gap-2">
+                <button onclick="shareGharmitraApp()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-2.5 px-4 rounded-xl border border-emerald-200 transition text-xs flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i> 📤 मित्रांना ॲप शेअर करा (Share App)
                 </button>
-                <button onclick="dismissPwaModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-4 rounded-xl transition text-xs">
+                <button onclick="dismissPwaModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-4 rounded-xl transition text-xs cursor-pointer">
                     नंतर करा (Maybe Later)
                 </button>
             </div>
@@ -137,7 +128,6 @@ function ensurePwaModalHtml() {
     document.body.appendChild(modal);
 }
 
-// --- 7. Show / Hide Modal Functions ---
 function showPwaInstallModal() {
     if (isAppAlreadyInstalled()) return;
     ensurePwaModalHtml();
@@ -158,21 +148,17 @@ function hidePwaInstallModal() {
 
 function dismissPwaModal() {
     hidePwaInstallModal();
-    // Remember dismissal for 24 hours
     localStorage.setItem(PWA_DISMISSED_KEY, String(Date.now()));
 }
 
-// --- 8. Trigger Native Install Prompt ---
 function triggerPwaInstall() {
     if (deferredInstallPrompt) {
         hidePwaInstallModal();
         deferredInstallPrompt.prompt();
         deferredInstallPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
-                console.log('[Gharmitra PWA] User accepted the install prompt');
+                console.log('[Gharmitra PWA] User accepted install prompt');
                 showPwaToast("🎉 ॲप इन्स्टॉल होत आहे...");
-            } else {
-                console.log('[Gharmitra PWA] User dismissed the install prompt');
             }
             deferredInstallPrompt = null;
         });
@@ -180,31 +166,178 @@ function triggerPwaInstall() {
         hidePwaInstallModal();
         showIosInstructions();
     } else {
-        // If browser already supports Add to Home Screen via menu
         alert("ॲप इन्स्टॉल करण्यासाठी ब्राऊझरच्या मेनू (⋮ तीन ठिपके) वर क्लिक करा आणि 'Install app' किंवा 'Add to Home screen' निवडा.");
         hidePwaInstallModal();
     }
 }
 
-// --- 9. iOS Safari Install Guide ---
 function showIosInstructions() {
-    alert("📱 iPhone वर Gharmitra ॲप सेव्ह करण्यासाठी:\n\n1. खालील 'Share' (शेअर) आयकॉनवर टॅप करा.\n2. खाली स्क्रोल करून 'Add to Home Screen' (होम स्क्रीनवर जोडा) निवडा.\n3. वर उजवीकडे 'Add' वर क्लिक करा.");
+    alert("📱 iPhone वर Gharmitra ॲप सेव्ह करण्यासाठी:\n\n1. खालील 'Share' (शेअर 📤) आयकॉनवर टॅप करा.\n2. खाली स्क्रोल करून 'Add to Home Screen' (होम स्क्रीनवर जोडा) निवडा.\n3. वर उजवीकडे 'Add' वर क्लिक करा.");
 }
 
-// --- 10. Install Button Controls in Navigation ---
 function showInstallButtons() {
-    document.querySelectorAll('.pwa-install-btn').forEach(btn => {
-        btn.classList.remove('hidden');
-    });
+    document.querySelectorAll('.pwa-install-btn').forEach(btn => btn.classList.remove('hidden'));
 }
 
 function hideInstallButtons() {
-    document.querySelectorAll('.pwa-install-btn').forEach(btn => {
-        btn.classList.add('hidden');
-    });
+    document.querySelectorAll('.pwa-install-btn').forEach(btn => btn.classList.add('hidden'));
 }
 
-// --- 11. Toast Notification Helper ---
+// --- 7. Instant App Sharing System (Web Share + WhatsApp Dialog) ---
+
+function getGharmitraShareUrl() {
+    try {
+        let path = window.location.pathname;
+        let origin = window.location.origin;
+        if (path.includes('/gharkam/')) {
+            return origin + path.substring(0, path.indexOf('/gharkam/') + 9) + 'index.html';
+        }
+        return origin + path;
+    } catch (e) {
+        return window.location.href;
+    }
+}
+
+function getGharmitraShareMessage() {
+    const appUrl = getGharmitraShareUrl();
+    return `🏠 *घरमित्र (Gharmitra) - पुणे शहराची विश्वासू घरकाम सेवा!*\n\n⚡ क्लिनिंग, प्लंबिंग, इलेक्ट्रिशियन, पेंटिंग आणि घरगुती कामे आता एका मिनिटात बुक करा!\n\n✅ थेट लाईव्ह लोकेशन ट्रॅकिंग\n✅ पडताळणी झालेले व्यावसायिक कामगार\n✅ Play Store शिवाय थेट मोबाईलमध्ये ॲपसारखे चालवा!\n\n📲 *आत्ताच लिंक उघडा आणि होम स्क्रीनवर सेव्ह करा:*\n${appUrl}`;
+}
+
+function shareGharmitraApp() {
+    const appUrl = getGharmitraShareUrl();
+    const shareTitle = 'Gharmitra - घरकाम व सेवा';
+    const shareText = `🏠 घरमित्र (Gharmitra) - पुणे शहराची विश्वासू घरकाम सेवा! Play Store शिवाय थेट मोबाईलमध्ये वापरा:\n${appUrl}`;
+
+    // Prefer native mobile share if available and supported
+    if (navigator.share) {
+        navigator.share({
+            title: shareTitle,
+            text: shareText,
+            url: appUrl
+        }).catch((err) => {
+            console.log('[Gharmitra Share] Native share dismissed or error:', err);
+            if (err && err.name !== 'AbortError') {
+                openShareModal();
+            }
+        });
+    } else {
+        openShareModal();
+    }
+}
+
+function ensureShareModalHtml() {
+    if (document.getElementById('gharmitraShareModal')) return;
+
+    const modal = document.createElement('div');
+    modal.id = 'gharmitraShareModal';
+    modal.className = 'fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-[10001] hidden items-end sm:items-center justify-center p-3 sm:p-4 transition-all duration-300';
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4 animate-in relative">
+            <button onclick="closeShareModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm transition cursor-pointer">
+                ✕
+            </button>
+
+            <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 text-2xl flex items-center justify-center mx-auto shadow-sm">
+                <i class="fa-solid fa-share-nodes"></i>
+            </div>
+
+            <div>
+                <h3 class="font-black text-slate-900 text-lg">Gharmitra ॲप शेअर करा</h3>
+                <p class="text-xs text-slate-500 mt-0.5">मित्र आणि नातेवाईकांना ॲप पाठवा</p>
+            </div>
+
+            <!-- Share Buttons -->
+            <div class="space-y-2.5 pt-2">
+                <!-- WhatsApp Share -->
+                <button onclick="shareViaWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-bold py-3 px-4 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> व्हॉट्सॲपवर पाठवा (WhatsApp)
+                </button>
+
+                <!-- Copy Link -->
+                <button onclick="copyAppShareLink()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 border border-slate-200 cursor-pointer">
+                    <i class="fa-solid fa-link text-slate-500"></i> लिंक कॉपी करा (Copy Link)
+                </button>
+
+                <!-- SMS Share -->
+                <button onclick="shareViaSms()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 border border-blue-200 cursor-pointer">
+                    <i class="fa-solid fa-message text-blue-600"></i> SMS द्वारे पाठवा
+                </button>
+            </div>
+
+            <!-- App Link Display -->
+            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex items-center justify-between text-[11px] text-slate-600 text-left">
+                <span id="shareLinkDisplay" class="truncate pr-2 font-mono text-slate-500">Loading link...</span>
+                <span class="text-blue-600 font-bold cursor-pointer shrink-0 hover:underline" onclick="copyAppShareLink()">कॉपी</span>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+function openShareModal() {
+    ensureShareModalHtml();
+    const modal = document.getElementById('gharmitraShareModal');
+    const linkDisplay = document.getElementById('shareLinkDisplay');
+    if (linkDisplay) linkDisplay.innerText = getGharmitraShareUrl();
+
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeShareModal() {
+    const modal = document.getElementById('gharmitraShareModal');
+    if (modal) {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+}
+
+function shareViaWhatsApp() {
+    const msg = getGharmitraShareMessage();
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank');
+    closeShareModal();
+}
+
+function shareViaSms() {
+    const msg = getGharmitraShareMessage();
+    window.location.href = `sms:?body=${encodeURIComponent(msg)}`;
+    closeShareModal();
+}
+
+function copyAppShareLink() {
+    const appUrl = getGharmitraShareUrl();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(appUrl).then(() => {
+            showPwaToast("✓ Gharmitra ॲपची लिंक क्लिपबोर्डवर कॉपी केली!");
+            closeShareModal();
+        }).catch(() => fallbackCopy(appUrl));
+    } else {
+        fallbackCopy(appUrl);
+    }
+}
+
+function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+        document.execCommand('copy');
+        showPwaToast("✓ लिंक कॉपी केली!");
+        closeShareModal();
+    } catch(e) {
+        prompt("खालील लिंक कॉपी करा:", text);
+    }
+    document.body.removeChild(ta);
+}
+
 function showPwaToast(msg) {
     const toast = document.createElement('div');
     toast.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white font-bold text-xs py-3 px-5 rounded-2xl shadow-2xl z-[10000] border border-slate-700 animate-bounce flex items-center gap-2';
@@ -213,16 +346,28 @@ function showPwaToast(msg) {
     setTimeout(() => toast.remove(), 4000);
 }
 
-// --- 12. Initialize on DOM Content Loaded ---
+// --- 8. Explicit Global Window Attachments ---
+window.shareGharmitraApp = shareGharmitraApp;
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+window.shareViaWhatsApp = shareViaWhatsApp;
+window.shareViaSms = shareViaSms;
+window.copyAppShareLink = copyAppShareLink;
+window.showPwaInstallModal = showPwaInstallModal;
+window.hidePwaInstallModal = hidePwaInstallModal;
+window.dismissPwaModal = dismissPwaModal;
+window.triggerPwaInstall = triggerPwaInstall;
+
+// --- 9. DOM Ready Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     ensurePwaModalHtml();
+    ensureShareModalHtml();
 
     if (isAppAlreadyInstalled()) {
         hideInstallButtons();
     } else {
         showInstallButtons();
 
-        // Handle iOS Safari specific initial prompt if needed
         if (isIosSafari()) {
             const dismissedTime = localStorage.getItem(PWA_DISMISSED_KEY);
             const now = Date.now();
