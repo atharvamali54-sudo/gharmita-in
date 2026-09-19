@@ -143,6 +143,92 @@ document.addEventListener("DOMContentLoaded", () => {
     loadLocalWorkerSession();
 });
 
+function resolveWorkerName(userData) {
+    if (!userData) return "";
+
+    const candidates = [
+        userData.fullName,
+        userData.name,
+        userData.workerName,
+        userData.username,
+        userData.userName,
+        userData.displayName
+    ];
+    for (const c of candidates) {
+        if (c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'worker') {
+            return c.trim();
+        }
+    }
+
+    const mobile = userData.mobile || getCurrentWorkerMobile();
+    if (mobile) {
+        const keysToTry = [
+            'gharmitra_user_worker_' + mobile,
+            'gharkam_user_' + mobile,
+            'gharmitra_user_' + mobile,
+            'gharmitra_user_customer_' + mobile,
+            'worker_profile',
+            'customer_profile'
+        ];
+
+        for (const k of keysToTry) {
+            try {
+                const raw = localStorage.getItem(k);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    const n = parsed.fullName || parsed.name || parsed.workerName || parsed.customerName || parsed.username || parsed.userName;
+                    if (n && typeof n === 'string' && n.trim() && n.trim().toLowerCase() !== 'worker') {
+                        return n.trim();
+                    }
+                }
+            } catch (e) {}
+        }
+    }
+
+    return "";
+}
+
+function applyWorkerName(foundName) {
+    if (!foundName || foundName === "Worker") return;
+    const el = document.getElementById('workerUsername');
+    if (el) el.innerText = foundName;
+    try {
+        let s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+        s.fullName = foundName;
+        s.name = foundName;
+        localStorage.setItem('current_user_session', JSON.stringify(s));
+    } catch (e) {}
+}
+
+function editWorkerName() {
+    const currentName = document.getElementById('workerUsername').innerText.trim();
+    const promptDefault = (currentName === "Worker" || currentName === "Loading...") ? "" : currentName;
+    const newName = prompt("तुमचे नाव टाका (Enter your name):", promptDefault);
+    if (!newName || !newName.trim()) return;
+    const trimmed = newName.trim();
+
+    applyWorkerName(trimmed);
+
+    const mobile = getCurrentWorkerMobile();
+    if (mobile) {
+        ['gharmitra_user_worker_' + mobile, 'gharkam_user_' + mobile, 'gharmitra_user_' + mobile].forEach(k => {
+            try {
+                let cur = JSON.parse(localStorage.getItem(k) || '{}');
+                cur.fullName = trimmed;
+                cur.name = trimmed;
+                localStorage.setItem(k, JSON.stringify(cur));
+            } catch (e) {}
+        });
+    }
+
+    const uid = currentWorkerUid || getLocalWorkerId();
+    if (uid) {
+        database.ref('workers/' + uid).update({ name: trimmed, fullName: trimmed });
+    }
+
+    alert("नाव अपडेट झाले: " + trimmed);
+}
+
 function loadLocalWorkerSession() {
     let session = localStorage.getItem('current_user_session');
     if (session) {
@@ -162,14 +248,44 @@ function loadLocalWorkerSession() {
         if (!currentWorkerUid) {
             currentWorkerUid = getLocalWorkerId();
         }
-        const name = userData.fullName || userData.name || "Worker";
+
+        let name = resolveWorkerName(userData);
         const service = userData.workType || userData.service || "Cleaning";
+
         updateWorkerUI({
-            name: name,
+            name: name || "Worker",
             service: service,
             wallet: userData.balance || 50,
             workerIndex: userData.mobile ? userData.mobile.slice(-6) : 100001
         });
+
+        // Fallback: If name is still "Worker", query Firebase worker node or order history
+        const workerMobile = userData.mobile || getCurrentWorkerMobile();
+        if (!name || name === "Worker") {
+            const uid = currentWorkerUid || getLocalWorkerId();
+            if (uid) {
+                database.ref('workers/' + uid).once('value').then(snap => {
+                    const wData = snap.val();
+                    if (wData) {
+                        const fbName = wData.name || wData.fullName || wData.workerName;
+                        if (fbName && fbName !== "Worker") {
+                            applyWorkerName(fbName);
+                            return;
+                        }
+                    }
+                    if (workerMobile) {
+                        database.ref('orders').orderByChild('customerMobile').equalTo(workerMobile).limitToLast(5).once('value').then(oSnap => {
+                            const orders = oSnap.val();
+                            if (orders) {
+                                const found = Object.values(orders).find(o => o.customerName && o.customerName !== 'Worker');
+                                if (found) applyWorkerName(found.customerName);
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
         loadWorkerEarnings(currentWorkerUid);
     } else {
         renderEarningsChart([0, 0, 0, 0, 0, 0, 0]);
