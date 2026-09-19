@@ -19,11 +19,6 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 public class MainActivity extends Activity {
 
     private static final String APP_URL = "https://atharvamali54-sudo.github.io/gharmita-in/gharkam/index.html";
@@ -40,9 +35,8 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         // =========================================================
-        // 1. BLOCK SCREENSHOTS & SCREEN RECORDING (FLAG_SECURE)
-        // This prevents hardware buttons (Power + Volume) & 3-finger
-        // swipe screenshots at the OS level across all Android devices!
+        // BLOCK SCREENSHOTS & SCREEN RECORDING (FLAG_SECURE)
+        // Hard-blocks hardware buttons (Power + Volume) & 3-finger swipe
         // =========================================================
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_SECURE,
@@ -54,10 +48,8 @@ public class MainActivity extends Activity {
         webView = findViewById(R.id.webview);
         progressBar = findViewById(R.id.progressBar);
 
-        // Request Location & Camera Permissions
-        requestRequiredPermissions();
+        requestAppPermissions();
 
-        // Configure WebView Settings
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -70,13 +62,10 @@ public class MainActivity extends Activity {
         settings.setDisplayZoomControls(false);
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setAllowFileAccess(true);
-        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
-        // Custom User-Agent tag so website knows it is running in official Secure App
         String defaultUA = settings.getUserAgentString();
         settings.setUserAgentString(defaultUA + " GharmitraApp/1.0 SecureApp");
 
-        // WebViewClient to handle page navigation & external links (WhatsApp, Maps, Tel)
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -103,7 +92,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        // WebChromeClient for Location & File upload
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
@@ -138,31 +126,30 @@ public class MainActivity extends Activity {
             }
         });
 
-        // Load the live Gharmitra Web App
         webView.loadUrl(APP_URL);
     }
 
-    private void requestRequiredPermissions() {
+    private void requestAppPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             String[] permissions = new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
             };
-            boolean needPermission = false;
+            boolean need = false;
             for (String perm : permissions) {
-                if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED) {
-                    needPermission = true;
+                if (checkSelfPermission(perm) != PackageManager.PERMISSION_GRANTED) {
+                    need = true;
                     break;
                 }
             }
-            if (needPermission) {
-                ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
+            if (need) {
+                requestPermissions(permissions, PERMISSION_REQUEST_CODE);
             }
         }
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == FILE_CHOOSER_REQUEST_CODE) {
             if (fileUploadCallback != null) {

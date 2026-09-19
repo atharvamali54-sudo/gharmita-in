@@ -30,25 +30,23 @@ jobs:
         with:
           gradle-version: 8.5
 
-      - name: Accept Android Licenses & Build APK
+      - name: Build Android APK
         working-directory: ./android
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          gradle assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace
 
-      - name: Prepare APK
+      - name: Prepare APK for Release
         run: |
           mkdir -p release-apk
           cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/Gharmitra-Secure.apk
 
-      - name: Upload APK to Artifacts
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Gharmitra-Secure-APK
           path: release-apk/Gharmitra-Secure.apk
           retention-days: 30
 
-      - name: Create or Update GitHub Release with APK
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
         with:
@@ -59,8 +57,6 @@ jobs:
             - 🛡️ **FLAG_SECURE Active:** हार्डवेअर स्क्रीनशॉट आणि स्क्रीन रेकॉर्डिंग पूर्णपणे बंद!
             - ⚡ रिअल-टाईम लोकेशन ट्रॅकिंग आणि लाऊड डिलिव्हरी रिंगटोन.
             - 🏠 पुणे शहरासाठी सर्व घरगुती सेवा.
-            
-            **डाउनलोड करण्यासाठी खाली Assets मधील Gharmitra-Secure.apk वर क्लिक करा.**
           files: release-apk/Gharmitra-Secure.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
