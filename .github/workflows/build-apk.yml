@@ -1,0 +1,67 @@
+name: Build Gharmitra Android APK
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'android/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.5
+
+      - name: Build Debug APK
+        working-directory: ./android
+        run: gradle assembleDebug --stacktrace
+
+      - name: Rename APK for Download
+        run: |
+          mkdir -p release-apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/Gharmitra-Secure.apk
+
+      - name: Upload APK to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gharmitra-Secure-APK
+          path: release-apk/Gharmitra-Secure.apk
+          retention-days: 30
+
+      - name: Create or Update GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0.0-apk
+          name: "Gharmitra Android App (Official Secure APK)"
+          body: |
+            ## 📱 Gharmitra Official Android App (APK)
+            - 🛡️ **FLAG_SECURE Active:** हार्डवेअर स्क्रीनशॉट आणि स्क्रीन रेकॉर्डिंग पूर्णपणे बंद!
+            - ⚡ रिअल-टाईम लोकेशन ट्रॅकिंग आणि लाऊड डिलिव्हरी रिंगटोन.
+            - 🏠 पुणे शहरासाठी सर्व घरगुती सेवा.
+            
+            **डाउनलोड करण्यासाठी खालील Gharmitra-Secure.apk वर क्लिक करा.**
+          files: release-apk/Gharmitra-Secure.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
