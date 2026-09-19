@@ -264,8 +264,38 @@ function isMatchingPendingOrder(order, selectedArea) {
     return (order.area === selectedArea || !order.area) && jobService === workerService;
 }
 
+function getActiveOfferForCurrentWorker() {
+    if (!allOrdersData || !currentWorkerUid) return null;
+    const now = orderNow();
+    const entry = Object.entries(allOrdersData).find(([id, order]) => {
+        return order && order.status === 'Pending' &&
+               order.offerWorkerUid === currentWorkerUid &&
+               Number(order.offerExpiresAt) > now;
+    });
+    return entry ? { orderId: entry[0], order: entry[1] } : null;
+}
+
+function declineOrder(orderId) {
+    if (!orderId || !currentWorkerUid) return;
+    stopOrderAlert();
+    database.ref('orders/' + orderId).transaction(current => {
+        if (!current || current.status !== 'Pending' || current.offerWorkerUid !== currentWorkerUid) return;
+        return {
+            ...current,
+            offerWorkerUid: null,
+            offeredAt: null,
+            offerExpiresAt: null,
+            offerDeclines: { ...(current.offerDeclines || {}), [currentWorkerUid]: orderNow() }
+        };
+    }, () => {
+        claimNextOffer();
+        renderJobs();
+    });
+}
+
 function claimNextOffer() {
-    if (offerClaimInFlight || !isDutyOn || !currentWorkerUid || getActiveOrderForCurrentWorker() || !allOrdersData) return;
+    // Only 1 order offered at a time. If worker already has an active order or an active offer, do not claim another!
+    if (offerClaimInFlight || !isDutyOn || !currentWorkerUid || getActiveOrderForCurrentWorker() || getActiveOfferForCurrentWorker() || !allOrdersData) return;
     const selectedArea = document.getElementById('workingAreaSelect')?.value;
     const candidate = Object.entries(allOrdersData)
         .map(([id, order]) => ({ id, order }))
@@ -288,15 +318,16 @@ function claimNextOffer() {
         };
     }, () => {
         offerClaimInFlight = false;
+        renderJobs();
     });
 }
 
 function expireCurrentOffer() {
     if (!currentWorkerUid || !allOrdersData) return;
-    stopOrderAlert();
     const now = orderNow();
     Object.entries(allOrdersData).forEach(([orderId, order]) => {
         if (order.status !== 'Pending' || order.offerWorkerUid !== currentWorkerUid || Number(order.offerExpiresAt) > now) return;
+        stopOrderAlert();
         database.ref('orders/' + orderId).transaction(current => {
             if (!current || current.status !== 'Pending' || current.offerWorkerUid !== currentWorkerUid || Number(current.offerExpiresAt) > orderNow()) return;
             return {
@@ -306,6 +337,9 @@ function expireCurrentOffer() {
                 offerExpiresAt: null,
                 offerDeclines: { ...(current.offerDeclines || {}), [currentWorkerUid]: orderNow() }
             };
+        }, () => {
+            claimNextOffer();
+            renderJobs();
         });
     });
 }
@@ -337,7 +371,14 @@ function releaseExpiredAcceptedOrder() {
 function updateDeadlineLabels() {
     const now = orderNow();
     document.querySelectorAll('[data-offer-expires]').forEach(el => {
-        el.textContent = Math.max(0, Math.ceil((Number(el.dataset.offerExpires) - now) / 1000)) + ' sec left';
+        const secLeft = Math.max(0, Math.ceil((Number(el.dataset.offerExpires) - now) / 1000));
+        el.textContent = `${secLeft} sec left`;
+        const alertSub = document.getElementById('incomingOrderAlertSub');
+        if (alertSub && currentAlertOrderId && allOrdersData?.[currentAlertOrderId]) {
+            const currentItem = allOrdersData[currentAlertOrderId];
+            const budgetVal = (currentItem.budget || '₹500').replace('₹', '');
+            alertSub.innerText = `${currentItem.service || 'काम'} • ₹${budgetVal} • ${secLeft} सेकंदात स्वीकारा`;
+        }
     });
     document.querySelectorAll('[data-on-the-way-deadline]').forEach(el => {
         const seconds = Math.max(0, Math.ceil((Number(el.dataset.onTheWayDeadline) - now) / 1000));
@@ -1198,12 +1239,13 @@ function renderJobs() {
         // other pending order.  A pending job is visible only during this
         // worker's exclusive 30-second offer window.
         const isCurrentWorkersOffer = item.offerWorkerUid === currentWorkerUid && Number(item.offerExpiresAt) > orderNow();
-        if (!activeOrderId && item.status === 'Pending' && isAreaMatch && isServiceMatch && isCurrentWorkersOffer) {
+        // STTRICTLY ONE ORDER AT A TIME: Only render if pendingCount === 0
+        if (pendingCount === 0 && !activeOrderId && item.status === 'Pending' && isAreaMatch && isServiceMatch && isCurrentWorkersOffer) {
             pendingCount++;
             foundExclusiveOfferKey = key;
             foundExclusiveOfferItem = item;
             const jobCard = document.createElement('div');
-            jobCard.className = "bg-slate-50 border border-slate-200 p-4 rounded-2xl hover:border-blue-400 transition shadow-sm space-y-3";
+            jobCard.className = "bg-white border-2 border-blue-500 p-4 rounded-2xl shadow-lg space-y-3 relative overflow-hidden";
             const photoHtml = imgUrl ? `<div class="my-2"><div class="relative cursor-pointer group rounded-xl overflow-hidden border border-slate-200" onclick="openImagePreview('${imgUrl}')"><img src="${imgUrl}" class="w-full h-44 object-cover"></div></div>` : '';
 
             jobCard.innerHTML = `
@@ -1211,20 +1253,22 @@ function renderJobs() {
             <div><span class="bg-blue-100 text-blue-700 text-[11px] font-bold px-2.5 py-1 rounded-full">⚡ ${item.service}</span><h4 class="font-bold text-slate-800 text-sm mt-2"><i class="fa-solid fa-user text-blue-600"></i> ${item.customerName}</h4></div>
             <span class="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">${item.budget || '₹500'}</span>
             </div>
-            <div class="text-xs text-slate-600 space-y-1 bg-white p-3 rounded-xl border border-slate-100">
+            <div class="text-xs text-slate-600 space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
             <p><i class="fa-solid fa-location-dot text-red-500 mr-1.5"></i><strong>पत्ता:</strong> ${item.address}</p>
             <p><i class="fa-regular fa-calendar text-blue-500 mr-1.5"></i><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
             <p><i class="fa-regular fa-clock text-blue-500 mr-1.5"></i><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
             <p class="text-slate-400"><i class="fa-solid fa-lock mr-1.5"></i>मोबाइल नंबर On The Way केल्यानंतर दिसेल.</p>
             </div>
             ${photoHtml}
-            <div class="flex items-center justify-between text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg">
-                <span>Exclusive job offer</span><span data-offer-expires="${item.offerExpiresAt}">30 sec left</span>
+            <div class="flex items-center justify-between text-xs font-bold text-amber-800 bg-amber-50 border border-amber-300 px-3 py-2 rounded-xl">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> नवीन काम स्वीकारा</span>
+                <span class="bg-amber-200/80 px-2.5 py-0.5 rounded-md font-extrabold" data-offer-expires="${item.offerExpiresAt}">30 sec left</span>
             </div>
-            <div class="grid grid-cols-2 gap-2">
-            <button onclick="acceptOrder('${key}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">🤝 Accept Order</button>
-            <a href="https://maps.google.com/?q=${encodeURIComponent(item.address)}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">📍 Map</a>
-            </div>`;
+            <div class="grid grid-cols-3 gap-2">
+            <button onclick="acceptOrder('${key}')" class="col-span-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5">🤝 Accept Order</button>
+            <button onclick="declineOrder('${key}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-1 border border-slate-200" title="हे काम सोडून पुढील काम पहा">❌ Skip</button>
+            </div>
+            <a href="https://maps.google.com/?q=${encodeURIComponent(item.address)}" target="_blank" class="block text-center text-[11px] font-bold text-emerald-600 hover:underline py-1"><i class="fa-solid fa-map-location-dot mr-1"></i> नकाशावर पत्ता पहा</a>`;
             jobsContainer.appendChild(jobCard);
         }
 
