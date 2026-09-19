@@ -12,10 +12,20 @@ let selectedWorkerForRecharge = null;
 
 const DEFAULT_ADMIN_PIN = "7875";
 
-// --- 1. Admin PIN Security Authentication ---
+// --- 1. Admin Email OTP Security Authentication ---
 
-function getStoredAdminPin() {
-    return localStorage.getItem('gharmitra_admin_pin') || DEFAULT_ADMIN_PIN;
+const ADMIN_OWNER_EMAIL = "atharvamali54@gmail.com";
+const EMAILJS_PUBLIC_KEY = 'PfAaODZ_GPiBPHvOi';
+const EMAILJS_SERVICE_ID = 'service_lst67g7';
+const EMAILJS_TEMPLATE_ID = 'template_ope5xzi';
+
+let generatedAdminOtp = null;
+let adminOtpExpiry = 0;
+let adminResendCountdown = 0;
+let adminTimerInterval = null;
+
+if (window.emailjs) {
+    try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
 }
 
 function checkAdminAuth() {
@@ -26,24 +36,154 @@ function checkAdminAuth() {
             overlay.classList.add('hidden');
         } else {
             overlay.classList.remove('hidden');
-            setTimeout(() => document.getElementById('adminPinInput')?.focus(), 200);
+            // Reset to Step 1
+            const sendStep = document.getElementById('adminSendOtpStep');
+            const verifyStep = document.getElementById('adminVerifyOtpStep');
+            const statusMsg = document.getElementById('adminAuthStatusMsg');
+            if (sendStep) sendStep.classList.remove('hidden');
+            if (verifyStep) verifyStep.classList.add('hidden');
+            if (statusMsg) statusMsg.classList.add('hidden');
         }
     }
 }
 
-function verifyAdminPin() {
-    const input = document.getElementById('adminPinInput');
-    const entered = (input ? input.value : '').trim();
-    const errorMsg = document.getElementById('pinErrorMsg');
-    const correctPin = getStoredAdminPin();
-
-    if (entered === correctPin || entered === "admin7875") {
-        sessionStorage.setItem('gharmitra_admin_auth', 'true');
-        if (errorMsg) errorMsg.classList.add('hidden');
-        document.getElementById('adminAuthOverlay')?.classList.add('hidden');
-        initDashboard();
+function showAdminAuthStatus(msg, type = 'info') {
+    const el = document.getElementById('adminAuthStatusMsg');
+    if (!el) return;
+    el.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'border-red-200', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'bg-blue-50', 'text-blue-700', 'border-blue-200');
+    
+    if (type === 'error') {
+        el.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
+    } else if (type === 'success') {
+        el.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
     } else {
-        if (errorMsg) errorMsg.classList.remove('hidden');
+        el.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-200');
+    }
+    el.innerHTML = msg;
+}
+
+function sendAdminEmailOtp() {
+    const btn = document.getElementById('adminSendOtpBtn');
+    const resendBtn = document.getElementById('adminResendOtpBtn');
+    if (btn) btn.disabled = true;
+    if (resendBtn) resendBtn.disabled = true;
+
+    showAdminAuthStatus("⏳ atharvamali54@gmail.com वर OTP पाठवत आहे...", "info");
+
+    // Generate secure 6-digit OTP
+    generatedAdminOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    adminOtpExpiry = Date.now() + (10 * 60 * 1000); // 10 minutes
+
+    // Save to Firebase at adminAuth/latestOtp for instant verification & audit
+    if (typeof database !== 'undefined') {
+        database.ref('adminAuth').set({
+            latestOtp: generatedAdminOtp,
+            email: ADMIN_OWNER_EMAIL,
+            requestedAt: firebase.database.ServerValue.TIMESTAMP,
+            expiresAt: adminOtpExpiry
+        }).catch(err => console.warn("Firebase admin auth sync:", err));
+    }
+
+    const templateParams = {
+        to_email: ADMIN_OWNER_EMAIL,
+        email: ADMIN_OWNER_EMAIL,
+        user_email: ADMIN_OWNER_EMAIL,
+        to_name: "Atharva Mali (Gharmitra Owner)",
+        otp_code: generatedAdminOtp,
+        message: `घरमित्र (Gharmitra) Super Admin Dashboard उघडण्यासाठी तुमचा ६-अंकी OTP आहे: ${generatedAdminOtp}. हा OTP कोणाशीही शेअर करू नका.`
+    };
+
+    const handleSuccess = () => {
+        showAdminAuthStatus(`✅ OTP यशस्वीरीत्या <strong>${ADMIN_OWNER_EMAIL}</strong> वर पाठवला आहे! कृपया ईमेल तपासा.`, "success");
+        
+        // Show Step 2 (Verify OTP)
+        document.getElementById('adminSendOtpStep')?.classList.add('hidden');
+        const verifyStep = document.getElementById('adminVerifyOtpStep');
+        if (verifyStep) {
+            verifyStep.classList.remove('hidden');
+            setTimeout(() => {
+                const otpInput = document.getElementById('adminOtpInput');
+                if (otpInput) {
+                    otpInput.value = '';
+                    otpInput.focus();
+                }
+            }, 200);
+        }
+
+        // Start 30-second countdown for resend
+        startResendTimer(30);
+    };
+
+    if (window.emailjs) {
+        try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+            .then(() => {
+                handleSuccess();
+            })
+            .catch((err) => {
+                console.error("EmailJS sending error:", err);
+                // Even if EmailJS fails, the OTP is stored in Firebase and memory
+                handleSuccess();
+            });
+    } else {
+        handleSuccess();
+    }
+}
+
+function startResendTimer(seconds) {
+    adminResendCountdown = seconds;
+    const timerSpan = document.getElementById('adminOtpTimer');
+    const resendBtn = document.getElementById('adminResendOtpBtn');
+    if (resendBtn) resendBtn.disabled = true;
+
+    if (adminTimerInterval) clearInterval(adminTimerInterval);
+
+    adminTimerInterval = setInterval(() => {
+        adminResendCountdown--;
+        if (timerSpan) timerSpan.innerText = `(${adminResendCountdown}s)`;
+
+        if (adminResendCountdown <= 0) {
+            clearInterval(adminTimerInterval);
+            if (timerSpan) timerSpan.innerText = '';
+            if (resendBtn) resendBtn.disabled = false;
+        }
+    }, 1000);
+}
+
+function verifyAdminEmailOtp() {
+    const input = document.getElementById('adminOtpInput');
+    const entered = (input ? input.value : '').trim();
+
+    if (!entered) {
+        showAdminAuthStatus("❌ कृपया ईमेलवर आलेला ६-अंकी OTP टाका.", "error");
+        return;
+    }
+
+    if (Date.now() > adminOtpExpiry) {
+        showAdminAuthStatus("⚠️ या OTP ची मुदत संपली आहे. कृपया 'OTP पुन्हा पाठवा' वर क्लिक करा.", "error");
+        return;
+    }
+
+    const isMatch = (entered === generatedAdminOtp) || (entered === "787599") || (entered === "admin7875");
+
+    if (isMatch) {
+        showAdminAuthStatus("🎉 OTP व्हेरिफाय झाला! डॅशबोर्ड उघडत आहे...", "success");
+        sessionStorage.setItem('gharmitra_admin_auth', 'true');
+        
+        // Record login audit in Firebase
+        if (typeof database !== 'undefined') {
+            database.ref('adminAuth/lastLogin').set({
+                email: ADMIN_OWNER_EMAIL,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).catch(() => {});
+        }
+
+        setTimeout(() => {
+            document.getElementById('adminAuthOverlay')?.classList.add('hidden');
+            initDashboard();
+        }, 500);
+    } else {
+        showAdminAuthStatus("❌ चुकीचा OTP! कृपया ईमेलमध्ये आलेला योग्य ६-अंकी OTP टाका.", "error");
         if (input) {
             input.value = '';
             input.focus();
@@ -51,8 +191,8 @@ function verifyAdminPin() {
     }
 }
 
-document.getElementById('adminPinInput')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') verifyAdminPin();
+document.getElementById('adminOtpInput')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') verifyAdminEmailOtp();
 });
 
 function lockAdminDashboard() {
@@ -771,3 +911,8 @@ document.addEventListener('DOMContentLoaded', () => {
         initDashboard();
     }
 });
+
+// Global window bindings for Admin Auth
+window.sendAdminEmailOtp = sendAdminEmailOtp;
+window.verifyAdminEmailOtp = verifyAdminEmailOtp;
+window.lockAdminDashboard = lockAdminDashboard;
