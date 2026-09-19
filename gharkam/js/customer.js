@@ -4,8 +4,86 @@ let currentOrderId = null;
         let activeLocationOrderId = null;
         let workerLiveMap = null;
         let workerLiveMarker = null;
+        let workerCustomerMarker = null;
+        let workerRouteLine = null;
         let workerLocationPath = null;
         let workerPathPoints = [];
+        let currentOrderCustomerCoords = null;
+        let currentTrackedOrder = null;
+
+// Pune Area Coordinates for delivery routing
+const PUNE_AREA_COORDINATES = {
+    "Swargate": { lat: 18.5018, lng: 73.8636 },
+    "Hadapsar": { lat: 18.5089, lng: 73.9259 },
+    "Katraj": { lat: 18.4575, lng: 73.8677 },
+    "Kothrud": { lat: 18.5074, lng: 73.8077 },
+    "Baner": { lat: 18.5590, lng: 73.7868 },
+    "Wakad": { lat: 18.5987, lng: 73.7661 },
+    "Hinjawadi": { lat: 18.5913, lng: 73.7389 },
+    "Viman Nagar": { lat: 18.5679, lng: 73.9143 },
+    "Kharadi": { lat: 18.5516, lng: 73.9348 },
+    "Aundh": { lat: 18.5626, lng: 73.8087 },
+    "Shivajinagar": { lat: 18.5314, lng: 73.8446 },
+    "Koregaon Park": { lat: 18.5362, lng: 73.8940 },
+    "Kondhwa": { lat: 18.4695, lng: 73.8890 },
+    "Bibwewadi": { lat: 18.4692, lng: 73.8617 },
+    "Dhankawadi": { lat: 18.4682, lng: 73.8519 },
+    "Pimple Saudagar": { lat: 18.5987, lng: 73.7978 },
+    "Pimpri": { lat: 18.6298, lng: 73.7997 },
+    "Chinchwad": { lat: 18.6276, lng: 73.7823 },
+    "Yerawada": { lat: 18.5529, lng: 73.8797 },
+    "Wagholi": { lat: 18.5793, lng: 73.9822 },
+    "Dhanori": { lat: 18.5833, lng: 73.8889 },
+    "Lohegaon": { lat: 18.5878, lng: 73.9189 },
+    "Camp": { lat: 18.5167, lng: 73.8789 },
+    "Deccan": { lat: 18.5173, lng: 73.8417 },
+    "Sinhagad Road": { lat: 18.4831, lng: 73.8298 },
+    "Warje": { lat: 18.4820, lng: 73.8000 },
+    "Bavdhan": { lat: 18.5158, lng: 73.7690 },
+    "NIBM": { lat: 18.4795, lng: 73.8996 },
+    "Vishrantwadi": { lat: 18.5684, lng: 73.8770 },
+    "Magarpatta": { lat: 18.5144, lng: 73.9298 }
+};
+
+function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c * 1.3;
+}
+
+function formatDistance(distKm) {
+    if (!Number.isFinite(distKm) || distKm <= 0) return "--";
+    if (distKm < 1) {
+        return Math.round(distKm * 1000) + " मी";
+    }
+    return distKm.toFixed(1) + " किमी";
+}
+
+function calculateEtaMinutes(distKm) {
+    if (!Number.isFinite(distKm) || distKm <= 0) return 1;
+    const speedKmPerHour = 22;
+    return Math.max(1, Math.round((distKm / speedKmPerHour) * 60) + 1);
+}
+
+function getOrderCustomerCoords(orderData) {
+    if (!orderData) return { lat: 18.5204, lng: 73.8567 };
+    if (orderData.customerLocation && Number.isFinite(Number(orderData.customerLocation.lat)) && Number.isFinite(Number(orderData.customerLocation.lng))) {
+        return { lat: Number(orderData.customerLocation.lat), lng: Number(orderData.customerLocation.lng) };
+    }
+    if (Number.isFinite(Number(orderData.customerLat)) && Number.isFinite(Number(orderData.customerLng))) {
+        return { lat: Number(orderData.customerLat), lng: Number(orderData.customerLng) };
+    }
+    if (orderData.area && PUNE_AREA_COORDINATES[orderData.area]) {
+        return PUNE_AREA_COORDINATES[orderData.area];
+    }
+    return { lat: 18.5204, lng: 73.8567 };
+}
+
         let selectedRating = 5;
 let activeCustomerChatOrderId = null;
 let activeCustomerChatListener = null;
@@ -178,7 +256,10 @@ function verifyProfileOtp() {
 document.getElementById('bookingDate').valueAsDate = new Date();
 populateBookingProfile();
 
-        function ensureWorkerLiveMap() {
+                function ensureWorkerLiveMap() {
+            const mapEl = document.getElementById('workerLiveMap');
+            if (!mapEl) return;
+
             if (workerLiveMap) {
                 setTimeout(() => workerLiveMap.invalidateSize(), 50);
                 return;
@@ -196,11 +277,11 @@ populateBookingProfile();
 
             workerLocationPath = L.polyline([], {
                 color: '#6366f1',
-                weight: 4,
-                opacity: 0.7
+                weight: 3,
+                opacity: 0.5
             }).addTo(workerLiveMap);
 
-            setTimeout(() => workerLiveMap.invalidateSize(), 100);
+            setTimeout(() => workerLiveMap?.invalidateSize(), 100);
         }
 
         function stopWorkerLocationTracking() {
@@ -211,10 +292,22 @@ populateBookingProfile();
 
             activeLocationOrderId = null;
             workerLocationListener = null;
-            if (workerLiveMarker && workerLiveMap) {
-                workerLiveMap.removeLayer(workerLiveMarker);
+
+            if (workerLiveMap) {
+                if (workerLiveMarker) {
+                    workerLiveMap.removeLayer(workerLiveMarker);
+                }
+                if (workerCustomerMarker) {
+                    workerLiveMap.removeLayer(workerCustomerMarker);
+                }
+                if (workerRouteLine) {
+                    workerLiveMap.removeLayer(workerRouteLine);
+                }
             }
+
             workerLiveMarker = null;
+            workerCustomerMarker = null;
+            workerRouteLine = null;
             workerPathPoints = [];
 
             if (workerLocationPath) {
@@ -223,68 +316,123 @@ populateBookingProfile();
 
             const etaEl = document.getElementById('workerEta');
             if (etaEl) etaEl.innerText = "--";
+            const distEl = document.getElementById('workerDistance');
+            if (distEl) distEl.innerText = "--";
         }
 
         function updateWorkerLiveLocation(location) {
             const locationMeta = document.getElementById('workerLocationUpdated');
             const accuracyMeta = document.getElementById('workerLocationAccuracy');
             const etaEl = document.getElementById('workerEta');
+            const distEl = document.getElementById('workerDistance');
+            const trackMapBtn = document.getElementById('trackMapBtn');
 
             if (!location || !Number.isFinite(Number(location.lat)) || !Number.isFinite(Number(location.lng))) {
-                locationMeta.innerText = "Location waiting...";
-                accuracyMeta.innerText = "Worker location मिळत आहे...";
+                if (locationMeta) locationMeta.innerText = "Location waiting...";
+                if (accuracyMeta) accuracyMeta.innerText = "Worker location मिळत आहे...";
                 return;
             }
 
-            const latLng = [Number(location.lat), Number(location.lng)];
             ensureWorkerLiveMap();
+            if (!workerLiveMap) return;
 
+            const workerLatLng = [Number(location.lat), Number(location.lng)];
+            const custCoords = currentOrderCustomerCoords || getOrderCustomerCoords(currentTrackedOrder);
+            const custLatLng = [custCoords.lat, custCoords.lng];
+
+            // 1. Worker Moving Marker (Scooter / Bike)
             if (!workerLiveMarker) {
-                workerLiveMarker = L.marker(latLng, {
+                workerLiveMarker = L.marker(workerLatLng, {
                     icon: L.divIcon({
                         className: '',
-                        html: '<div class="live-location-pulse"></div>',
-                        iconSize: [18, 18],
-                        iconAnchor: [9, 9]
+                        html: `<div class="delivery-worker-marker">
+                                 <div class="delivery-marker-pulse"></div>
+                                 <div class="delivery-marker-icon worker-bike"><i class="fa-solid fa-motorcycle"></i></div>
+                                 <div class="delivery-marker-label">कामगार (Worker)</div>
+                               </div>`,
+                        iconSize: [42, 42],
+                        iconAnchor: [21, 21]
                     })
                 }).addTo(workerLiveMap);
             } else {
-                workerLiveMarker.setLatLng(latLng);
+                workerLiveMarker.setLatLng(workerLatLng);
             }
 
-            const lastPoint = workerPathPoints[workerPathPoints.length - 1];
-            if (!lastPoint || lastPoint[0] !== latLng[0] || lastPoint[1] !== latLng[1]) {
-                workerPathPoints.push(latLng);
-                if (workerPathPoints.length > 80) workerPathPoints.shift();
-                workerLocationPath?.setLatLngs(workerPathPoints);
+            // 2. Customer Home Marker
+            if (!workerCustomerMarker) {
+                workerCustomerMarker = L.marker(custLatLng, {
+                    icon: L.divIcon({
+                        className: '',
+                        html: `<div class="delivery-home-marker">
+                                 <div class="delivery-marker-icon home-pin"><i class="fa-solid fa-house-chimney"></i></div>
+                                 <div class="delivery-marker-label">तुमचे घर (Home)</div>
+                               </div>`,
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 20]
+                    })
+                }).addTo(workerLiveMap);
+            } else {
+                workerCustomerMarker.setLatLng(custLatLng);
             }
 
-            const trackMapBtn = document.getElementById('trackMapBtn');
-            if (trackMapBtn) {
-                trackMapBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${latLng[0]},${latLng[1]}&travelmode=driving`;
+            // 3. Route Polyline Connecting Worker to Customer Home
+            const routePoints = [workerLatLng, custLatLng];
+            if (!workerRouteLine) {
+                workerRouteLine = L.polyline(routePoints, {
+                    color: '#2563eb',
+                    weight: 4,
+                    opacity: 0.85,
+                    dashArray: '7, 8'
+                }).addTo(workerLiveMap);
+            } else {
+                workerRouteLine.setLatLngs(routePoints);
             }
 
-            workerLiveMap.setView(latLng, Math.max(workerLiveMap.getZoom(), 15), {
-                animate: true,
-                duration: 0.5
-            });
+            // 4. Auto-fit bounds so both Worker and Customer are visible together
+            try {
+                workerLiveMap.fitBounds([workerLatLng, custLatLng], {
+                    padding: [45, 45],
+                    maxZoom: 16
+                });
+            } catch(e) {}
 
-            const updatedAt = Number(location.updatedAt);
-            locationMeta.innerText = Number.isFinite(updatedAt) && updatedAt > 0
-                ? "Updated " + new Date(updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                : "Live location";
+            // 5. Distance and ETA calculations
+            let distKm = Number(location.distanceKm);
+            if (!Number.isFinite(distKm) || distKm <= 0) {
+                distKm = calculateDistanceKm(workerLatLng[0], workerLatLng[1], custLatLng[0], custLatLng[1]);
+            }
+            let etaMin = Number(location.etaMinutes);
+            if (!Number.isFinite(etaMin) || etaMin <= 0) {
+                etaMin = calculateEtaMinutes(distKm);
+            }
+            const formattedDist = location.formattedDistance || formatDistance(distKm);
+
+            if (distEl) {
+                distEl.innerText = formattedDist;
+            }
             if (etaEl) {
-                etaEl.innerText = Number.isFinite(Number(location.etaMinutes))
-                    ? Math.max(1, Math.round(Number(location.etaMinutes))) + " min"
-                    : "Live";
+                etaEl.innerText = `~${etaMin} मिनिटे`;
             }
-            accuracyMeta.innerText = location.accuracy
-                ? "Accuracy ±" + Math.round(Number(location.accuracy)) + " m"
-                : "Live GPS location";
+            if (locationMeta) {
+                const updatedAt = Number(location.updatedAt);
+                locationMeta.innerText = Number.isFinite(updatedAt) && updatedAt > 0
+                    ? "Live • " + new Date(updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : "कामगार निघत आहे...";
+            }
+            if (accuracyMeta) {
+                accuracyMeta.innerHTML = `<i class="fa-solid fa-satellite-dish text-emerald-500"></i> Worker Live GPS जोडलेले आहे` + (location.accuracy ? ` (±${Math.round(location.accuracy)}m)` : '');
+            }
+            if (trackMapBtn) {
+                trackMapBtn.href = `https://www.google.com/maps/dir/?api=1&origin=${workerLatLng[0]},${workerLatLng[1]}&destination=${custLatLng[0]},${custLatLng[1]}&travelmode=driving`;
+            }
         }
 
-        function startWorkerLocationTracking(orderId) {
+        function startWorkerLocationTracking(orderId, orderData) {
             if (!orderId) return;
+            if (orderData) {
+                currentTrackedOrder = orderData;
+                currentOrderCustomerCoords = getOrderCustomerCoords(orderData);
+            }
             ensureWorkerLiveMap();
 
             if (activeLocationOrderId === orderId && workerLocationListener) {
@@ -580,12 +728,11 @@ populateBookingProfile();
                 // publishes GPS coordinates under this order in Firebase.
                 if (data.status === 'On The Way') {
                     mapContainer.classList.remove('hidden');
-                    startWorkerLocationTracking(orderId);
-                    const workerLocation = data.workerLocation;
-                    if (workerLocation && workerLocation.lat && workerLocation.lng) {
-                        trackMapBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${workerLocation.lat},${workerLocation.lng}&travelmode=driving`;
-                    } else {
-                        trackMapBtn.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.area + ', Pune')}`;
+                    currentTrackedOrder = data;
+                    currentOrderCustomerCoords = getOrderCustomerCoords(data);
+                    startWorkerLocationTracking(orderId, data);
+                    if (data.workerLocation) {
+                        updateWorkerLiveLocation(data.workerLocation);
                     }
                 } else {
                     mapContainer.classList.add('hidden');

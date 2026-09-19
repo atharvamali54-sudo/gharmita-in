@@ -9,10 +9,86 @@ let locationSharingOrderId = null;
 let earningsChartInstance = null;
 let workerTripMap = null;
 let workerTripMarker = null;
+let workerTripCustomerMarker = null;
+let workerTripRouteLine = null;
 let workerTripPath = null;
 let workerTripPathPoints = [];
 let workerTripLastLocation = null;
 let workerTripMapOrderId = null;
+
+// Pune Area Coordinates for delivery routing
+const PUNE_AREA_COORDINATES = {
+    "Swargate": { lat: 18.5018, lng: 73.8636 },
+    "Hadapsar": { lat: 18.5089, lng: 73.9259 },
+    "Katraj": { lat: 18.4575, lng: 73.8677 },
+    "Kothrud": { lat: 18.5074, lng: 73.8077 },
+    "Baner": { lat: 18.5590, lng: 73.7868 },
+    "Wakad": { lat: 18.5987, lng: 73.7661 },
+    "Hinjawadi": { lat: 18.5913, lng: 73.7389 },
+    "Viman Nagar": { lat: 18.5679, lng: 73.9143 },
+    "Kharadi": { lat: 18.5516, lng: 73.9348 },
+    "Aundh": { lat: 18.5626, lng: 73.8087 },
+    "Shivajinagar": { lat: 18.5314, lng: 73.8446 },
+    "Koregaon Park": { lat: 18.5362, lng: 73.8940 },
+    "Kondhwa": { lat: 18.4695, lng: 73.8890 },
+    "Bibwewadi": { lat: 18.4692, lng: 73.8617 },
+    "Dhankawadi": { lat: 18.4682, lng: 73.8519 },
+    "Pimple Saudagar": { lat: 18.5987, lng: 73.7978 },
+    "Pimpri": { lat: 18.6298, lng: 73.7997 },
+    "Chinchwad": { lat: 18.6276, lng: 73.7823 },
+    "Yerawada": { lat: 18.5529, lng: 73.8797 },
+    "Wagholi": { lat: 18.5793, lng: 73.9822 },
+    "Dhanori": { lat: 18.5833, lng: 73.8889 },
+    "Lohegaon": { lat: 18.5878, lng: 73.9189 },
+    "Camp": { lat: 18.5167, lng: 73.8789 },
+    "Deccan": { lat: 18.5173, lng: 73.8417 },
+    "Sinhagad Road": { lat: 18.4831, lng: 73.8298 },
+    "Warje": { lat: 18.4820, lng: 73.8000 },
+    "Bavdhan": { lat: 18.5158, lng: 73.7690 },
+    "NIBM": { lat: 18.4795, lng: 73.8996 },
+    "Vishrantwadi": { lat: 18.5684, lng: 73.8770 },
+    "Magarpatta": { lat: 18.5144, lng: 73.9298 }
+};
+
+function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c * 1.3;
+}
+
+function formatDistance(distKm) {
+    if (!Number.isFinite(distKm) || distKm <= 0) return "--";
+    if (distKm < 1) {
+        return Math.round(distKm * 1000) + " मी";
+    }
+    return distKm.toFixed(1) + " किमी";
+}
+
+function calculateEtaMinutes(distKm) {
+    if (!Number.isFinite(distKm) || distKm <= 0) return 1;
+    const speedKmPerHour = 22;
+    return Math.max(1, Math.round((distKm / speedKmPerHour) * 60) + 1);
+}
+
+function getCustomerCoordinates(order) {
+    if (!order) return { lat: 18.5204, lng: 73.8567 };
+    if (order.customerLocation && Number.isFinite(Number(order.customerLocation.lat)) && Number.isFinite(Number(order.customerLocation.lng))) {
+        return { lat: Number(order.customerLocation.lat), lng: Number(order.customerLocation.lng) };
+    }
+    if (Number.isFinite(Number(order.customerLat)) && Number.isFinite(Number(order.customerLng))) {
+        return { lat: Number(order.customerLat), lng: Number(order.customerLng) };
+    }
+    if (order.area && PUNE_AREA_COORDINATES[order.area]) {
+        return PUNE_AREA_COORDINATES[order.area];
+    }
+    return { lat: 18.5204, lng: 73.8567 };
+}
+
 const auth = firebase.auth();
 
 // Dispatch policy.  Offers are reserved for one matching on-duty worker for
@@ -351,6 +427,8 @@ function destroyWorkerTripMap() {
     }
     workerTripMap = null;
     workerTripMarker = null;
+    workerTripCustomerMarker = null;
+    workerTripRouteLine = null;
     workerTripPath = null;
 }
 
@@ -387,53 +465,113 @@ function updateWorkerTripMap(orderId, location) {
     ensureWorkerTripMap();
     if (!workerTripMap) return;
 
-    const latLng = [Number(location.lat), Number(location.lng)];
+    const currentOrder = (allOrdersData && allOrdersData[orderId]) ? allOrdersData[orderId] : {};
+    const custCoords = getCustomerCoordinates(currentOrder);
+    const workerLatLng = [Number(location.lat), Number(location.lng)];
+    const custLatLng = [custCoords.lat, custCoords.lng];
+
+    // Worker Marker (Moving Motorcycle)
     if (!workerTripMarker) {
-        workerTripMarker = L.marker(latLng, {
+        workerTripMarker = L.marker(workerLatLng, {
             icon: L.divIcon({
                 className: '',
-                html: '<div class="worker-truck-marker"><i class="fa-solid fa-truck"></i></div>',
-                iconSize: [34, 34],
-                iconAnchor: [17, 17]
+                html: `<div class="delivery-worker-marker">
+                         <div class="delivery-marker-pulse"></div>
+                         <div class="delivery-marker-icon worker-bike"><i class="fa-solid fa-motorcycle"></i></div>
+                         <div class="delivery-marker-label">तुम्ही (You)</div>
+                       </div>`,
+                iconSize: [42, 42],
+                iconAnchor: [21, 21]
             })
         }).addTo(workerTripMap);
     } else {
-        workerTripMarker.setLatLng(latLng);
+        workerTripMarker.setLatLng(workerLatLng);
     }
 
-    const lastPoint = workerTripPathPoints[workerTripPathPoints.length - 1];
-    if (!lastPoint || lastPoint[0] !== latLng[0] || lastPoint[1] !== latLng[1]) {
-        workerTripPathPoints.push(latLng);
-        if (workerTripPathPoints.length > 80) workerTripPathPoints.shift();
-        workerTripPath?.setLatLngs(workerTripPathPoints);
+    // Customer Marker (House Pin)
+    if (!workerTripCustomerMarker) {
+        const custName = currentOrder.customerName ? currentOrder.customerName.split(' ')[0] : 'Customer';
+        workerTripCustomerMarker = L.marker(custLatLng, {
+            icon: L.divIcon({
+                className: '',
+                html: `<div class="delivery-home-marker">
+                         <div class="delivery-marker-icon home-pin"><i class="fa-solid fa-house-chimney"></i></div>
+                         <div class="delivery-marker-label">🏠 ${custName}</div>
+                       </div>`,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            })
+        }).addTo(workerTripMap);
+    } else {
+        workerTripCustomerMarker.setLatLng(custLatLng);
     }
 
-    workerTripMap.setView(latLng, Math.max(workerTripMap.getZoom(), 15), {
-        animate: true,
-        duration: 0.5
-    });
+    // Route Polyline (Worker -> Customer)
+    const routePoints = [workerLatLng, custLatLng];
+    if (!workerTripRouteLine) {
+        workerTripRouteLine = L.polyline(routePoints, {
+            color: '#2563eb',
+            weight: 4,
+            opacity: 0.85,
+            dashArray: '7, 8'
+        }).addTo(workerTripMap);
+    } else {
+        workerTripRouteLine.setLatLngs(routePoints);
+    }
 
-    const updatedAt = Number(location.updatedAt);
+    // Auto-fit bounds so both Worker and Customer house are visible
+    try {
+        workerTripMap.fitBounds([workerLatLng, custLatLng], {
+            padding: [45, 45],
+            maxZoom: 16
+        });
+    } catch(e) {}
+
+    // Distance & ETA calculation
+    const distKm = calculateDistanceKm(workerLatLng[0], workerLatLng[1], custLatLng[0], custLatLng[1]);
+    const etaMin = calculateEtaMinutes(distKm);
+    const formattedDist = formatDistance(distKm);
+
     const metaEl = document.getElementById('workerTripLocationMeta');
     const etaEl = document.getElementById('workerTripEta');
+    const distEl = document.getElementById('workerTripDistance');
+    const navBtn = document.getElementById('workerNavBtn');
+
     if (metaEl) {
-        metaEl.innerText = Number.isFinite(updatedAt) && updatedAt > 0
-            ? 'GPS updated ' + new Date(updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : 'Live GPS sharing सुरू आहे...';
+        const updatedAt = Number(location.updatedAt);
+        metaEl.innerHTML = Number.isFinite(updatedAt) && updatedAt > 0
+            ? `<i class="fa-solid fa-satellite-dish text-emerald-500"></i> GPS अपडेट ` + new Date(updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : `<i class="fa-solid fa-satellite-dish text-emerald-500"></i> Live GPS सुरू आहे...`;
+    }
+    if (distEl) {
+        distEl.innerText = formattedDist;
     }
     if (etaEl) {
-        etaEl.innerText = Number.isFinite(Number(location.etaMinutes))
-            ? Math.max(1, Math.round(Number(location.etaMinutes))) + ' min'
-            : 'Live';
+        etaEl.innerText = `~${etaMin} मिनिटे`;
+    }
+    if (navBtn) {
+        navBtn.href = `https://www.google.com/maps/dir/?api=1&origin=${workerLatLng[0]},${workerLatLng[1]}&destination=${custLatLng[0]},${custLatLng[1]}&travelmode=driving`;
     }
 }
 
 function publishWorkerLocation(orderId, position) {
     const coords = position.coords;
+    const currentOrder = (allOrdersData && allOrdersData[orderId]) ? allOrdersData[orderId] : {};
+    const custCoords = getCustomerCoordinates(currentOrder);
+
+    const workerLat = Number(coords.latitude.toFixed(6));
+    const workerLng = Number(coords.longitude.toFixed(6));
+    const distKm = calculateDistanceKm(workerLat, workerLng, custCoords.lat, custCoords.lng);
+    const etaMin = calculateEtaMinutes(distKm);
+    const formattedDist = formatDistance(distKm);
+
     const liveLocation = {
-        lat: Number(coords.latitude.toFixed(6)),
-        lng: Number(coords.longitude.toFixed(6)),
+        lat: workerLat,
+        lng: workerLng,
         accuracy: Math.round(coords.accuracy || 0),
+        distanceKm: Number(distKm.toFixed(2)),
+        formattedDistance: formattedDist,
+        etaMinutes: etaMin,
         updatedAt: firebase.database.ServerValue.TIMESTAMP
     };
     updateWorkerTripMap(orderId, liveLocation);
@@ -927,7 +1065,9 @@ function renderJobs() {
             </div>
             <div class="text-xs text-slate-600 space-y-1 bg-white p-3 rounded-xl border border-slate-100">
             <p><i class="fa-solid fa-location-dot text-red-500 mr-1.5"></i><strong>पत्ता:</strong> ${item.address}</p>
-            <p><i class="fa-solid fa-phone text-emerald-500 mr-1.5"></i><strong>संपर्क:</strong> <a href="tel:${item.customerMobile}" class="text-blue-600 font-bold">${item.customerMobile}</a></p>
+            <p><i class="fa-regular fa-calendar text-blue-500 mr-1.5"></i><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
+            <p><i class="fa-regular fa-clock text-blue-500 mr-1.5"></i><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
+            <p class="text-slate-400"><i class="fa-solid fa-lock mr-1.5"></i>मोबाइल नंबर On The Way केल्यानंतर दिसेल.</p>
             </div>
             ${photoHtml}
             <div class="flex items-center justify-between text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg">
@@ -951,31 +1091,45 @@ function renderJobs() {
             <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-100 text-xs space-y-1.5 text-slate-700">
             <p><strong>ग्राहक:</strong> ${item.customerName}</p>
             <p><strong>सेवा:</strong> ${item.service}</p>
-            <p><strong>मोबाइल:</strong> <a href="tel:${item.customerMobile}" class="text-blue-600 font-bold underline">${item.customerMobile}</a></p>
             <p><strong>पत्ता:</strong> ${item.address}</p>
+            <p><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
+            <p><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
+            ${item.status === 'On The Way'
+                ? `<p><strong>मोबाइल:</strong> <a href="tel:${item.customerMobile}" class="text-blue-600 font-bold underline">${item.customerMobile || 'Not available'}</a></p>`
+                : `<p class="text-slate-500"><i class="fa-solid fa-lock mr-1"></i>मोबाइल नंबर On The Way केल्यानंतर दिसेल.</p>`}
             </div>
             ${item.status === 'Accepted' ? `<div class="flex items-center justify-between text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg"><span>Mark On The Way within 15 minutes</span><span data-on-the-way-deadline="${item.onTheWayDeadline || orderNow()}">15:00 left to start</span></div>` : ''}
              <div class="worker-live-card">
                  <div class="flex items-center justify-between gap-3 mb-3">
                      <span class="text-xs font-black tracking-[.12em] text-slate-900 flex items-center gap-2">
                          <span class="live-dot"></span>
-                         LIVE TRACKING
+                         🛵 LIVE GPS & ROUTE TRACKING
                      </span>
-                     <span id="workerTripStatus" class="text-[10px] font-bold text-amber-600">Ready to start</span>
+                     <span id="workerTripStatus" class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">Ready to start</span>
                  </div>
                  <div class="worker-live-map-shell">
-                     <span class="live-map-chip"><i class="fa-solid fa-truck text-indigo-600"></i> Your live route</span>
+                     <span class="live-map-chip"><i class="fa-solid fa-motorcycle text-blue-600"></i> थेट रस्ता (Live Route)</span>
                      <div id="workerTripMap" aria-label="Worker live route map"></div>
                      <div class="tracking-eta-card">
-                         <span class="text-[10px] font-bold text-slate-500">Estimated time</span>
-                         <strong id="workerTripEta">--</strong>
+                         <div class="flex items-center justify-between gap-4">
+                             <div>
+                                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">ग्राहकाचे अंतर</span>
+                                 <strong id="workerTripDistance" class="text-blue-600 text-sm">--</strong>
+                             </div>
+                             <div class="border-l border-slate-200 pl-3">
+                                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">अंदाजे वेळ</span>
+                                 <strong id="workerTripEta" class="text-emerald-600 text-sm">--</strong>
+                             </div>
+                         </div>
                      </div>
                  </div>
-                 <div class="flex items-center justify-between gap-2 mt-3">
-                     <span id="workerTripLocationMeta" class="text-[10px] text-slate-500">On The Way केल्यावर live GPS सुरू होईल</span>
-                     <span class="text-[10px] font-bold text-slate-600 truncate max-w-[45%]" title="${item.address}">
-                         <i class="fa-solid fa-location-dot text-red-500 mr-1"></i> Customer
+                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mt-3">
+                     <span id="workerTripLocationMeta" class="text-[10px] text-slate-500 flex items-center gap-1">
+                         <i class="fa-solid fa-satellite-dish text-emerald-500"></i> On The Way केल्यावर live GPS सुरू होईल
                      </span>
+                     <a id="workerNavBtn" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.address)}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-xl text-[11px] transition shadow-sm flex items-center justify-center gap-1.5 shrink-0">
+                         <i class="fa-solid fa-diamond-turn-right"></i> Google Navigation
+                     </a>
                  </div>
              </div>
             <div class="grid grid-cols-2 gap-2">

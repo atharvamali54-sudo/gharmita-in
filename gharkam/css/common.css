@@ -1,1 +1,108 @@
 /* Shared styles can be added here when both dashboards use the same CSS. */
+
+/* =========================================================
+   Live Delivery Tracking Styles (Swiggy / Zomato / Uber Style)
+   ========================================================= */
+
+.delivery-worker-marker {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.delivery-home-marker {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.delivery-marker-pulse {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 9999px;
+    background: rgba(37, 99, 235, 0.35);
+    animation: deliveryPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    pointer-events: none;
+}
+
+@keyframes deliveryPulse {
+    0% {
+        transform: scale(0.6);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.7);
+        opacity: 0;
+    }
+}
+
+.delivery-marker-icon {
+    position: relative;
+    z-index: 2;
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 2.5px #ffffff;
+    transition: transform 0.25s ease;
+}
+
+.delivery-marker-icon.worker-bike {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.delivery-marker-icon.home-pin {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.delivery-marker-label {
+    position: absolute;
+    top: 38px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    background: rgba(15, 23, 42, 0.92);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    z-index: 3;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.tracking-eta-card {
+    position: absolute;
+    z-index: 500;
+    left: 0.75rem;
+    bottom: 0.75rem;
+    min-width: 170px;
+    padding: 0.65rem 0.9rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.tracking-eta-card strong {
+    display: block;
+    font-size: 1.15rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}

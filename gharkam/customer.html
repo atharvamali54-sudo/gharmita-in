@@ -173,30 +173,40 @@
                             <p><strong>Address:</strong> <span id="statusAddress">-</span></p>
                         </div>
 
-                        <!-- Swiggy-style live tracking card -->
+                        <!-- Swiggy/Zomato-style live tracking card -->
                         <div id="mapTrackingContainer" class="hidden pt-1">
                             <div class="customer-live-card">
                                 <div class="flex items-center justify-between gap-3 mb-3">
                                     <span class="text-xs font-black tracking-[.12em] text-slate-900 flex items-center gap-2">
                                         <span class="live-dot"></span>
-                                        LIVE TRACKING
+                                        🛵 LIVE DELIVERY TRACKING
                                     </span>
-                                    <span id="workerLocationUpdated" class="text-[10px] font-bold text-indigo-600">Location waiting...</span>
+                                    <span id="workerLocationUpdated" class="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full">कामगार निघत आहे...</span>
                                 </div>
 
                                 <div class="customer-live-map-shell">
-                                    <span class="live-map-chip"><i class="fa-solid fa-truck text-indigo-600"></i> Worker is moving</span>
+                                    <span class="live-map-chip"><i class="fa-solid fa-motorcycle text-blue-600"></i> Worker On The Way</span>
                                     <div id="workerLiveMap" aria-label="Worker live location map"></div>
                                     <div class="tracking-eta-card">
-                                        <span class="text-[10px] font-bold text-slate-500">Estimated time</span>
-                                        <strong id="workerEta">--</strong>
+                                        <div class="flex items-center justify-between gap-4">
+                                            <div>
+                                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">अंतर (Distance)</span>
+                                                <strong id="workerDistance" class="text-blue-600 text-sm">मोजत आहे...</strong>
+                                            </div>
+                                            <div class="border-l border-slate-200 pl-3">
+                                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">पोहोचण्याची वेळ (ETA)</span>
+                                                <strong id="workerEta" class="text-emerald-600 text-sm">--</strong>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="flex items-center justify-between gap-2 mt-3">
-                                    <span id="workerLocationAccuracy" class="text-[10px] text-slate-500">Worker location मिळत आहे...</span>
-                                    <a id="trackMapBtn" href="#" target="_blank" rel="noopener" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-xl text-[11px] transition flex items-center justify-center gap-2 shadow-sm shrink-0">
-                                        <i class="fa-solid fa-diamond-turn-right"></i> Open directions
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mt-3">
+                                    <span id="workerLocationAccuracy" class="text-[10px] text-slate-500 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-satellite-dish text-emerald-500"></i> Worker Live GPS जोडलेले आहे
+                                    </span>
+                                    <a id="trackMapBtn" href="#" target="_blank" rel="noopener" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-[11px] transition flex items-center justify-center gap-2 shadow-sm shrink-0">
+                                        <i class="fa-solid fa-diamond-turn-right"></i> Google Maps वर पहा
                                     </a>
                                 </div>
                             </div>
