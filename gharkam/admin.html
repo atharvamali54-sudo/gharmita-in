@@ -13,6 +13,14 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
+        <!-- Progressive Web App (PWA) Meta & Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gharmitra">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="icon" type="image/png" href="icons/favicon.png">
     <link rel="stylesheet" href="css/common.css">
     <style>
         .admin-badge {
@@ -72,6 +80,9 @@
             </div>
 
             <div class="flex items-center gap-2">
+                <button onclick="showPwaInstallModal()" class="pwa-install-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 px-3 rounded-xl transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i> <span>Install App</span>
+                </button>
                 <span class="text-xs text-slate-400 hidden md:inline">लॉगिन: <strong class="text-white">Owner Admin</strong></span>
                 <button onclick="lockAdminDashboard()" class="bg-slate-800 hover:bg-slate-700 text-rose-300 hover:text-rose-200 border border-slate-700 text-xs font-bold py-2 px-3 rounded-xl transition flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> लॉगआउट
@@ -446,5 +457,6 @@
 
     <script src="js/firebase.js"></script>
     <script src="js/admin.js"></script>
+    <script src="js/pwa.js"></script>
 </body>
 </html>

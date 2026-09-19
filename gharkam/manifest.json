@@ -1,0 +1,62 @@
+{
+  "name": "Gharmitra - घरकाम व सेवा",
+  "short_name": "Gharmitra",
+  "description": "पुणे शहरातील विश्वासू घरगुती सेवा - क्लिनिंग, प्लंबिंग, इलेक्ट्रिशियन, पेंटिंग आणि घरकाम.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "lang": "mr",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192x192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512x512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "ग्राहक बुकिंग (Customer)",
+      "short_name": "Customer",
+      "description": "नवीन घरकाम ऑर्डर बुक करा",
+      "url": "./customer.html",
+      "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "कामगार पोर्टल (Worker)",
+      "short_name": "Worker",
+      "description": "कामगार डॅशबोर्ड व ऑर्डर्स",
+      "url": "./worker.html",
+      "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "ॲडमिन डॅशबोर्ड (Admin)",
+      "short_name": "Admin",
+      "description": "मालक व सुपर ॲडमिन पॅनेल",
+      "url": "./admin.html",
+      "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["business", "lifestyle", "utilities"]
+}

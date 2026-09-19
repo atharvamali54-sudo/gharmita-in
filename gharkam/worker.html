@@ -20,7 +20,15 @@
 <!-- Razorpay Checkout Script -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-  <link rel="stylesheet" href="css/common.css">
+      <!-- Progressive Web App (PWA) Meta & Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gharmitra">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="icon" type="image/png" href="icons/favicon.png">
+    <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/worker.css">
 </head>
 <body class="bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-900 min-h-screen p-4 md:p-8 flex items-center justify-center font-sans">
@@ -36,7 +44,10 @@
 Worker Dashboard
 </span>
 </div>
-<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
+<button onclick="showPwaInstallModal()" class="pwa-install-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-1.5 px-3 rounded-xl shadow transition flex items-center gap-1.5">
+    <i class="fa-solid fa-download"></i> <span>Install App</span>
+</button>
 <span id="headerDutyStatus" class="text-xs font-bold bg-white text-blue-700 border border-white/20 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
 <span id="dutyDot" class="w-2 h-2 rounded-full bg-red-500"></span> <span id="dutyText">Duty OFF</span>
 </span>
@@ -291,5 +302,6 @@ Service: <strong id="workerService" class="text-white">Loading...</strong>
 
 <script src="js/firebase.js"></script>
 <script src="js/worker.js"></script>
+    <script src="js/pwa.js"></script>
 </body>
 </html>
