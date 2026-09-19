@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gharmitra - Super Admin & Owner Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen font-sans antialiased">
+
+    <!-- =========================================================
+         1. Admin PIN Security Screen (Protected Access)
+         ========================================================= -->
+    <div id="adminAuthOverlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-8 shadow-2xl border border-slate-200 text-center space-y-5 animate-in">
+            <div class="w-16 h-16 rounded-2xl bg-blue-100 text-blue-600 text-3xl flex items-center justify-center mx-auto shadow-sm">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div>
+                <h3 class="font-black text-slate-800 text-xl">Gharmitra Owner Portal</h3>
+                <p class="text-xs text-slate-500 mt-1">डॅशबोर्ड उघडण्यासाठी ॲडमिन सिक्युरिटी पिन (PIN) टाका.</p>
+            </div>
+            <div id="pinErrorMsg" class="hidden text-xs font-bold text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200">
+                चुकीचा PIN! कृपया योग्य पिन टाका.
+            </div>
+            <div>
+                <input type="password" id="adminPinInput" maxlength="6" inputmode="numeric" placeholder="••••" class="w-full text-center text-3xl font-black tracking-[0.5em] bg-slate-50 border-2 border-slate-300 focus:border-blue-600 rounded-2xl py-3 px-4 outline-none transition shadow-inner">
+                <p class="text-[11px] text-slate-400 mt-2">डीफॉल्ट पिन: <strong class="text-slate-600">7875</strong></p>
+            </div>
+            <button onclick="verifyAdminPin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
+                <i class="fa-solid fa-lock-open"></i> डॅशबोर्ड उघडा
+            </button>
+            <a href="./index.html" class="inline-block text-xs font-semibold text-slate-500 hover:text-slate-800 transition">
+                ← मुख्य पृष्ठावर जा (Back to Home)
+            </a>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         2. Main Super Admin Header & Navigation
+         ========================================================= -->
+    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-lg border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 text-xl font-black tracking-tight text-white">
+                    <span class="bg-blue-600 text-white p-2 rounded-xl text-base flex items-center justify-center shadow-md">🏠 GK</span>
+                    <span>GHARMITRA<span class="text-blue-400 text-sm ml-1 font-bold">ADMIN</span></span>
+                </div>
+                <span class="hidden sm:inline-flex bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[11px] font-bold px-2.5 py-0.5 rounded-full items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Pune Live Server
+                </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400 hidden md:inline">लॉगिन: <strong class="text-white">Owner Admin</strong></span>
+                <button onclick="lockAdminDashboard()" class="bg-slate-800 hover:bg-slate-700 text-rose-300 hover:text-rose-200 border border-slate-700 text-xs font-bold py-2 px-3 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> लॉगआउट
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- =========================================================
+         3. Admin Dashboard Body
+         ========================================================= -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+        <!-- KPI Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- Card 1: Today's Orders -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">आजच्या ऑर्डर्स (Today)</span>
+                        <h3 class="text-2xl font-black text-slate-900 mt-1" id="kpiTodayOrders">0</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">एकूण: <span id="kpiTotalOrders" class="font-bold text-slate-700">0</span> ऑर्डर्स</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-inner">
+                        <i class="fa-solid fa-box"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span class="text-emerald-600 font-bold"><span id="kpiTodayCompleted">0</span> पूर्ण</span>
+                    <span class="text-amber-600 font-bold"><span id="kpiTodayActive">0</span> सुरू</span>
+                    <span class="text-slate-400 font-bold"><span id="kpiTodayPending">0</span> प्रलंबित</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Active / On-Duty Workers -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">ऑन-ड्युटी कामगार</span>
+                        <h3 class="text-2xl font-black text-emerald-600 mt-1" id="kpiActiveWorkers">0</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">एकूण नोंदणीकृत: <span id="kpiTotalWorkers" class="font-bold text-slate-700">0</span></p>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-inner">
+                        <i class="fa-solid fa-helmet-safety"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-medium">
+                    <span>पुणे शहर कव्हरेज</span>
+                    <span class="text-emerald-600 font-bold flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> लाईव्ह ट्रॅकिंग ॲक्टिव्ह
+                    </span>
+                </div>
+            </div>
+
+            <!-- Card 3: Platform Gross Volume & Commission -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">एकूण व्यवसाय (Gross Value)</span>
+                        <h3 class="text-2xl font-black text-indigo-600 mt-1">₹<span id="kpiGrossVolume">0</span></h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">आजची कमाई: ₹<span id="kpiTodayVolume" class="font-bold text-slate-700">0</span></p>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shadow-inner">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span class="text-slate-500 font-bold">ॲडमिन कमिशन (10%):</span>
+                    <strong class="text-emerald-600 font-black">₹<span id="kpiAdminCommission">0</span></strong>
+                </div>
+            </div>
+
+            <!-- Card 4: Customer Reviews & Ratings -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">प्लॅटफॉर्म रेटिंग</span>
+                        <h3 class="text-2xl font-black text-amber-500 mt-1 flex items-center gap-1">
+                            ⭐ <span id="kpiAvgRating">5.0</span>
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5"><span id="kpiTotalReviews" class="font-bold text-slate-700">0</span> ग्राहकांचे रिव्ह्यूज</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl shadow-inner">
+                        <i class="fa-solid fa-star-half-stroke"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span class="text-rose-600 font-bold"><span id="kpiComplaintsCount">0</span> तक्रारी (1-2★)</span>
+                    <button onclick="switchTab('reviewsTab')" class="text-blue-600 hover:underline font-bold text-[11px]">रिव्ह्यूज पहा →</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Weekly Performance Chart -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-chart-area text-blue-600"></i> साप्ताहिक ऑर्डर्स आणि व्यवसाय ट्रेंड (Weekly Analytics)
+                    </h4>
+                    <p class="text-xs text-slate-400">मागील ७ दिवसांचा ऑर्डर्स आणि एकूण व्यवसायाचा आलेख</p>
+                </div>
+                <span class="bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold px-3 py-1 rounded-xl">
+                    पुणे शहर रिअल-टाईम
+                </span>
+            </div>
+            <div class="w-full h-52">
+                <canvas id="adminWeeklyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
+            <button onclick="switchTab('ordersTab')" id="tabBtnOrders" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 text-white shadow-sm flex items-center gap-2 transition whitespace-nowrap">
+                <i class="fa-solid fa-boxes-stacked"></i> सर्व ऑर्डर्स (<span id="tabBadgeOrders">0</span>)
+            </button>
+            <button onclick="switchTab('workersTab')" id="tabBtnWorkers" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm flex items-center gap-2 transition whitespace-nowrap">
+                <i class="fa-solid fa-helmet-safety"></i> कामगार व्यवस्थापन (<span id="tabBadgeWorkers">0</span>)
+            </button>
+            <button onclick="switchTab('reviewsTab')" id="tabBtnReviews" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm flex items-center gap-2 transition whitespace-nowrap">
+                <i class="fa-solid fa-comments"></i> ग्राहक रेटिंग्स व तक्रारी (<span id="tabBadgeReviews">0</span>)
+            </button>
+            <button onclick="switchTab('settingsTab')" id="tabBtnSettings" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm flex items-center gap-2 transition whitespace-nowrap">
+                <i class="fa-solid fa-gear"></i> ॲडमिन सेटिंग्ज
+            </button>
+        </div>
+
+        <!-- =====================================================
+             TAB 1: All Orders Management
+             ===================================================== -->
+        <div id="ordersTab" class="tab-content space-y-4">
+            <!-- Filter Bar -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                    <input type="text" id="orderSearchInput" oninput="filterOrdersTable()" placeholder="ग्राहक नाव, मोबाईल, किंवा सर्व्हिस शोधा..." class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <select id="orderStatusFilter" onchange="filterOrdersTable()" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="ALL">सर्व स्टेटस (All Status)</option>
+                        <option value="Pending">Pending (प्रलंबित)</option>
+                        <option value="Accepted">Accepted (स्वीकारले)</option>
+                        <option value="On The Way">On The Way (निघत आहे)</option>
+                        <option value="Completed">Completed (पूर्ण)</option>
+                        <option value="Cancelled">Cancelled (रद्द)</option>
+                    </select>
+
+                    <select id="orderAreaFilter" onchange="filterOrdersTable()" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="ALL">सर्व पुणे भाग (All Areas)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Orders Table Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider">
+                                <th class="p-3.5">ऑर्डर ID & तारीख</th>
+                                <th class="p-3.5">ग्राहक माहिती</th>
+                                <th class="p-3.5">सर्व्हिस & पत्ता</th>
+                                <th class="p-3.5">बजेट</th>
+                                <th class="p-3.5">नेमलेला कामगार</th>
+                                <th class="p-3.5">लाईव्ह स्टेटस</th>
+                                <th class="p-3.5 text-center">ॲक्शन</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
+                            <tr>
+                                <td colspan="7" class="text-center py-10 text-slate-400">ऑर्डर्स लोड होत आहेत...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+             TAB 2: Workers Management & Live Duty
+             ===================================================== -->
+        <div id="workersTab" class="tab-content hidden space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                    <input type="text" id="workerSearchInput" oninput="filterWorkersTable()" placeholder="कामगाराचे नाव, मोबाईल किंवा सर्व्हिस शोधा..." class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <select id="workerDutyFilter" onchange="filterWorkersTable()" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="ALL">सर्व कामगार</option>
+                        <option value="ON">फक्त Duty ON (Active)</option>
+                        <option value="OFF">Duty OFF (Offline)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider">
+                                <th class="p-3.5">कामगाराचे नाव & ID</th>
+                                <th class="p-3.5">मोबाईल नंबर</th>
+                                <th class="p-3.5">मुख्य सर्व्हिस</th>
+                                <th class="p-3.5">कार्यक्षेत्र (Area)</th>
+                                <th class="p-3.5">वॉलेट शिल्लक</th>
+                                <th class="p-3.5">ड्युटी स्टेटस</th>
+                                <th class="p-3.5">सरासरी रेटिंग</th>
+                                <th class="p-3.5 text-center">वॉलेट रिचार्ज</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workersTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
+                            <tr>
+                                <td colspan="8" class="text-center py-10 text-slate-400">कामगार यादी लोड होत आहे...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+             TAB 3: Customer Reviews & Complaints
+             ===================================================== -->
+        <div id="reviewsTab" class="tab-content hidden space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm">ग्राहक अभिप्राय आणि रेटिंग्स (Feedback & Complaints)</h4>
+                    <p class="text-xs text-slate-400">काम पूर्ण झाल्यावर ग्राहकांनी दिलेले रेटिंग आणि कॉमेंट्स</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <select id="reviewRatingFilter" onchange="filterReviewsList()" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="ALL">सर्व रेटिंग्स</option>
+                        <option value="COMPLAINTS">⚠️ तक्रारी (1 & 2 Star Reviews)</option>
+                        <option value="5">⭐⭐⭐⭐⭐ (5 Star)</option>
+                        <option value="4">⭐⭐⭐⭐ (4 Star)</option>
+                        <option value="3">⭐⭐⭐ (3 Star)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="reviewsListContainer" class="space-y-3">
+                <p class="text-center py-10 text-slate-400 text-xs">रिव्ह्यूज लोड होत आहेत...</p>
+            </div>
+        </div>
+
+        <!-- =====================================================
+             TAB 4: Admin Settings
+             ===================================================== -->
+        <div id="settingsTab" class="tab-content hidden max-w-xl mx-auto space-y-4">
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2 border-b pb-3">
+                    <i class="fa-solid fa-key text-blue-600"></i> ॲडमिन सिक्युरिटी पिन बदला
+                </h3>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">नवीन ॲडमिन PIN (४ किंवा ६ आकडे)</label>
+                    <input type="password" id="newAdminPin" maxlength="6" inputmode="numeric" placeholder="उदा. 7875" class="w-full bg-slate-50 border border-slate-300 text-slate-800 font-bold tracking-widest text-center py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">प्लॅटफॉर्म कमिशन दर (%)</label>
+                    <input type="number" id="adminCommissionRate" min="0" max="50" value="10" class="w-full bg-slate-50 border border-slate-300 text-slate-800 font-bold py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <p class="text-[11px] text-slate-400 mt-1">प्रत्येक पूर्ण झालेल्या कामावर मालकाचे अंदाजे कमिशन.</p>
+                </div>
+                <button onclick="saveAdminSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition text-xs shadow-md">
+                    सेटिंग्ज सेव्ह करा
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- =========================================================
+         4. Order Details / Admin Modal
+         ========================================================= -->
+    <div id="adminOrderModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between border-b pb-3 border-slate-100">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-receipt text-blue-600"></i> ऑर्डर सविस्तर माहिती
+                    </h3>
+                    <p class="text-[11px] text-slate-400" id="modalOrderId">-</p>
+                </div>
+                <button onclick="closeAdminOrderModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">✕</button>
+            </div>
+
+            <div id="modalOrderDetails" class="text-xs space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <!-- Injected dynamically -->
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                <button onclick="adminMarkOrderCompleted()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm">
+                    ✓ थेट Completed करा
+                </button>
+                <button onclick="adminCancelOrder()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold py-2.5 rounded-xl text-xs transition">
+                    ✕ ऑर्डर रद्द करा
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         5. Worker Wallet Recharge Modal
+         ========================================================= -->
+    <div id="adminWalletModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 text-2xl flex items-center justify-center mx-auto shadow-sm">
+                <i class="fa-solid fa-wallet"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-slate-800 text-base" id="walletWorkerName">कामगार वॉलेट रिचार्ज</h3>
+                <p class="text-xs text-slate-500 mt-1">शिल्लक रक्कम: ₹<span id="walletCurrentBal" class="font-bold text-emerald-600">0</span></p>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">जमा करावयाची रक्कम (₹)</label>
+                <input type="number" id="walletRechargeAmount" min="10" placeholder="उदा. 200" class="w-full text-center text-xl font-bold bg-slate-50 border border-slate-300 rounded-xl py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="closeAdminWalletModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
+                    रद्द करा
+                </button>
+                <button onclick="submitWorkerWalletRecharge()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm">
+                    जमा करा
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
