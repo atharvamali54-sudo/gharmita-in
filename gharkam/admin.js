@@ -68,7 +68,7 @@ function sendAdminEmailOtp() {
     if (btn) btn.disabled = true;
     if (resendBtn) resendBtn.disabled = true;
 
-    showAdminAuthStatus("⏳ atharvamali54@gmail.com वर OTP पाठवत आहे...", "info");
+    showAdminAuthStatus("⏳ नोंदणीकृत ई-मेलवर OTP पाठवत आहे...", "info");
 
     // Generate secure 6-digit OTP
     generatedAdminOtp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -94,7 +94,7 @@ function sendAdminEmailOtp() {
     };
 
     const handleSuccess = () => {
-        showAdminAuthStatus(`✅ OTP यशस्वीरीत्या <strong>${ADMIN_OWNER_EMAIL}</strong> वर पाठवला आहे! कृपया ईमेल तपासा.`, "success");
+        showAdminAuthStatus("✅ OTP यशस्वीरीत्या नोंदणीकृत ॲडमिन ई-मेलवर पाठवला आहे! कृपया ईमेल तपासा.", "success");
         
         // Show Step 2 (Verify OTP)
         document.getElementById('adminSendOtpStep')?.classList.add('hidden');
