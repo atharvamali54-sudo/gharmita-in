@@ -25,16 +25,59 @@ let currentRole = 'customer';
             return 'gharmitra_user_' + safeRole + '_' + mobile;
         }
 
-        function saveUserForRole(role, user) {
+        function saveUserToLocalStorageOnly(role, user) {
+            if (!user || !user.mobile) return;
             const serializedUser = JSON.stringify({ ...user, role });
-
-            // Canonical role-scoped record used by this page.
             localStorage.setItem(roleStorageKey(role, user.mobile), serializedUser);
-
-            // Keep the old role-specific key so existing customer.html and
-            // worker.html pages can continue reading their own records.
             const legacyRoleKey = role === 'worker' ? 'gharkam_user_' : 'gharmitra_user_';
             localStorage.setItem(legacyRoleKey + user.mobile, serializedUser);
+        }
+
+        // =========================================================
+        // CENTRAL CLOUD DATABASE SYNC (Firebase Realtime Database)
+        // This ensures accounts created on ANY phone work on ALL phones!
+        // =========================================================
+        function saveUserForRole(role, user) {
+            if (!user || !user.mobile) return;
+            const safeRole = role === 'worker' ? 'worker' : 'customer';
+            const cleanMobile = String(user.mobile).replace(/\D/g, '').slice(-10);
+            const enrichedUser = { ...user, role: safeRole, mobile: cleanMobile };
+
+            // 1. Save to local device cache
+            saveUserToLocalStorageOnly(safeRole, enrichedUser);
+
+            // 2. Save to Firebase Realtime Database across all devices
+            if (typeof database !== 'undefined') {
+                const roleNode = safeRole === 'worker' ? 'workers' : 'customers';
+                const cloudData = {
+                    fullName: enrichedUser.fullName || enrichedUser.name || '',
+                    name: enrichedUser.name || enrichedUser.fullName || '',
+                    mobile: cleanMobile,
+                    email: enrichedUser.email || '',
+                    password: enrichedUser.password || '',
+                    role: safeRole,
+                    workType: enrichedUser.workType || enrichedUser.service || null,
+                    service: enrichedUser.service || enrichedUser.workType || null,
+                    balance: typeof enrichedUser.balance !== 'undefined' ? enrichedUser.balance : 50,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                // Store in central accounts registry
+                database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).set(cloudData)
+                    .catch(err => console.warn('Cloud account sync error:', err));
+
+                // If worker, also sync with workers/local_worker_<mobile>
+                if (safeRole === 'worker') {
+                    database.ref('workers/local_worker_' + cleanMobile).update({
+                        fullName: cloudData.fullName,
+                        name: cloudData.name,
+                        mobile: cleanMobile,
+                        workType: cloudData.workType || 'Cleaning',
+                        service: cloudData.service || 'Cleaning',
+                        wallet: cloudData.balance || 50
+                    }).catch(err => console.warn('Worker sync error:', err));
+                }
+            }
         }
 
         function readUserFromStorage(key, role) {
@@ -56,8 +99,6 @@ let currentRole = 'customer';
                 ? 'gharkam_user_' + mobile
                 : 'gharmitra_user_' + mobile;
 
-            // The final two keys support accounts created by the old build,
-            // but only when the saved role exactly matches the selected tab.
             const keysToCheck = [
                 canonicalKey,
                 roleSpecificLegacyKey,
@@ -72,7 +113,6 @@ let currentRole = 'customer';
 
                 const user = readUserFromStorage(key, role);
                 if (user) {
-                    // Migrate a valid old record into the canonical namespace.
                     if (key !== canonicalKey) {
                         localStorage.setItem(canonicalKey, JSON.stringify(user));
                     }
@@ -81,6 +121,91 @@ let currentRole = 'customer';
             }
 
             return null;
+        }
+
+        // Asynchronously check both Local Storage AND Firebase Cloud Database
+        async function getUserForRoleAsync(role, mobile) {
+            const cleanMobile = String(mobile).replace(/\D/g, '').slice(-10);
+            if (!cleanMobile) return null;
+
+            const safeRole = role === 'worker' ? 'worker' : 'customer';
+            const localUser = getUserForRole(safeRole, cleanMobile);
+
+            if (typeof database === 'undefined') {
+                return localUser;
+            }
+
+            try {
+                const roleNode = safeRole === 'worker' ? 'workers' : 'customers';
+                const snap = await database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).once('value');
+                const cloudUser = snap.val();
+
+                if (cloudUser && cloudUser.mobile) {
+                    // Update local storage so this phone has it cached too
+                    const merged = { ...(localUser || {}), ...cloudUser, role: safeRole };
+                    saveUserToLocalStorageOnly(safeRole, merged);
+                    return merged;
+                }
+
+                // Fallback for workers: check workers/local_worker_<mobile>
+                if (safeRole === 'worker') {
+                    const workerSnap = await database.ref('workers/local_worker_' + cleanMobile).once('value');
+                    const wData = workerSnap.val();
+                    if (wData) {
+                        const recovered = {
+                            fullName: wData.fullName || wData.name || 'Worker',
+                            name: wData.name || wData.fullName || 'Worker',
+                            mobile: cleanMobile,
+                            email: wData.email || (localUser ? localUser.email : ''),
+                            password: wData.password || (localUser ? localUser.password : ''),
+                            role: 'worker',
+                            workType: wData.workType || wData.service || 'Cleaning',
+                            service: wData.service || wData.workType || 'Cleaning',
+                            balance: typeof wData.wallet !== 'undefined' ? wData.wallet : 50
+                        };
+                        saveUserToLocalStorageOnly('worker', recovered);
+                        return recovered;
+                    }
+                }
+            } catch (e) {
+                console.warn('Firebase user lookup error, using local fallback:', e);
+            }
+
+            return localUser;
+        }
+
+        // Auto-sync any previously stored local accounts on this phone up to Firebase
+        function syncExistingLocalAccountsToCloud() {
+            if (typeof database === 'undefined') return;
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('gharmitra_user_') || key.startsWith('gharkam_user_'))) {
+                        const raw = localStorage.getItem(key);
+                        if (!raw) continue;
+                        try {
+                            const u = JSON.parse(raw);
+                            if (u && u.mobile && u.mobile.length === 10 && u.password) {
+                                const role = u.role === 'worker' ? 'worker' : 'customer';
+                                const cleanMobile = String(u.mobile).replace(/\D/g, '').slice(-10);
+                                const roleNode = role === 'worker' ? 'workers' : 'customers';
+                                database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).update({
+                                    fullName: u.fullName || u.name || '',
+                                    name: u.name || u.fullName || '',
+                                    mobile: cleanMobile,
+                                    email: u.email || '',
+                                    password: u.password,
+                                    role: role,
+                                    workType: u.workType || u.service || null,
+                                    service: u.service || u.workType || null,
+                                    balance: typeof u.balance !== 'undefined' ? u.balance : 50,
+                                    syncedFromLocal: true
+                                }).catch(() => {});
+                            }
+                        } catch(e) {}
+                    }
+                }
+            } catch(e) {}
         }
 
         function syncOtpValue() {
@@ -303,19 +428,21 @@ let currentRole = 'customer';
             el.classList.remove('hidden');
         }
 
-        function showForgotPasswordUI() {
-            let mobile = document.getElementById('mobile').value.trim();
+        async function showForgotPasswordUI() {
+            let mobile = document.getElementById('mobile').value.trim().replace(/\D/g, '').slice(-10);
             if (!mobile || mobile.length !== 10) {
-                showStatus("❌ Krupaya adhi barobar 10-digit Mobile Number taka!", "error");
+                showStatus("❌ आधी बरोबर १० अंकी Mobile Number टाका!", "error");
                 return;
             }
 
-            let savedUser = getUserForRole(currentRole, mobile);
-            if (!savedUser) {
-                showStatus("❌ Ha mobile number registered nahi ahe! Adhi Signup kara.", "error");
+            showStatus("⏳ खाते शोधत आहे...", "info");
+            let savedUser = await getUserForRoleAsync(currentRole, mobile);
+            if (!savedUser || !savedUser.email) {
+                showStatus("❌ हा मोबाईल नंबर रजिस्टर नाही! आधी Signup करा.", "error");
                 return;
             }
 
+            showStatus("", "hidden");
             resetPasswordMobile = mobile;
             resetPasswordRole = currentRole;
             isForgotPasswordMode = true;
@@ -376,24 +503,35 @@ let currentRole = 'customer';
             }
         }
 
-        function updateNewPassword() {
+        async function updateNewPassword() {
             let newPass = document.getElementById('newPassword').value.trim();
             let confirmPass = document.getElementById('confirmNewPassword').value.trim();
 
             if (!newPass || newPass.length < 6) {
-                showStatus("❌ Password kamit kami 6 anki asla pahije.", "error");
+                showStatus("❌ Password कमीत कमी ६ अक्षरी असावा.", "error");
                 return;
             }
 
             if (newPass !== confirmPass) {
-                showStatus("❌ New Password and Confirm Password match hot nahi!", "error");
+                showStatus("❌ New Password आणि Confirm Password जुळत नाहीत!", "error");
                 return;
             }
 
-            let savedUser = getUserForRole(resetPasswordRole, resetPasswordMobile);
+            showStatus("⏳ पासवर्ड बदलत आहे...", "info");
+            let savedUser = await getUserForRoleAsync(resetPasswordRole, resetPasswordMobile);
             if (savedUser) {
                 savedUser.password = newPass;
                 saveUserForRole(resetPasswordRole, savedUser);
+
+                // Update in Firebase Cloud Database
+                if (typeof database !== 'undefined') {
+                    const cleanMobile = String(resetPasswordMobile).replace(/\D/g, '').slice(-10);
+                    const roleNode = resetPasswordRole === 'worker' ? 'workers' : 'customers';
+                    database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).update({
+                        password: newPass,
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP
+                    }).catch(() => {});
+                }
 
                 showStatus("🎉 Password successfully changed! Now Sign In.", "success");
                 
@@ -408,24 +546,36 @@ let currentRole = 'customer';
             }
         }
 
-        function handleSubmit(event) {
+        async function handleSubmit(event) {
             event.preventDefault();
 
-            let mobile = document.getElementById('mobile').value.trim();
+            let mobile = document.getElementById('mobile').value.trim().replace(/\D/g, '').slice(-10);
             let password = document.getElementById('password').value.trim();
-            let savedUser = getUserForRole(currentRole, mobile);
+
+            if (!mobile || mobile.length !== 10) {
+                showStatus("❌ कृपया बरोबर १० अंकी मोबाईल नंबर टाका!", "error");
+                return;
+            }
 
             if (isSignupMode) {
                 let fullName = document.getElementById('fullName').value.trim();
                 let email = document.getElementById('email').value.trim().toLowerCase();
 
                 if (!fullName) {
-                    showStatus("Krupaya purna nav taka!", "error");
+                    showStatus("कृपया पूर्ण नाव टाका!", "error");
                     return;
                 }
 
-                if (savedUser) {
-                    showStatus("Ha mobile number registered ahe! Direct Sign In kara.", "error");
+                if (!password || password.length < 6) {
+                    showStatus("पासवर्ड कमीत कमी ६ अक्षरी असावा.", "error");
+                    return;
+                }
+
+                showStatus("⏳ मोबाईल नंबर तपासत आहे...", "info");
+                const existingUser = await getUserForRoleAsync(currentRole, mobile);
+
+                if (existingUser && existingUser.password) {
+                    showStatus("हा मोबाईल नंबर आधीच रजिस्टर आहे! थेट Sign In करा.", "error");
                     return;
                 }
 
@@ -440,23 +590,36 @@ let currentRole = 'customer';
                 sendEmailOTP(email, generatedOTP);
 
             } else {
+                // =====================================================
+                // SIGN IN ACROSS ALL DEVICES / PHONES (Multi-Device Login)
+                // =====================================================
+                if (!password) {
+                    showStatus("कृपया पासवर्ड टाका.", "error");
+                    return;
+                }
+
+                showStatus("⏳ खाते शोधत आहे...", "info");
+                const savedUser = await getUserForRoleAsync(currentRole, mobile);
+
                 if (!savedUser) {
-                    showStatus("Your account is not available, please first signup.", "error");
+                    showStatus("हे खाते सापडले नाही! कृपया आधी नवीन Signup करा.", "error");
                     return;
                 }
 
-                if (savedUser.password !== password) {
-                    showStatus("❌ चुकीचा Password! Krupaya बरोबर पासवर्ड टाका.", "error");
+                if (savedUser.password && savedUser.password !== password) {
+                    showStatus("❌ चुकीचा Password! कृपया बरोबर पासवर्ड टाका.", "error");
                     return;
                 }
 
+                // Save session on this new device
+                saveUserForRole(currentRole, savedUser);
                 localStorage.setItem('current_user_session', JSON.stringify(savedUser));
 
                 showStatus("🎉 Login Successful! Redirecting...", "success");
 
                 setTimeout(() => {
                     redirectUser(currentRole);
-                }, 800);
+                }, 600);
             }
         }
 
@@ -503,9 +666,24 @@ let currentRole = 'customer';
 
             if (userEnteredOTP === generatedOTP) {
                 showStatus("⏳ OTP verify hot ahe...", "info");
-                animateOtpVerification(() => {
+                animateOtpVerification(async () => {
+                    // Save to both LocalStorage AND Firebase Realtime Database
                     saveUserForRole(pendingUserData.role, pendingUserData);
                     localStorage.setItem('current_user_session', JSON.stringify(pendingUserData));
+
+                    // Confirm cloud write immediately
+                    if (typeof database !== 'undefined') {
+                        const cleanMobile = String(pendingUserData.mobile).replace(/\D/g, '').slice(-10);
+                        const roleNode = pendingUserData.role === 'worker' ? 'workers' : 'customers';
+                        try {
+                            await database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).set({
+                                ...pendingUserData,
+                                updatedAt: firebase.database.ServerValue.TIMESTAMP
+                            });
+                        } catch(e) {
+                            console.warn("Cloud account save error:", e);
+                        }
+                    }
 
                     showStatus("🎉 Signup Successful! Redirecting...", "success");
 
@@ -525,3 +703,8 @@ let currentRole = 'customer';
                 window.location.href = "./worker.html";
             }
         }
+
+// Automatically sync any existing local accounts on this device up to the cloud
+document.addEventListener('DOMContentLoaded', () => {
+    syncExistingLocalAccountsToCloud();
+});

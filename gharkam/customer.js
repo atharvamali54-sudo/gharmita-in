@@ -173,6 +173,19 @@ function writeCustomerProfile(profile, previousMobile) {
         localStorage.removeItem('gharmitra_user_' + oldMobile);
     }
 
+    // Sync updated customer profile to Firebase Realtime Database
+    if (typeof database !== 'undefined' && profile && profile.mobile) {
+        const cleanMobile = String(profile.mobile).replace(/\D/g, '').slice(-10);
+        database.ref('workers/accounts/customers/' + cleanMobile).update({
+            fullName: profile.fullName || profile.name || '',
+            name: profile.name || profile.fullName || '',
+            email: profile.email || '',
+            mobile: cleanMobile,
+            role: 'customer',
+            updatedAt: firebase.database.ServerValue.TIMESTAMP
+        }).catch(e => console.warn('Customer cloud update:', e));
+    }
+
     customerProfile = profile;
     populateBookingProfile();
 }
