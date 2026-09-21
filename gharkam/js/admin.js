@@ -425,11 +425,15 @@ function calculateKpisAndRender() {
                 ratingCount++;
                 if (rNum <= 2) complaintsCount++;
 
+                const targetWorkerId = orderData.workerUid || orderData.workerId || '';
+                const wInfo = (targetWorkerId && allWorkers[targetWorkerId]) || (orderData.workerMobile && Object.values(allWorkers).find(w => w.mobile === orderData.workerMobile));
+                const resolvedWorkerName = orderData.workerName || (wInfo && (wInfo.name || wInfo.fullName)) || (orderData.workerMobile ? 'कामगार (' + orderData.workerMobile + ')' : 'कामगार');
+
                 allReviews.push({
                     reviewId: orderId,
-                    workerId: orderData.workerId || '',
-                    workerName: orderData.workerName || 'कामगार',
-                    workerMobile: orderData.workerMobile || '',
+                    workerId: targetWorkerId,
+                    workerName: resolvedWorkerName,
+                    workerMobile: orderData.workerMobile || (wInfo && wInfo.mobile) || '',
                     rating: rNum,
                     review: (orderData.customerReview !== undefined && orderData.customerReview !== '') ? orderData.customerReview : (orderData.review || 'काही कॉमेंट नाही'),
                     customerName: orderData.customerName || 'ग्राहक',

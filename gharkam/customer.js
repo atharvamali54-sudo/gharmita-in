@@ -481,12 +481,12 @@ populateBookingProfile();
 
             database.ref("orders/" + currentOrderId).once("value", (snapshot) => {
                 const orderData = snapshot.val();
-                if (!orderData || !orderData.workerId) {
+                if (!orderData) {
                     closeRatingModal();
                     return;
                 }
 
-                const workerId = orderData.workerId;
+                const workerId = orderData.workerUid || orderData.workerId || (orderData.workerMobile ? 'local_worker_' + orderData.workerMobile : null);
                 const reviewCommentEl = document.getElementById('reviewComment');
                 const reviewText = reviewCommentEl ? reviewCommentEl.value.trim() : '';
 
@@ -498,41 +498,44 @@ populateBookingProfile();
                     orderId: currentOrderId,
                     service: orderData.service || orderData.workType || '',
                     workerName: orderData.workerName || '',
+                    workerMobile: orderData.workerMobile || '',
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
 
-                const ratingRef = database.ref("workers/" + workerId + "/ratings").push();
-                ratingRef.set(ratingPayload).then(() => {
-                    // Update order record so customer order history and Admin portal reflect review status
-                    database.ref("orders/" + currentOrderId).update({
-                        isRated: true,
-                        customerRating: selectedRating,
-                        customerReview: reviewText,
-                        reviewedAt: firebase.database.ServerValue.TIMESTAMP
-                    });
-
-                    // Recalculate worker's aggregated rating and review count
-                    database.ref("workers/" + workerId + "/ratings").once("value", (snap) => {
-                        const ratingsVal = snap.val() || {};
-                        const rList = Object.values(ratingsVal);
-                        const count = rList.length;
-                        const sum = rList.reduce((acc, curr) => acc + (Number(curr.rating) || 5), 0);
-                        const avg = count > 0 ? Number((sum / count).toFixed(1)) : 5.0;
-
-                        database.ref("workers/" + workerId).update({
-                            rating: avg,
-                            totalReviews: count
-                        });
-                    });
-
-                    alert("तुमचा अभिप्राय यशस्वीरीत्या सबमिट झाला! धन्यवाद.");
-                    if (reviewCommentEl) reviewCommentEl.value = '';
-                    closeRatingModal();
-                }).catch(err => {
-                    console.error("Rating submission error:", err);
-                    alert("रेटिंग सबमिट करताना एरर आली.");
-                    closeRatingModal();
+                // Update order record so customer order history and Admin portal reflect review status
+                database.ref("orders/" + currentOrderId).update({
+                    isRated: true,
+                    customerRating: selectedRating,
+                    customerReview: reviewText,
+                    rating: selectedRating,
+                    review: reviewText,
+                    reviewedAt: firebase.database.ServerValue.TIMESTAMP
                 });
+
+                if (workerId) {
+                    const ratingRef = database.ref("workers/" + workerId + "/ratings").push();
+                    ratingRef.set(ratingPayload).then(() => {
+                        // Recalculate worker's aggregated rating and review count
+                        database.ref("workers/" + workerId + "/ratings").once("value", (snap) => {
+                            const ratingsVal = snap.val() || {};
+                            const rList = Object.values(ratingsVal);
+                            const count = rList.length;
+                            const sum = rList.reduce((acc, curr) => acc + (Number(curr.rating) || 5), 0);
+                            const avg = count > 0 ? Number((sum / count).toFixed(1)) : 5.0;
+
+                            database.ref("workers/" + workerId).update({
+                                rating: avg,
+                                totalReviews: count
+                            });
+                        });
+                    }).catch(err => {
+                        console.warn("Could not save to worker ratings node:", err);
+                    });
+                }
+
+                alert("तुमचा अभिप्राय यशस्वीरीत्या सबमिट झाला! धन्यवाद.");
+                if (reviewCommentEl) reviewCommentEl.value = '';
+                closeRatingModal();
             });
         }
 
@@ -759,12 +762,15 @@ populateBookingProfile();
                 let workerInfo = "Verified Worker Assigned";
                 if (data.workerMobile) {
                     workerInfo = data.workerMobile;
-                } else if (data.workerId) {
-                    workerInfo = data.workerId;
+                } else if (data.workerName) {
+                    workerInfo = data.workerName;
+                } else if (data.workerId || data.workerUid) {
+                    workerInfo = data.workerId || data.workerUid;
                 }
 
-                if (data.workerId) {
-                    database.ref("workers/" + data.workerId).once("value", (workerSnap) => {
+                const targetWorkerId = data.workerUid || data.workerId || (data.workerMobile ? 'local_worker_' + data.workerMobile : null);
+                if (targetWorkerId) {
+                    database.ref("workers/" + targetWorkerId).once("value", (workerSnap) => {
                         const workerData = workerSnap.val();
                         if (workerData && workerData.ratings) {
                             let total = 0, count = 0;
@@ -772,8 +778,12 @@ populateBookingProfile();
                                 total += Number(r.rating);
                                 count++;
                             });
-                            let avg = (total / count).toFixed(1);
+                            let avg = count > 0 ? (total / count).toFixed(1) : "5.0";
                             ratingDisplay.innerText = `${avg} (${count} reviews)`;
+                        } else if (workerData && (workerData.rating !== undefined || workerData.totalReviews !== undefined)) {
+                            const r = Number(workerData.rating || 5.0).toFixed(1);
+                            const c = Number(workerData.totalReviews || 0);
+                            ratingDisplay.innerText = `${r} (${c} reviews)`;
                         } else {
                             ratingDisplay.innerText = "New Worker (No ratings yet)";
                         }
