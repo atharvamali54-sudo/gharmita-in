@@ -795,11 +795,6 @@ populateBookingProfile();
                 const canChat = data.status === 'Accepted' || data.status === 'On The Way';
                 if (customerChatAction) {
                     customerChatAction.classList.toggle('hidden', !canChat);
-                    const waLink = document.getElementById('customerWhatsAppLink');
-                    if (waLink && data.workerMobile) {
-                        const waMsg = encodeURIComponent(`नमस्कार! मी Gharmitra वरील ग्राहक (${data.customerName || 'Customer'}). माझी ऑर्डर #${orderId.slice(-6).toUpperCase()} (${data.service}) संदर्भात मेसेज केला आहे.`);
-                        waLink.href = `https://wa.me/91${data.workerMobile}?text=${waMsg}`;
-                    }
                 }
                 if (!canChat && activeCustomerChatOrderId) {
                     closeCustomerChatModal();
