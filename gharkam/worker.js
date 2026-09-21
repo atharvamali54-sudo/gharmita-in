@@ -567,7 +567,7 @@ function loadLocalWorkerSession() {
         const workerMobile = userData.mobile || getCurrentWorkerMobile();
         const uid = currentWorkerUid || getLocalWorkerId();
         if (uid) {
-            database.ref('workers/' + uid).once('value').then(snap => {
+            database.ref('workers/' + uid).on('value', (snap) => {
                 const wData = snap.val();
                 if (wData) {
                     const fbName = wData.name || wData.fullName || wData.workerName;
@@ -592,16 +592,17 @@ function loadLocalWorkerSession() {
                     if (avgEl) avgEl.innerText = calcRating.toFixed(1);
                     if (revEl) revEl.innerText = calcReviews;
                 }
-                if (workerMobile) {
-                    database.ref('orders').orderByChild('customerMobile').equalTo(workerMobile).limitToLast(5).once('value').then(oSnap => {
-                        const orders = oSnap.val();
-                        if (orders) {
-                            const found = Object.values(orders).find(o => o.customerName && o.customerName !== 'Worker');
-                            if (found) applyWorkerName(found.customerName);
-                        }
-                    });
-                }
             });
+
+            if (workerMobile) {
+                database.ref('orders').orderByChild('customerMobile').equalTo(workerMobile).limitToLast(5).once('value').then(oSnap => {
+                    const orders = oSnap.val();
+                    if (orders) {
+                        const found = Object.values(orders).find(o => o.customerName && o.customerName !== 'Worker');
+                        if (found) applyWorkerName(found.customerName);
+                    }
+                });
+            }
         }
 
         loadWorkerEarnings(currentWorkerUid);
@@ -961,6 +962,8 @@ function loadWorkerEarnings(workerUid) {
         let todaySum = 0;
         let todayCount = 0;
         let weeklyData = [0, 0, 0, 0, 0, 0, 0];
+        let orderRatingSum = 0;
+        let orderRatingCount = 0;
 
         const now = new Date();
         const todayYear = now.getFullYear();
@@ -1015,7 +1018,25 @@ function loadWorkerEarnings(workerUid) {
                     const dayIndex = (orderDateObj.getDay() + 6) % 7; // Mon=0 .. Sun=6
                     weeklyData[dayIndex] += amount;
                 }
+
+                // Ratings check
+                if (order.customerRating || order.rating) {
+                    const r = Number(order.customerRating || order.rating) || 5;
+                    orderRatingSum += r;
+                    orderRatingCount++;
+                }
             });
+        }
+
+        if (orderRatingCount > 0) {
+            const currentDisplayedReviews = parseInt(document.getElementById('workerTotalReviews')?.innerText || '0', 10);
+            if (orderRatingCount >= currentDisplayedReviews) {
+                const avg = Number((orderRatingSum / orderRatingCount).toFixed(1));
+                const avgEl = document.getElementById('workerAvgRating');
+                const revEl = document.getElementById('workerTotalReviews');
+                if (avgEl) avgEl.innerText = avg.toFixed(1);
+                if (revEl) revEl.innerText = orderRatingCount;
+            }
         }
 
         const todayEarningsEl = document.getElementById('todayEarnings');
