@@ -1316,6 +1316,8 @@ function renderJobs() {
     const activeOrderEntry = getActiveOrderForCurrentWorker();
     const activeOrderId = activeOrderEntry ? activeOrderEntry.orderId : null;
     let pendingCount = 0;
+    let foundExclusiveOfferKey = null;
+    let foundExclusiveOfferItem = null;
 
     if (workerTripMapOrderId && workerTripMapOrderId !== activeOrderId) {
         resetWorkerTripState();
@@ -1451,12 +1453,10 @@ function renderJobs() {
             stopLocationSharing(activeOrderId, false);
         }
         stopOrderAlert();
+    } else if (foundExclusiveOfferKey && foundExclusiveOfferItem) {
+        startOrderAlert(foundExclusiveOfferKey, foundExclusiveOfferItem);
     } else {
-        if (foundExclusiveOfferKey) {
-            startOrderAlert(foundExclusiveOfferKey, foundExclusiveOfferItem);
-        } else {
-            stopOrderAlert();
-        }
+        stopOrderAlert();
     }
 
     jobCountBadge.innerText = `${pendingCount} New Jobs`;
@@ -1669,6 +1669,7 @@ function verifyAndCompleteWork() {
 }
 
 function finalizeOrderCompletion(orderId) {
+    stopOrderAlert();
     const btn = document.getElementById('verifyOtpBtn');
     if (btn) {
         btn.disabled = true;
@@ -1680,11 +1681,15 @@ function finalizeOrderCompletion(orderId) {
             status: 'Completed',
             workerLocation: null,
             completionOtpVerified: true,
+            offerWorkerUid: null,
+            offerExpiresAt: null,
+            offeredAt: null,
             completedAt: firebase.database.ServerValue.TIMESTAMP
         })
     ).then(() => {
         return releaseActiveOrderLock(orderId);
     }).then(() => {
+        stopOrderAlert();
         closeCompletionOtpModal();
         loadWorkerEarnings();
         alert("🎉 OTP यशस्वीरीत्या व्हेरिफाय झाला! काम पूर्ण झाले आहे.");
@@ -1693,6 +1698,7 @@ function finalizeOrderCompletion(orderId) {
         console.error("Completion error:", error);
         alert("काम पूर्ण करताना अडचण आली: " + error.message);
     }).finally(() => {
+        stopOrderAlert();
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-check"></i> व्हेरिफाय करा';
