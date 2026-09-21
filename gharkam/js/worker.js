@@ -563,31 +563,45 @@ function loadLocalWorkerSession() {
             workerIndex: userData.mobile ? userData.mobile.slice(-6) : 100001
         });
 
-        // Fallback: If name is still "Worker", query Firebase worker node or order history
+        // Fallback: Query Firebase worker node or order history
         const workerMobile = userData.mobile || getCurrentWorkerMobile();
-        if (!name || name === "Worker") {
-            const uid = currentWorkerUid || getLocalWorkerId();
-            if (uid) {
-                database.ref('workers/' + uid).once('value').then(snap => {
-                    const wData = snap.val();
-                    if (wData) {
-                        const fbName = wData.name || wData.fullName || wData.workerName;
-                        if (fbName && fbName !== "Worker") {
-                            applyWorkerName(fbName);
-                            return;
+        const uid = currentWorkerUid || getLocalWorkerId();
+        if (uid) {
+            database.ref('workers/' + uid).once('value').then(snap => {
+                const wData = snap.val();
+                if (wData) {
+                    const fbName = wData.name || wData.fullName || wData.workerName;
+                    if (fbName && fbName !== "Worker") {
+                        applyWorkerName(fbName);
+                    }
+                    let calcRating = 5.0;
+                    let calcReviews = 0;
+                    if (wData.ratings && typeof wData.ratings === 'object') {
+                        const rList = Object.values(wData.ratings);
+                        calcReviews = rList.length;
+                        if (calcReviews > 0) {
+                            const sum = rList.reduce((acc, curr) => acc + (Number(curr.rating) || 5), 0);
+                            calcRating = Number((sum / calcReviews).toFixed(1));
                         }
+                    } else if (wData.rating !== undefined || wData.totalReviews !== undefined) {
+                        calcRating = Number(wData.rating || 5.0);
+                        calcReviews = Number(wData.totalReviews || 0);
                     }
-                    if (workerMobile) {
-                        database.ref('orders').orderByChild('customerMobile').equalTo(workerMobile).limitToLast(5).once('value').then(oSnap => {
-                            const orders = oSnap.val();
-                            if (orders) {
-                                const found = Object.values(orders).find(o => o.customerName && o.customerName !== 'Worker');
-                                if (found) applyWorkerName(found.customerName);
-                            }
-                        });
-                    }
-                });
-            }
+                    const avgEl = document.getElementById('workerAvgRating');
+                    const revEl = document.getElementById('workerTotalReviews');
+                    if (avgEl) avgEl.innerText = calcRating.toFixed(1);
+                    if (revEl) revEl.innerText = calcReviews;
+                }
+                if (workerMobile) {
+                    database.ref('orders').orderByChild('customerMobile').equalTo(workerMobile).limitToLast(5).once('value').then(oSnap => {
+                        const orders = oSnap.val();
+                        if (orders) {
+                            const found = Object.values(orders).find(o => o.customerName && o.customerName !== 'Worker');
+                            if (found) applyWorkerName(found.customerName);
+                        }
+                    });
+                }
+            });
         }
 
         loadWorkerEarnings(currentWorkerUid);
@@ -880,13 +894,27 @@ auth.onAuthStateChanged((user) => {
                 const finalName = userData.fullName || userData.name || workerData.name || localSession.fullName || localSession.name || (user.email ? user.email.split('@')[0] : "Worker");
                 const finalService = userData.service || userData.workType || workerData.service || localSession.workType || localSession.service || "Cleaning";
 
+                let calcRating = 5.0;
+                let calcTotalReviews = 0;
+                if (workerData.ratings && typeof workerData.ratings === 'object') {
+                    const rList = Object.values(workerData.ratings);
+                    calcTotalReviews = rList.length;
+                    if (calcTotalReviews > 0) {
+                        const sum = rList.reduce((acc, curr) => acc + (Number(curr.rating) || 5), 0);
+                        calcRating = Number((sum / calcTotalReviews).toFixed(1));
+                    }
+                } else if (workerData.rating !== undefined || workerData.totalReviews !== undefined) {
+                    calcRating = Number(workerData.rating || 5.0);
+                    calcTotalReviews = Number(workerData.totalReviews || 0);
+                }
+
                 const combinedData = {
                     name: finalName,
                     service: finalService,
                     wallet: workerData.wallet !== undefined ? workerData.wallet : (localSession.balance || 50),
                     workerIndex: workerData.workerIndex || Math.floor(100000 + Math.random() * 900000),
-                    rating: workerData.rating || 5.0,
-                    totalReviews: workerData.totalReviews || 0
+                    rating: calcRating,
+                    totalReviews: calcTotalReviews
                 };
 
                 if (!workerSnap.exists()) {

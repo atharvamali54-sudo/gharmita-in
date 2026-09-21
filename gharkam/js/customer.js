@@ -487,19 +487,63 @@ populateBookingProfile();
                 }
 
                 const workerId = orderData.workerId;
-                const reviewText = document.getElementById('reviewComment').value;
+                const reviewCommentEl = document.getElementById('reviewComment');
+                const reviewText = reviewCommentEl ? reviewCommentEl.value.trim() : '';
 
-                const ratingRef = database.ref("workers/" + workerId + "/ratings").push();
-                ratingRef.set({
+                const ratingPayload = {
                     rating: selectedRating,
                     review: reviewText,
-                    customerName: orderData.customerName,
+                    customerName: orderData.customerName || 'Customer',
+                    customerMobile: orderData.customerMobile || orderData.phone || '',
+                    orderId: currentOrderId,
+                    service: orderData.service || orderData.workType || '',
+                    workerName: orderData.workerName || '',
                     timestamp: firebase.database.ServerValue.TIMESTAMP
-                }).then(() => {
-                    alert("रेटिंग यशस्वीरीत्या सबमिट झाले! धन्यवाद.");
+                };
+
+                const ratingRef = database.ref("workers/" + workerId + "/ratings").push();
+                ratingRef.set(ratingPayload).then(() => {
+                    // Update order record so customer order history and Admin portal reflect review status
+                    database.ref("orders/" + currentOrderId).update({
+                        isRated: true,
+                        customerRating: selectedRating,
+                        customerReview: reviewText,
+                        reviewedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+
+                    // Recalculate worker's aggregated rating and review count
+                    database.ref("workers/" + workerId + "/ratings").once("value", (snap) => {
+                        const ratingsVal = snap.val() || {};
+                        const rList = Object.values(ratingsVal);
+                        const count = rList.length;
+                        const sum = rList.reduce((acc, curr) => acc + (Number(curr.rating) || 5), 0);
+                        const avg = count > 0 ? Number((sum / count).toFixed(1)) : 5.0;
+
+                        database.ref("workers/" + workerId).update({
+                            rating: avg,
+                            totalReviews: count
+                        });
+                    });
+
+                    alert("तुमचा अभिप्राय यशस्वीरीत्या सबमिट झाला! धन्यवाद.");
+                    if (reviewCommentEl) reviewCommentEl.value = '';
+                    closeRatingModal();
+                }).catch(err => {
+                    console.error("Rating submission error:", err);
+                    alert("रेटिंग सबमिट करताना एरर आली.");
                     closeRatingModal();
                 });
             });
+        }
+
+        function openOrderRating(orderId) {
+            currentOrderId = orderId;
+            closeMyOrdersModal();
+            setRating(5);
+            const reviewCommentEl = document.getElementById('reviewComment');
+            if (reviewCommentEl) reviewCommentEl.value = '';
+            document.getElementById('ratingModal').classList.remove('hidden');
+            document.getElementById('ratingModal').classList.add('flex');
         }
 
         function closeRatingModal() {
@@ -789,10 +833,10 @@ populateBookingProfile();
                         document.getElementById('finishedIcon').innerText = "🎉";
                         document.getElementById('finishedTitle').innerText = "Order Completed Successfully";
 
-                        if (!data.isRated) {
+                        if (!data.isRated && !window['ratingPrompted_' + orderId]) {
+                            window['ratingPrompted_' + orderId] = true;
                             document.getElementById('ratingModal').classList.remove('hidden');
                             document.getElementById('ratingModal').classList.add('flex');
-                            database.ref("orders/" + orderId).update({ isRated: true });
                         }
                     } else {
                         badgeEl.className = "bg-red-100 text-red-700 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
@@ -906,6 +950,13 @@ populateBookingProfile();
                     if(order.status === 'Completed') badgeColor = "bg-emerald-100 text-emerald-700";
                     if(order.status === 'Cancelled') badgeColor = "bg-red-100 text-red-700";
 
+                    const isCompleted = order.status === 'Completed';
+                    const rateButtonHtml = isCompleted && !order.isRated ? `
+                        <button onclick="openOrderRating('${orderId}')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-1.5 px-3 rounded-lg text-[11px] transition flex items-center gap-1">
+                            <i class="fa-solid fa-star text-[10px]"></i> Rate Worker
+                        </button>
+                    ` : '';
+
                     const card = document.createElement('div');
                     card.className = "bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3 text-xs hover:border-blue-400 transition cursor-pointer";
                     card.innerHTML = `
@@ -920,7 +971,8 @@ populateBookingProfile();
                             <p><strong>Area:</strong> ${order.area}</p>
                         </div>
                         <p class="text-slate-500 truncate"><strong>Address:</strong> ${order.address}</p>
-                        <div class="text-right pt-1">
+                        <div class="text-right pt-1 flex items-center justify-end gap-2">
+                            ${rateButtonHtml}
                             <button onclick="trackSelectedOrder('${orderId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-lg text-[11px] transition">
                                 <i class="fa-solid fa-eye"></i> Track Live Status
                             </button>

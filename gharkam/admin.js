@@ -399,14 +399,46 @@ function calculateKpisAndRender() {
                 if (rNum <= 2) complaintsCount++;
 
                 allReviews.push({
+                    reviewId: rId,
                     workerId,
-                    workerName: workerData.name || 'Worker',
+                    workerName: workerData.name || workerData.fullName || 'कामगार',
+                    workerMobile: workerData.mobile || workerData.phone || '',
                     rating: rNum,
-                    review: r.review || r.comment || 'काही कॉमेंट नाही',
+                    review: (r.review !== undefined && r.review !== '') ? r.review : (r.comment || 'काही कॉमेंट नाही'),
                     customerName: r.customerName || 'ग्राहक',
+                    customerMobile: r.customerMobile || r.customerPhone || '',
+                    orderId: r.orderId || '',
+                    service: r.service || workerData.service || '',
                     timestamp: r.timestamp || Date.now()
                 });
             });
+        }
+    });
+
+    // Also extract reviews directly recorded on orders if not already in allReviews
+    orderEntries.forEach(([orderId, orderData]) => {
+        if (orderData && (orderData.customerRating || orderData.customerReview || (orderData.isRated && orderData.rating))) {
+            const alreadyExists = allReviews.some(r => r.orderId === orderId);
+            if (!alreadyExists) {
+                const rNum = Number(orderData.customerRating || orderData.rating) || 5;
+                ratingSum += rNum;
+                ratingCount++;
+                if (rNum <= 2) complaintsCount++;
+
+                allReviews.push({
+                    reviewId: orderId,
+                    workerId: orderData.workerId || '',
+                    workerName: orderData.workerName || 'कामगार',
+                    workerMobile: orderData.workerMobile || '',
+                    rating: rNum,
+                    review: (orderData.customerReview !== undefined && orderData.customerReview !== '') ? orderData.customerReview : (orderData.review || 'काही कॉमेंट नाही'),
+                    customerName: orderData.customerName || 'ग्राहक',
+                    customerMobile: orderData.customerMobile || orderData.phone || '',
+                    orderId: orderId,
+                    service: orderData.service || '',
+                    timestamp: orderData.reviewedAt || orderData.completedAt || orderData.timestamp || Date.now()
+                });
+            }
         }
     });
 
@@ -758,26 +790,72 @@ function renderReviewsList() {
 
     container.innerHTML = filtered.map(r => {
         const isComplaint = r.rating <= 2;
-        const dateStr = new Date(r.timestamp).toLocaleDateString('mr-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const dateStr = new Date(r.timestamp).toLocaleDateString('mr-IN', { 
+            day: '2-digit', 
+            month: 'short', 
+            year: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+
+        const customerPhoneHtml = r.customerMobile ? `
+            <span class="text-slate-400">•</span>
+            <a href="tel:${r.customerMobile}" class="text-blue-600 hover:underline font-semibold flex items-center gap-1">
+                <i class="fa-solid fa-phone text-[10px]"></i> ${r.customerMobile}
+            </a>
+            <a href="https://wa.me/91${r.customerMobile.replace(/\D/g, '')}" target="_blank" class="text-emerald-600 hover:underline font-semibold flex items-center gap-1">
+                <i class="fa-brands fa-whatsapp text-xs"></i> WhatsApp
+            </a>
+        ` : '';
+
+        const orderBadgeHtml = r.orderId ? `
+            <button onclick="openAdminOrderModal('${r.orderId}')" class="bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-[10px] font-bold px-2 py-0.5 rounded-md transition flex items-center gap-1">
+                <i class="fa-solid fa-receipt text-[9px]"></i> Order: #${String(r.orderId).slice(-6)}
+            </button>
+        ` : '';
+
+        const serviceBadgeHtml = r.service ? `
+            <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-200">
+                ${r.service}
+            </span>
+        ` : '';
 
         return `
-        <div class="bg-white p-4 rounded-2xl border ${isComplaint ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'} shadow-sm space-y-2">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <span class="text-sm font-bold text-slate-800"><i class="fa-solid fa-user text-blue-600"></i> ${r.customerName}</span>
-                    <span class="text-slate-400 text-xs">•</span>
-                    <span class="text-xs text-slate-500">कामगार: <strong class="text-slate-700">${r.workerName}</strong></span>
+        <div class="bg-white p-4 rounded-2xl border ${isComplaint ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'} shadow-sm space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user text-blue-600"></i> ${r.customerName}
+                    </span>
+                    ${customerPhoneHtml}
+                    ${serviceBadgeHtml}
+                    ${orderBadgeHtml}
                 </div>
-                <div>
-                    ${isComplaint ? `<span class="admin-badge bg-rose-100 text-rose-700 border border-rose-200">⚠️ तक्रार / Negative</span>` : ''}
-                    <span class="text-amber-400 font-bold ml-2">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+                <div class="flex items-center gap-2">
+                    ${isComplaint ? `<span class="admin-badge bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold px-2.5 py-0.5 rounded-full">⚠️ तक्रार / Negative</span>` : `<span class="admin-badge bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-2.5 py-0.5 rounded-full">✅ Positive</span>`}
+                    <span class="text-amber-400 font-bold ml-1 text-base tracking-wider">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+                    <span class="text-xs font-black text-slate-700 bg-amber-100 px-1.5 py-0.5 rounded">${r.rating}.0</span>
                 </div>
             </div>
-            <p class="text-xs text-slate-700 italic bg-slate-50 p-3 rounded-xl border border-slate-100">
-                "${r.review}"
-            </p>
-            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-                <span>तारीख: ${dateStr}</span>
+
+            <!-- ग्राहकाचा अभिप्राय मेसेज (Customer Review Message - Only Admin Can See) -->
+            <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
+                    <i class="fa-solid fa-comment-dots text-blue-500"></i> ग्राहकाचा अभिप्राय / Customer Review Message:
+                </div>
+                <p class="text-xs text-slate-800 font-medium whitespace-pre-wrap ${r.review && r.review !== 'काही कॉमेंट नाही' && r.review !== 'काही मेसेज नाही' ? 'italic' : 'text-slate-400'}">
+                    "${r.review || 'काही कॉमेंट लिहिली नाही'}"
+                </p>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-0.5 flex-wrap gap-2">
+                <div>
+                    कामगार: <strong class="text-slate-700 font-bold">${r.workerName}</strong>
+                    ${r.workerMobile ? `<span class="text-slate-400 ml-1">(${r.workerMobile})</span>` : ''}
+                </div>
+                <div class="text-slate-400 flex items-center gap-1">
+                    <i class="fa-regular fa-clock"></i> तारीख: ${dateStr}
+                </div>
             </div>
         </div>
         `;
