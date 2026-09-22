@@ -1124,7 +1124,7 @@ function payWithRazorpay() {
         "amount": amountToAdd * 100, 
         "currency": "INR",
         "name": "Gharmitra Online",
-        "description": "Worker Wallet Recharge",
+        "description": "Gharmitra Partner Service Credits",
         "handler": function (response){
             alert("पेमेंट यशस्वी! पेमेंट आयडी: " + response.razorpay_payment_id);
             addMoneyToFirebaseWallet(amountToAdd);
@@ -1404,7 +1404,7 @@ function renderJobs() {
                     </a>
                    </div>`
                 : `<p class="text-slate-500"><i class="fa-solid fa-lock mr-1"></i>कॉलिंग सुविधा On The Way केल्यानंतर सुरू होईल.</p>`}
-            </div>`
+            </div>
             ${item.status === 'Accepted' ? `<div class="flex items-center justify-between text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg"><span>Mark On The Way within 15 minutes</span><span data-on-the-way-deadline="${item.onTheWayDeadline || orderNow()}">15:00 left to start</span></div>` : ''}
              <div class="worker-live-card">
                  <div class="flex items-center justify-between gap-3 mb-3">

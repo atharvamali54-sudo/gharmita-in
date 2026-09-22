@@ -756,7 +756,7 @@ function renderWorkersTable() {
             </td>
             <td class="p-3.5 text-center">
                 <button onclick="openAdminWalletModal('${item.uid}', '${item.name}', ${item.wallet})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold py-1.5 px-3 rounded-lg text-xs transition">
-                    + पैसे भरा
+                    + क्रेडिट्स द्या
                 </button>
             </td>
         </tr>
@@ -952,7 +952,7 @@ function adminCancelOrder() {
 
 function openAdminWalletModal(uid, name, curBal) {
     selectedWorkerForRecharge = uid;
-    document.getElementById('walletWorkerName').innerText = `${name} - वॉलेट रिचार्ज`;
+    document.getElementById('walletWorkerName').innerText = `${name} - सर्व्हिस क्रेडिट्स`;
     document.getElementById('walletCurrentBal').innerText = curBal;
     document.getElementById('walletRechargeAmount').value = '';
 
