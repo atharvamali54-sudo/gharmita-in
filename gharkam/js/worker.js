@@ -1354,7 +1354,7 @@ function renderJobs() {
             <p><i class="fa-solid fa-location-dot text-red-500 mr-1.5"></i><strong>पत्ता:</strong> ${item.address}</p>
             <p><i class="fa-regular fa-calendar text-blue-500 mr-1.5"></i><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
             <p><i class="fa-regular fa-clock text-blue-500 mr-1.5"></i><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
-            <p class="text-slate-400"><i class="fa-solid fa-lock mr-1.5"></i>मोबाइल नंबर On The Way केल्यानंतर दिसेल.</p>
+            <p class="text-slate-400"><i class="fa-solid fa-shield-halved text-emerald-500 mr-1.5"></i>कॉलिंग सुविधा (Masked Call) On The Way केल्यानंतर सुरू होईल.</p>
             </div>
             ${photoHtml}
             <div class="flex items-center justify-between text-xs font-bold text-amber-800 bg-amber-50 border border-amber-300 px-3 py-2 rounded-xl">
@@ -1384,8 +1384,17 @@ function renderJobs() {
             <p><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
             <p><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
             ${item.status === 'On The Way'
-                ? `<p><strong>मोबाइल:</strong> <a href="tel:${item.customerMobile}" class="text-blue-600 font-bold underline">${item.customerMobile || 'Not available'}</a></p>`
-                : `<p class="text-slate-500"><i class="fa-solid fa-lock mr-1"></i>मोबाइल नंबर On The Way केल्यानंतर दिसेल.</p>`}
+                ? `<div class="bg-white p-3 rounded-xl border border-emerald-200 space-y-2 mt-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-slate-700"><i class="fa-solid fa-shield-halved text-emerald-600"></i> ग्राहक संपर्क (गोपनीय):</span>
+                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Swiggy Masked Mode</span>
+                    </div>
+                    <p class="text-xs text-slate-700"><strong>मास्क्ड लाइन:</strong> <span class="font-bold text-blue-600">${window.GharmitraCallMasking ? window.GharmitraCallMasking.getMaskedDisplay('customer', item.customerMobile) : '+91 20 7195 4421'}</span></p>
+                    <button onclick="initiateMaskedCall('worker', '${key}', '${item.customerMobile || ''}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-phone-volume"></i> ग्राहकाला कॉल करा (Masked Call)
+                    </button>
+                   </div>`
+                : `<p class="text-slate-500"><i class="fa-solid fa-lock mr-1"></i>कॉलिंग व संपर्क On The Way केल्यानंतर सुरू होईल.</p>`}
             </div>
             ${item.status === 'Accepted' ? `<div class="flex items-center justify-between text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg"><span>Mark On The Way within 15 minutes</span><span data-on-the-way-deadline="${item.onTheWayDeadline || orderNow()}">15:00 left to start</span></div>` : ''}
              <div class="worker-live-card">
@@ -1450,10 +1459,19 @@ function renderJobs() {
             stopLocationSharing(activeOrderId, false);
         }
         stopOrderAlert();
+        if (window.GharmitraCallMasking) {
+            window.GharmitraCallMasking.initOrderCallListener(activeOrderId, 'worker', 'Gharmitra Partner');
+        }
     } else if (foundExclusiveOfferKey && foundExclusiveOfferItem) {
         startOrderAlert(foundExclusiveOfferKey, foundExclusiveOfferItem);
+        if (window.GharmitraCallMasking) {
+            window.GharmitraCallMasking.cleanupStandingListener();
+        }
     } else {
         stopOrderAlert();
+        if (window.GharmitraCallMasking) {
+            window.GharmitraCallMasking.cleanupStandingListener();
+        }
     }
 
     jobCountBadge.innerText = `${pendingCount} New Jobs`;

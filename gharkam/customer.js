@@ -757,16 +757,16 @@ populateBookingProfile();
                 const ratingDisplay = document.getElementById('statusWorkerRating');
                 const mapContainer = document.getElementById('mapTrackingContainer');
                 const trackMapBtn = document.getElementById('trackMapBtn');
+                const customerCommActions = document.getElementById('customerCommActions');
                 const customerChatAction = document.getElementById('customerChatAction');
 
-                let workerInfo = "Verified Worker Assigned";
-                if (data.workerMobile) {
-                    workerInfo = data.workerMobile;
-                } else if (data.workerName) {
-                    workerInfo = data.workerName;
-                } else if (data.workerId || data.workerUid) {
-                    workerInfo = data.workerId || data.workerUid;
-                }
+                // Swiggy/Zomato style Number Masking for Worker
+                let workerDisplayName = data.workerName || "Verified Partner";
+                let workerMaskedNumber = window.GharmitraCallMasking
+                    ? window.GharmitraCallMasking.getMaskedDisplay('worker', data.workerMobile)
+                    : "+91 20 7195 4421";
+
+                let workerInfo = `${workerDisplayName} • <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-200"><i class="fa-solid fa-shield-halved"></i> Masked: ${workerMaskedNumber}</span>`;
 
                 const targetWorkerId = data.workerUid || data.workerId || (data.workerMobile ? 'local_worker_' + data.workerMobile : null);
                 if (targetWorkerId) {
@@ -792,11 +792,20 @@ populateBookingProfile();
                     ratingDisplay.innerText = "Not assigned yet";
                 }
 
-                const canChat = data.status === 'Accepted' || data.status === 'On The Way';
-                if (customerChatAction) {
-                    customerChatAction.classList.toggle('hidden', !canChat);
+                const canCommunicate = data.status === 'Accepted' || data.status === 'On The Way';
+                if (customerCommActions) {
+                    customerCommActions.classList.toggle('hidden', !canCommunicate);
+                } else if (customerChatAction) {
+                    customerChatAction.classList.toggle('hidden', !canCommunicate);
                 }
-                if (!canChat && activeCustomerChatOrderId) {
+
+                if (canCommunicate && window.GharmitraCallMasking) {
+                    window.GharmitraCallMasking.initOrderCallListener(orderId, 'customer', data.customerName || 'Customer');
+                } else if (window.GharmitraCallMasking) {
+                    window.GharmitraCallMasking.cleanupStandingListener();
+                }
+
+                if (!canCommunicate && activeCustomerChatOrderId) {
                     closeCustomerChatModal();
                 }
 
@@ -834,7 +843,7 @@ populateBookingProfile();
                     if (data.status === 'Completed') {
                         badgeEl.className = "bg-emerald-100 text-emerald-700 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
                         badgeTextEl.innerText = "Work Completed";
-                        workerMobileEl.innerText = workerInfo;
+                        workerMobileEl.innerHTML = workerInfo;
                         document.getElementById('finishedIcon').innerText = "🎉";
                         document.getElementById('finishedTitle').innerText = "Order Completed Successfully";
 
@@ -870,14 +879,14 @@ populateBookingProfile();
                     else if (data.status === 'Accepted') {
                         badgeEl.className = "bg-blue-100 text-blue-700 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
                         badgeTextEl.innerText = "Worker Accepted";
-                        workerMobileEl.innerText = workerInfo;
+                        workerMobileEl.innerHTML = workerInfo;
                         document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     } 
                     else if (data.status === 'On The Way') {
                         badgeEl.className = "bg-indigo-100 text-indigo-700 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
                         badgeTextEl.innerText = "Worker On The Way";
-                        workerMobileEl.innerText = workerInfo;
+                        workerMobileEl.innerHTML = workerInfo;
                         document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
