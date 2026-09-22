@@ -1370,6 +1370,15 @@ function renderJobs() {
         }
 
         if ((item.status === 'Accepted' || item.status === 'On The Way') && key === activeOrderId) {
+            const rawCustPhone = item.customerMobile || '';
+            const cleanCustDigits = String(rawCustPhone).replace(/[^\d+]/g, '');
+            const custTelHref = cleanCustDigits
+                ? (cleanCustDigits.startsWith('+') ? `tel:${cleanCustDigits}` : `tel:+91${cleanCustDigits.slice(-10)}`)
+                : '#';
+            const maskedCustPhone = window.GharmitraCallMasking
+                ? window.GharmitraCallMasking.maskDisplayNumber(rawCustPhone)
+                : (rawCustPhone ? '+91 ••••• ••' + String(rawCustPhone).slice(-3) : 'उपलब्ध नाही');
+
             const activeCard = document.createElement('div');
             activeCard.className = "bg-white p-5 rounded-2xl border border-emerald-200 shadow-md space-y-4";
             activeCard.innerHTML = `
@@ -1386,16 +1395,16 @@ function renderJobs() {
             ${item.status === 'On The Way'
                 ? `<div class="bg-white p-3 rounded-xl border border-emerald-200 space-y-2 mt-2">
                     <div class="flex items-center justify-between">
-                        <span class="text-[11px] font-bold text-slate-700"><i class="fa-solid fa-shield-halved text-emerald-600"></i> ग्राहक संपर्क (गोपनीय):</span>
-                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Swiggy Masked Mode</span>
+                        <span class="text-[11px] font-bold text-slate-700"><i class="fa-solid fa-shield-halved text-emerald-600"></i> ग्राहक संपर्क:</span>
+                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">सुरक्षित संपर्क</span>
                     </div>
-                    <p class="text-xs text-slate-700"><strong>मास्क्ड लाइन:</strong> <span class="font-bold text-blue-600">${window.GharmitraCallMasking ? window.GharmitraCallMasking.getMaskedDisplay('customer', item.customerMobile) : '+91 20 7195 4421'}</span></p>
-                    <button onclick="initiateMaskedCall('worker', '${key}', '${item.customerMobile || ''}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow-sm flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-phone"></i> ग्राहकाला डायरेक्ट नॉर्मल कॉल करा
-                    </button>
+                    <p class="text-xs text-slate-700"><strong>ग्राहक:</strong> ${item.customerName || 'Customer'} (<span class="font-bold text-blue-600">${maskedCustPhone}</span>)</p>
+                    <a href="${custTelHref}" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow-sm flex items-center justify-center gap-2 ${cleanCustDigits ? '' : 'opacity-50 pointer-events-none'}">
+                        <i class="fa-solid fa-phone"></i> ग्राहकाला थेट कॉल करा
+                    </a>
                    </div>`
-                : `<p class="text-slate-500"><i class="fa-solid fa-lock mr-1"></i>कॉलिंग व संपर्क On The Way केल्यानंतर सुरू होईल.</p>`}
-            </div>
+                : `<p class="text-slate-500"><i class="fa-solid fa-lock mr-1"></i>कॉलिंग सुविधा On The Way केल्यानंतर सुरू होईल.</p>`}
+            </div>`
             ${item.status === 'Accepted' ? `<div class="flex items-center justify-between text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg"><span>Mark On The Way within 15 minutes</span><span data-on-the-way-deadline="${item.onTheWayDeadline || orderNow()}">15:00 left to start</span></div>` : ''}
              <div class="worker-live-card">
                  <div class="flex items-center justify-between gap-3 mb-3">
@@ -1459,19 +1468,10 @@ function renderJobs() {
             stopLocationSharing(activeOrderId, false);
         }
         stopOrderAlert();
-        if (window.GharmitraCallMasking) {
-            window.GharmitraCallMasking.initOrderCallListener(activeOrderId, 'worker', 'Gharmitra Partner');
-        }
     } else if (foundExclusiveOfferKey && foundExclusiveOfferItem) {
         startOrderAlert(foundExclusiveOfferKey, foundExclusiveOfferItem);
-        if (window.GharmitraCallMasking) {
-            window.GharmitraCallMasking.cleanupStandingListener();
-        }
     } else {
         stopOrderAlert();
-        if (window.GharmitraCallMasking) {
-            window.GharmitraCallMasking.cleanupStandingListener();
-        }
     }
 
     jobCountBadge.innerText = `${pendingCount} New Jobs`;

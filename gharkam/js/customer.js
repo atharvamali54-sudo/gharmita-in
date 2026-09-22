@@ -759,14 +759,30 @@ populateBookingProfile();
                 const trackMapBtn = document.getElementById('trackMapBtn');
                 const customerCommActions = document.getElementById('customerCommActions');
                 const customerChatAction = document.getElementById('customerChatAction');
+                const callWorkerBtn = document.getElementById('customerCallWorkerBtn');
+                const workerNumDisplay = document.getElementById('customerWorkerNumberDisplay');
 
-                // Swiggy/Zomato style Number Masking for Worker
+                let rawWorkerMobile = data.workerMobile || '';
+                let maskedWorkerNumber = window.GharmitraCallMasking
+                    ? window.GharmitraCallMasking.maskDisplayNumber(rawWorkerMobile)
+                    : (rawWorkerMobile ? '+91 ••••• ••' + String(rawWorkerMobile).slice(-3) : 'Not available');
+
                 let workerDisplayName = data.workerName || "Verified Partner";
-                let workerMaskedNumber = window.GharmitraCallMasking
-                    ? window.GharmitraCallMasking.getMaskedDisplay('worker', data.workerMobile)
-                    : "+91 20 7195 4421";
+                let workerInfo = `${workerDisplayName} • <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-200"><i class="fa-solid fa-shield-halved"></i> ${maskedWorkerNumber}</span>`;
 
-                let workerInfo = `${workerDisplayName} • <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-200"><i class="fa-solid fa-shield-halved"></i> Masked: ${workerMaskedNumber}</span>`;
+                if (callWorkerBtn) {
+                    if (rawWorkerMobile) {
+                        const cleanNum = String(rawWorkerMobile).replace(/[^\d+]/g, '');
+                        callWorkerBtn.href = cleanNum.startsWith('+') ? `tel:${cleanNum}` : `tel:+91${cleanNum.slice(-10)}`;
+                        callWorkerBtn.classList.remove('opacity-50', 'pointer-events-none');
+                    } else {
+                        callWorkerBtn.href = "#";
+                        callWorkerBtn.classList.add('opacity-50', 'pointer-events-none');
+                    }
+                }
+                if (workerNumDisplay) {
+                    workerNumDisplay.innerHTML = `<i class="fa-solid fa-shield-halved text-[9px]"></i> ${maskedWorkerNumber} • थेट फोन कॉल`;
+                }
 
                 const targetWorkerId = data.workerUid || data.workerId || (data.workerMobile ? 'local_worker_' + data.workerMobile : null);
                 if (targetWorkerId) {
@@ -799,11 +815,7 @@ populateBookingProfile();
                     customerChatAction.classList.toggle('hidden', !canCommunicate);
                 }
 
-                if (canCommunicate && window.GharmitraCallMasking) {
-                    window.GharmitraCallMasking.initOrderCallListener(orderId, 'customer', data.customerName || 'Customer');
-                } else if (window.GharmitraCallMasking) {
-                    window.GharmitraCallMasking.cleanupStandingListener();
-                }
+
 
                 if (!canCommunicate && activeCustomerChatOrderId) {
                     closeCustomerChatModal();
