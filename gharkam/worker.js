@@ -1391,7 +1391,7 @@ function renderJobs() {
                     </div>
                     <p class="text-xs text-slate-700"><strong>मास्क्ड लाइन:</strong> <span class="font-bold text-blue-600">${window.GharmitraCallMasking ? window.GharmitraCallMasking.getMaskedDisplay('customer', item.customerMobile) : '+91 20 7195 4421'}</span></p>
                     <button onclick="initiateMaskedCall('worker', '${key}', '${item.customerMobile || ''}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow-sm flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-phone-volume"></i> ग्राहकाला कॉल करा (Masked Call)
+                        <i class="fa-solid fa-phone"></i> ग्राहकाला डायरेक्ट नॉर्मल कॉल करा
                     </button>
                    </div>`
                 : `<p class="text-slate-500"><i class="fa-solid fa-lock mr-1"></i>कॉलिंग व संपर्क On The Way केल्यानंतर सुरू होईल.</p>`}
