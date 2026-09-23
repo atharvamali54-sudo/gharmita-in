@@ -1,3 +1,26 @@
+// =========================================================
+// Cryptographic Password Hashing & Security Helpers
+// =========================================================
+async function hashPasswordWithSalt(password, mobile) {
+    if (!password) return '';
+    const cleanMobile = String(mobile).replace(/\D/g, '').slice(-10);
+    const salt = "gharmitra_sec_salt_2026_" + cleanMobile;
+    const enc = new TextEncoder().encode(password + salt);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return "sha256$" + hash;
+}
+
+async function verifyPasswordMatch(enteredPassword, storedPassword, mobile) {
+    if (!enteredPassword || !storedPassword) return false;
+    if (storedPassword.startsWith('sha256$')) {
+        const expected = await hashPasswordWithSalt(enteredPassword, mobile);
+        return storedPassword === expected;
+    }
+    // Backward compatibility for legacy plaintext records
+    return storedPassword === enteredPassword;
+}
+
 (function() {
             emailjs.init("PfAaODZ_GPiBPHvOi"); 
         })();
@@ -520,15 +543,15 @@ let currentRole = 'customer';
             showStatus("⏳ पासवर्ड बदलत आहे...", "info");
             let savedUser = await getUserForRoleAsync(resetPasswordRole, resetPasswordMobile);
             if (savedUser) {
-                savedUser.password = newPass;
+                const hashedNewPass = await hashPasswordWithSalt(newPass, resetPasswordMobile);
+                savedUser.password = hashedNewPass;
                 saveUserForRole(resetPasswordRole, savedUser);
 
-                // Update in Firebase Cloud Database
                 if (typeof database !== 'undefined') {
                     const cleanMobile = String(resetPasswordMobile).replace(/\D/g, '').slice(-10);
                     const roleNode = resetPasswordRole === 'worker' ? 'workers' : 'customers';
                     database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).update({
-                        password: newPass,
+                        password: hashedNewPass,
                         updatedAt: firebase.database.ServerValue.TIMESTAMP
                     }).catch(() => {});
                 }
@@ -581,8 +604,9 @@ let currentRole = 'customer';
 
                 let selectedWorkType = (currentRole === 'worker') ? document.getElementById('workType').value : null;
 
+                const hashedPassword = await hashPasswordWithSalt(password, mobile);
                 pendingUserData = { 
-                    fullName, name: fullName, mobile, email, password, role: currentRole, balance: 50, 
+                    fullName, name: fullName, mobile, email, password: hashedPassword, role: currentRole, balance: 50, 
                     workType: selectedWorkType, service: selectedWorkType
                 };
 
@@ -606,14 +630,30 @@ let currentRole = 'customer';
                     return;
                 }
 
-                if (savedUser.password && savedUser.password !== password) {
+                const isPasswordCorrect = await verifyPasswordMatch(password, savedUser.password, mobile);
+                if (!isPasswordCorrect) {
                     showStatus("❌ चुकीचा Password! कृपया बरोबर पासवर्ड टाका.", "error");
                     return;
                 }
 
+                // Automatic seamless migration: If account had plaintext password, hash it now!
+                if (savedUser.password && !savedUser.password.startsWith('sha256$')) {
+                    const migratedHash = await hashPasswordWithSalt(password, mobile);
+                    savedUser.password = migratedHash;
+                    const roleNode = currentRole === 'worker' ? 'workers' : 'customers';
+                    if (typeof database !== 'undefined') {
+                        database.ref('workers/accounts/' + roleNode + '/' + mobile).update({
+                            password: migratedHash,
+                            migratedAt: firebase.database.ServerValue.TIMESTAMP
+                        }).catch(() => {});
+                    }
+                }
+
                 // Save session on this new device
                 saveUserForRole(currentRole, savedUser);
-                localStorage.setItem('current_user_session', JSON.stringify(savedUser));
+                const safeSession = { ...savedUser };
+                delete safeSession.password;
+                localStorage.setItem('current_user_session', JSON.stringify(safeSession));
 
                 showStatus("🎉 Login Successful! Redirecting...", "success");
 

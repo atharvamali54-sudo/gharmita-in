@@ -1,3 +1,14 @@
+// Security: Strict HTML escaping against Stored XSS
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 let currentOrderId = null;
         let activeListener = null;
         let workerLocationListener = null;
@@ -678,6 +689,17 @@ populateBookingProfile();
             try {
                 if (photoInput.files && photoInput.files.length > 0) {
                     const file = photoInput.files[0];
+                    // Validate file size (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert("कृपया ५ MB पेक्षा लहान फोटो निवडा.");
+                        return;
+                    }
+                    // Validate file MIME type
+                    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+                    if (!allowedMimes.includes(file.type.toLowerCase())) {
+                        alert("कृपया केवळ वैध फोटो फाइल निवडा (JPG, PNG किंवा WEBP).");
+                        return;
+                    }
                     const formData = new FormData();
                     formData.append("image", file);
 
@@ -987,16 +1009,16 @@ populateBookingProfile();
                     card.className = "bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3 text-xs hover:border-blue-400 transition cursor-pointer";
                     card.innerHTML = `
                         <div class="flex items-center justify-between border-b pb-2 border-slate-200">
-                            <span class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-wrench text-blue-600"></i> ${order.service}</span>
+                            <span class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-wrench text-blue-600"></i> ${escapeHtml(order.service)}</span>
                             <span class="px-2.5 py-1 rounded-full font-bold text-[10px] ${badgeColor}">${order.status}</span>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-slate-600 pt-1">
-                            <p><strong>Name:</strong> ${order.customerName}</p>
-                            <p><strong>Budget:</strong> <span class="text-emerald-600 font-bold">${order.budget}</span></p>
-                            <p><strong>Date:</strong> ${order.date} (${order.time})</p>
-                            <p><strong>Area:</strong> ${order.area}</p>
+                            <p><strong>Name:</strong> ${escapeHtml(order.customerName)}</p>
+                            <p><strong>Budget:</strong> <span class="text-emerald-600 font-bold">${escapeHtml(order.budget)}</span></p>
+                            <p><strong>Date:</strong> ${escapeHtml(order.date)} (${escapeHtml(order.time)})</p>
+                            <p><strong>Area:</strong> ${escapeHtml(order.area)}</p>
                         </div>
-                        <p class="text-slate-500 truncate"><strong>Address:</strong> ${order.address}</p>
+                        <p class="text-slate-500 truncate"><strong>Address:</strong> ${escapeHtml(order.address)}</p>
                         <div class="text-right pt-1 flex items-center justify-end gap-2">
                             ${rateButtonHtml}
                             <button onclick="trackSelectedOrder('${orderId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-lg text-[11px] transition">

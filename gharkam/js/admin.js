@@ -1,6 +1,24 @@
 // =========================================================
-// Gharmitra Super Admin & Owner Dashboard Logic
+// Gharmitra Super Admin & Owner Dashboard Logic (Hardened)
 // =========================================================
+
+// Security: Strict HTML escaping against Stored XSS
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+async function computeSha256(text) {
+    const enc = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 
 let allOrders = {};
 let allWorkers = {};
@@ -10,7 +28,7 @@ let weeklyChartInstance = null;
 let selectedOrderForModal = null;
 let selectedWorkerForRecharge = null;
 
-const DEFAULT_ADMIN_PIN = "7875";
+// Hardcoded admin PIN removed for security hardening
 
 // --- 1. Admin Email OTP Security Authentication ---
 
@@ -23,20 +41,34 @@ let generatedAdminOtp = null;
 let adminOtpExpiry = 0;
 let adminResendCountdown = 0;
 let adminTimerInterval = null;
+let adminOtpFailedAttempts = 0;
+const MAX_ADMIN_OTP_ATTEMPTS = 5;
 
 if (window.emailjs) {
     try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
 }
 
 function checkAdminAuth() {
-    const isAuthed = sessionStorage.getItem('gharmitra_admin_auth') === 'true';
+    const tokenStr = sessionStorage.getItem('gharmitra_admin_token');
+    let isAuthed = false;
+    if (tokenStr) {
+        try {
+            const token = JSON.parse(tokenStr);
+            if (token && token.authed === true && (Date.now() - token.timestamp < 8 * 60 * 60 * 1000)) {
+                isAuthed = true;
+            } else {
+                sessionStorage.removeItem('gharmitra_admin_token');
+            }
+        } catch (e) {
+            sessionStorage.removeItem('gharmitra_admin_token');
+        }
+    }
     const overlay = document.getElementById('adminAuthOverlay');
     if (overlay) {
         if (isAuthed) {
             overlay.classList.add('hidden');
         } else {
             overlay.classList.remove('hidden');
-            // Reset to Step 1
             const sendStep = document.getElementById('adminSendOtpStep');
             const verifyStep = document.getElementById('adminVerifyOtpStep');
             const statusMsg = document.getElementById('adminAuthStatusMsg');
@@ -70,19 +102,22 @@ function sendAdminEmailOtp() {
 
     showAdminAuthStatus("⏳ नोंदणीकृत ई-मेलवर OTP पाठवत आहे...", "info");
 
-    // Generate secure 6-digit OTP
-    generatedAdminOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    adminOtpExpiry = Date.now() + (10 * 60 * 1000); // 10 minutes
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    generatedAdminOtp = String(100000 + (array[0] % 900000));
+    adminOtpExpiry = Date.now() + (10 * 60 * 1000);
+    adminOtpFailedAttempts = 0;
 
-    // Save to Firebase at adminAuth/latestOtp for instant verification & audit
-    if (typeof database !== 'undefined') {
-        database.ref('adminAuth').set({
-            latestOtp: generatedAdminOtp,
-            email: ADMIN_OWNER_EMAIL,
-            requestedAt: firebase.database.ServerValue.TIMESTAMP,
-            expiresAt: adminOtpExpiry
-        }).catch(err => console.warn("Firebase admin auth sync:", err));
-    }
+    computeSha256(generatedAdminOtp).then(otpHash => {
+        if (typeof database !== 'undefined') {
+            database.ref('adminAuth').set({
+                latestOtpHash: otpHash,
+                email: ADMIN_OWNER_EMAIL,
+                requestedAt: firebase.database.ServerValue.TIMESTAMP,
+                expiresAt: adminOtpExpiry
+            }).catch(err => console.warn("Firebase admin auth sync:", err));
+        }
+    });
 
     const templateParams = {
         to_email: ADMIN_OWNER_EMAIL,
@@ -95,8 +130,6 @@ function sendAdminEmailOtp() {
 
     const handleSuccess = () => {
         showAdminAuthStatus("✅ OTP यशस्वीरीत्या नोंदणीकृत ॲडमिन ई-मेलवर पाठवला आहे! कृपया ईमेल तपासा.", "success");
-        
-        // Show Step 2 (Verify OTP)
         document.getElementById('adminSendOtpStep')?.classList.add('hidden');
         const verifyStep = document.getElementById('adminVerifyOtpStep');
         if (verifyStep) {
@@ -109,20 +142,15 @@ function sendAdminEmailOtp() {
                 }
             }, 200);
         }
-
-        // Start 30-second countdown for resend
         startResendTimer(30);
     };
 
     if (window.emailjs) {
         try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
         emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-            .then(() => {
-                handleSuccess();
-            })
+            .then(() => handleSuccess())
             .catch((err) => {
                 console.error("EmailJS sending error:", err);
-                // Even if EmailJS fails, the OTP is stored in Firebase and memory
                 handleSuccess();
             });
     } else {
@@ -159,18 +187,32 @@ function verifyAdminEmailOtp() {
         return;
     }
 
-    if (Date.now() > adminOtpExpiry) {
+    if (!generatedAdminOtp || Date.now() > adminOtpExpiry) {
         showAdminAuthStatus("⚠️ या OTP ची मुदत संपली आहे. कृपया 'OTP पुन्हा पाठवा' वर क्लिक करा.", "error");
         return;
     }
 
-    const isMatch = (entered === generatedAdminOtp) || (entered === "787599") || (entered === "admin7875");
+    adminOtpFailedAttempts++;
+    if (adminOtpFailedAttempts > MAX_ADMIN_OTP_ATTEMPTS) {
+        generatedAdminOtp = null;
+        showAdminAuthStatus("❌ खूप चुकीचे प्रयत्न झाले आहेत. सुरक्षा कारणास्तव हा OTP रद्द झाला आहे. कृपया नवीन OTP मागवा.", "error");
+        if (input) input.value = '';
+        return;
+    }
+
+    const isMatch = (entered === generatedAdminOtp);
 
     if (isMatch) {
         showAdminAuthStatus("🎉 OTP व्हेरिफाय झाला! डॅशबोर्ड उघडत आहे...", "success");
-        sessionStorage.setItem('gharmitra_admin_auth', 'true');
-        
-        // Record login audit in Firebase
+        generatedAdminOtp = null;
+
+        const sessionToken = {
+            authed: true,
+            timestamp: Date.now(),
+            nonce: Math.random().toString(36).substring(2)
+        };
+        sessionStorage.setItem('gharmitra_admin_token', JSON.stringify(sessionToken));
+
         if (typeof database !== 'undefined') {
             database.ref('adminAuth/lastLogin').set({
                 email: ADMIN_OWNER_EMAIL,
@@ -183,7 +225,8 @@ function verifyAdminEmailOtp() {
             initDashboard();
         }, 500);
     } else {
-        showAdminAuthStatus("❌ चुकीचा OTP! कृपया ईमेलमध्ये आलेला योग्य ६-अंकी OTP टाका.", "error");
+        const remaining = MAX_ADMIN_OTP_ATTEMPTS - adminOtpFailedAttempts;
+        showAdminAuthStatus(`❌ चुकीचा OTP! कृपया ईमेलमध्ये आलेला योग्य ६-अंकी OTP टाका. (शिल्लक प्रयत्न: ${remaining})`, "error");
         if (input) {
             input.value = '';
             input.focus();
@@ -196,6 +239,7 @@ document.getElementById('adminOtpInput')?.addEventListener('keydown', (e) => {
 });
 
 function lockAdminDashboard() {
+    sessionStorage.removeItem('gharmitra_admin_token');
     sessionStorage.removeItem('gharmitra_admin_auth');
     checkAdminAuth();
 }
@@ -642,24 +686,24 @@ function renderOrdersTable() {
                 <span class="text-[10px] text-slate-400">${orderDateStr}</span>
             </td>
             <td class="p-3.5">
-                <strong class="text-slate-800 block">${item.customerName || 'अज्ञात ग्राहक'}</strong>
+                <strong class="text-slate-800 block">${escapeHtml(item.customerName || 'अज्ञात ग्राहक')}</strong>
                 <div class="flex items-center gap-1.5 mt-0.5">
                     <a href="tel:${item.customerMobile}" class="text-blue-600 hover:underline font-semibold text-[11px]"><i class="fa-solid fa-phone text-[10px]"></i> ${item.customerMobile || '-'}</a>
                     ${item.customerMobile ? `<a href="https://wa.me/91${String(item.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (item.customerName || '') + ', घरमित्र (Gharmitra) कडून आपल्या ऑर्डर #' + item.id.slice(-6).toUpperCase() + ' बाबत...')}" target="_blank" title="व्हॉट्सॲपवर चॅट करा" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> चॅट</a>` : ''}
                 </div>
             </td>
             <td class="p-3.5">
-                <span class="font-bold text-slate-800 block">⚡ ${item.service || '-'}</span>
-                <span class="text-slate-500 text-[11px] block truncate max-w-[180px]" title="${item.address}">${item.area || 'Pune'} - ${item.address || ''}</span>
+                <span class="font-bold text-slate-800 block">⚡ ${escapeHtml(item.service || '-')}</span>
+                <span class="text-slate-500 text-[11px] block truncate max-w-[180px]" title="${escapeHtml(item.address)}">${escapeHtml(item.area || 'Pune')} - ${escapeHtml(item.address || '')}</span>
             </td>
             <td class="p-3.5">
-                <span class="font-black text-emerald-600">${item.budget || '₹500'}</span>
+                <span class="font-black text-emerald-600">${escapeHtml(item.budget || '₹500')}</span>
             </td>
             <td class="p-3.5">
                 ${workerDisplay}
             </td>
             <td class="p-3.5">
-                <span class="admin-badge ${statusBadgeClass}">${item.status || 'Pending'}</span>
+                <span class="admin-badge ${statusBadgeClass}">${escapeHtml(item.status || 'Pending')}</span>
                 ${item.completionOtp ? `<span class="text-[10px] text-slate-400 block mt-0.5">OTP: <strong>${item.completionOtp}</strong></span>` : ''}
             </td>
             <td class="p-3.5 text-center">
@@ -705,7 +749,7 @@ function renderWorkersTable() {
         if (dutyFilter === 'OFF' && item.isDutyOn) return false;
 
         if (searchTerm) {
-            const str = `${item.name} ${item.mobile} ${item.service} ${item.area}`.toLowerCase();
+            const str = `${item.name} ${item.mobile} ${item.service} ${escapeHtml(item.area)}`.toLowerCase();
             if (!str.includes(searchTerm)) return false;
         }
         return true;
@@ -732,17 +776,17 @@ function renderWorkersTable() {
         return `
         <tr class="hover:bg-slate-50 transition border-b border-slate-100">
             <td class="p-3.5">
-                <strong class="text-slate-800 block">${item.name}</strong>
+                <strong class="text-slate-800 block">${escapeHtml(item.name)}</strong>
                 <span class="text-[10px] text-slate-400">ID: GK-${item.uid.slice(-6).toUpperCase()}</span>
             </td>
             <td class="p-3.5">
                 <a href="tel:${item.mobile}" class="text-blue-600 hover:underline font-bold text-xs"><i class="fa-solid fa-phone text-[10px]"></i> ${item.mobile}</a>
             </td>
             <td class="p-3.5">
-                <span class="bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-md text-[11px]">${item.service}</span>
+                <span class="bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-md text-[11px]">${escapeHtml(item.service)}</span>
             </td>
             <td class="p-3.5 font-medium text-slate-600">
-                ${item.area}
+                ${escapeHtml(item.area)}
             </td>
             <td class="p-3.5">
                 <span class="font-black ${item.wallet <= 20 ? 'text-rose-600' : 'text-emerald-600'}">₹${item.wallet}</span>
@@ -829,7 +873,7 @@ function renderReviewsList() {
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
                 <div class="flex items-center gap-2 flex-wrap">
                     <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                        <i class="fa-solid fa-user text-blue-600"></i> ${r.customerName}
+                        <i class="fa-solid fa-user text-blue-600"></i> ${escapeHtml(r.customerName)}
                     </span>
                     ${customerPhoneHtml}
                     ${serviceBadgeHtml}
@@ -989,8 +1033,14 @@ function submitWorkerWalletRecharge() {
 // --- Initialize on Page Load ---
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminAuth();
-    if (sessionStorage.getItem('gharmitra_admin_auth') === 'true') {
-        initDashboard();
+    const tokenStr = sessionStorage.getItem('gharmitra_admin_token');
+    if (tokenStr) {
+        try {
+            const token = JSON.parse(tokenStr);
+            if (token && token.authed === true && (Date.now() - token.timestamp < 8 * 60 * 60 * 1000)) {
+                initDashboard();
+            }
+        } catch(e) {}
     }
 });
 

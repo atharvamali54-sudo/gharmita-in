@@ -1,3 +1,20 @@
+// Security: Strict HTML escaping against Stored XSS
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+async function computeSha256(text) {
+    const enc = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 const EMAILJS_PUBLIC_KEY = 'PfAaODZ_GPiBPHvOi';
 const EMAILJS_SERVICE_ID = 'service_lst67g7';
 const EMAILJS_TEMPLATE_ID = 'template_ope5xzi';
@@ -1479,11 +1496,11 @@ function renderJobs() {
 
             jobCard.innerHTML = `
             <div class="flex justify-between items-start">
-            <div><span class="bg-blue-100 text-blue-700 text-[11px] font-bold px-2.5 py-1 rounded-full">⚡ ${item.service}</span><h4 class="font-bold text-slate-800 text-sm mt-2"><i class="fa-solid fa-user text-blue-600"></i> ${item.customerName}</h4></div>
-            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">${item.budget || '₹500'}</span>
+            <div><span class="bg-blue-100 text-blue-700 text-[11px] font-bold px-2.5 py-1 rounded-full">⚡ ${escapeHtml(item.service)}</span><h4 class="font-bold text-slate-800 text-sm mt-2"><i class="fa-solid fa-user text-blue-600"></i> ${escapeHtml(item.customerName)}</h4></div>
+            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">${escapeHtml(item.budget || "₹500")}</span>
             </div>
             <div class="text-xs text-slate-600 space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
-            <p><i class="fa-solid fa-location-dot text-red-500 mr-1.5"></i><strong>पत्ता:</strong> ${item.address}</p>
+            <p><i class="fa-solid fa-location-dot text-red-500 mr-1.5"></i><strong>पत्ता:</strong> ${escapeHtml(item.address)}</p>
             <p><i class="fa-regular fa-calendar text-blue-500 mr-1.5"></i><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
             <p><i class="fa-regular fa-clock text-blue-500 mr-1.5"></i><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
             <p class="text-slate-400"><i class="fa-solid fa-shield-halved text-emerald-500 mr-1.5"></i>कॉलिंग सुविधा (Masked Call) On The Way केल्यानंतर सुरू होईल.</p>
@@ -1521,7 +1538,7 @@ function renderJobs() {
             <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-100 text-xs space-y-1.5 text-slate-700">
             <p><strong>ग्राहक:</strong> ${item.customerName}</p>
             <p><strong>सेवा:</strong> ${item.service}</p>
-            <p><strong>पत्ता:</strong> ${item.address}</p>
+            <p><strong>पत्ता:</strong> ${escapeHtml(item.address)}</p>
             <p><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
             <p><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
             ${item.status === 'On The Way'
@@ -1711,9 +1728,11 @@ function openWorkCompletionOtpModal(orderId) {
     let otp = orderData.completionOtp;
     if (!otp) {
         otp = String(Math.floor(1000 + Math.random() * 9000));
-        database.ref("orders/" + orderId).update({
-            completionOtp: otp,
-            otpGeneratedAt: firebase.database.ServerValue.TIMESTAMP
+        computeSha256(otp + "_" + orderId).then(otpHash => {
+            database.ref("orders/" + orderId).update({
+                completionOtpHash: otpHash,
+                otpGeneratedAt: firebase.database.ServerValue.TIMESTAMP
+            });
         });
     }
 
@@ -1801,8 +1820,23 @@ function verifyAndCompleteWork() {
             return;
         }
 
-        const validOtp = String(orderData.completionOtp || '').trim();
-        if (!validOtp || enteredOtp !== validOtp) {
+        computeSha256(enteredOtp + "_" + currentCompletingOrderId).then(enteredHash => {
+        const storedHash = orderData.completionOtpHash;
+        const legacyPlainOtp = String(orderData.completionOtp || '').trim();
+        const isMatch = (storedHash && enteredHash === storedHash) || (legacyPlainOtp && enteredOtp === legacyPlainOtp);
+
+        if (!isMatch) {
+            if (statusMsg) {
+                statusMsg.className = 'text-xs font-bold p-2.5 rounded-xl text-center bg-red-50 text-red-600 border border-red-200 block animate-shake';
+                statusMsg.innerText = '❌ चुकीचा OTP! ग्राहकाच्या ईमेल किंवा स्क्रीनवरील योग्य OTP टाका.';
+            }
+            return;
+        }
+
+        finalizeOrderCompletion(currentCompletingOrderId);
+    });
+    return;
+    if (false) {
             if (statusMsg) {
                 statusMsg.className = 'text-xs font-bold p-2.5 rounded-xl text-center bg-red-50 text-red-600 border border-red-200 block animate-shake';
                 statusMsg.innerText = '❌ चुकीचा OTP! ग्राहकाच्या ईमेल किंवा स्क्रीनवरील योग्य OTP टाका.';

@@ -1,0 +1,70 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "adminAuth": {
+      ".read": false,
+      ".write": true,
+      "latestOtpHash": {
+        ".validate": "newData.isString() && newData.val().length <= 128"
+      },
+      "expiresAt": {
+        ".validate": "newData.isNumber()"
+      },
+      "lastLogin": {
+        ".read": false,
+        ".write": true
+      }
+    },
+    "settings": {
+      ".read": true,
+      ".write": true
+    },
+    "workers": {
+      ".read": true,
+      ".write": true,
+      "accounts": {
+        ".read": true,
+        ".write": true,
+        "customers": {
+          "$mobile": {
+            ".read": true,
+            ".write": true,
+            ".validate": "newData.hasChildren(['mobile'])"
+          }
+        },
+        "workers": {
+          "$mobile": {
+            ".read": true,
+            ".write": true,
+            ".validate": "newData.hasChildren(['mobile'])"
+          }
+        }
+      },
+      "$workerId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "orders": {
+      ".indexOn": ["customerMobile", "status", "workerUid", "offerWorkerUid", "timestamp"],
+      ".read": true,
+      ".write": true,
+      "$orderId": {
+        ".read": true,
+        ".write": true,
+        "completionOtp": {
+          ".validate": "newData.isString() && newData.val().length <= 8"
+        }
+      }
+    },
+    "notificationEvents": {
+      ".read": false,
+      ".write": true
+    },
+    "users": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}
