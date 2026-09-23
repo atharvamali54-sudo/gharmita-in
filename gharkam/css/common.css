@@ -151,6 +151,16 @@ img {
     transition: filter 0.15s ease !important;
 }
 
+/* Razorpay Checkout Frame must never be blurred or obscured */
+.razorpay-container,
+.razorpay-backdrop,
+iframe[name^="razorpay"],
+iframe[id^="razorpay"] {
+    filter: none !important;
+    backdrop-filter: none !important;
+    z-index: 2147483647 !important;
+}
+
 #securityScreenShield {
     position: fixed;
     inset: 0;

@@ -516,19 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, true);
 
-    // 3. Obscure / Blur Screen when Window Loses Focus or on App Switcher (Recent Apps)
-    window.addEventListener('blur', () => {
-        createSecurityShield();
-        const shield = document.getElementById('securityScreenShield');
-        if (shield) shield.style.display = 'flex';
-        document.body.classList.add('screen-protected-blur');
-    });
-
-    window.addEventListener('focus', () => {
-        const shield = document.getElementById('securityScreenShield');
-        if (shield) shield.style.display = 'none';
-        document.body.classList.remove('screen-protected-blur');
-    });
+    // 3. Obscure / Blur Screen ONLY when document is actually hidden (App Switcher or Tab Switch)
+    // Note: Do NOT use window 'blur' event because clicking iframes (Razorpay, inputs) fires blur and freezes UI!
 
     document.addEventListener('visibilitychange', () => {
         createSecurityShield();

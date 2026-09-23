@@ -1140,14 +1140,22 @@ async function payWithRazorpay() {
         }
     }
 
+    // Ensure any security shield or blur is cleared before opening Razorpay
+    document.body.classList.remove('screen-protected-blur');
+    const shield = document.getElementById('securityScreenShield');
+    if (shield) shield.style.display = 'none';
+
     const options = {
         key: RAZORPAY_KEY,
-        amount: backendOrder ? backendOrder.amount : amountInPaise,
+        amount: (backendOrder && backendOrder.amount) ? backendOrder.amount : amountInPaise,
         currency: 'INR',
         name: 'Gharmitra Online',
         description: 'Gharmitra Partner Service Credits',
-        image: 'icons/favicon.png',
-        order_id: backendOrder ? backendOrder.order_id : undefined,
+        prefill: {
+            name: (window.auth && auth.currentUser && auth.currentUser.displayName) || 'Gharmitra Partner',
+            email: (window.auth && auth.currentUser && auth.currentUser.email) || 'partner@gharmitra.online',
+            contact: '9876543210'
+        },
         handler: async function (response) {
             console.log('[Razorpay Response]', response);
 
@@ -1179,14 +1187,20 @@ async function payWithRazorpay() {
         modal: {
             ondismiss: function () {
                 console.log('[Razorpay] User cancelled the checkout modal');
+                document.body.classList.remove('screen-protected-blur');
             }
         },
         theme: { color: '#2563eb' }
     };
 
+    if (backendOrder && backendOrder.order_id) {
+        options.order_id = backendOrder.order_id;
+    }
+
     const rzp = new Razorpay(options);
     rzp.on('payment.failed', function (failResp) {
         console.error('[Razorpay Payment Failed]', failResp);
+        document.body.classList.remove('screen-protected-blur');
         alert('पेमेंट अयशस्वी झाले: ' + (failResp.error?.description || 'कृपया पुन्हा प्रयत्न करा.'));
     });
     rzp.open();
