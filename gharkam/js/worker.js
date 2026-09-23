@@ -1117,22 +1117,79 @@ function updateWorkerService() {
     renderJobs();
 }
 
-function payWithRazorpay() {
-    let amountToAdd = 100;
-    var options = {
-        "key": "rzp_test_TZF48VPVnZ9JH2",
-        "amount": amountToAdd * 100, 
-        "currency": "INR",
-        "name": "Gharmitra Online",
-        "description": "Gharmitra Partner Service Credits",
-        "handler": function (response){
-            alert("पेमेंट यशस्वी! पेमेंट आयडी: " + response.razorpay_payment_id);
+async function payWithRazorpay() {
+    const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_test_TfNJa2bgBa28jt';
+    const amountToAdd = 100; // in Rupees
+    const amountInPaise = amountToAdd * 100;
+    const backendApiBase = window.GHARMITRA_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
+
+    // Attempt to create order via backend if available
+    let backendOrder = null;
+    if (backendApiBase) {
+        try {
+            const resp = await fetch(`${backendApiBase}/api/create-order`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: amountToAdd, isRupees: true })
+            });
+            if (resp.ok) {
+                backendOrder = await resp.json();
+            }
+        } catch (err) {
+            console.log('[Razorpay] Backend offline, falling back to direct checkout', err);
+        }
+    }
+
+    const options = {
+        key: RAZORPAY_KEY,
+        amount: backendOrder ? backendOrder.amount : amountInPaise,
+        currency: 'INR',
+        name: 'Gharmitra Online',
+        description: 'Gharmitra Partner Service Credits',
+        image: 'icons/favicon.png',
+        order_id: backendOrder ? backendOrder.order_id : undefined,
+        handler: async function (response) {
+            console.log('[Razorpay Response]', response);
+
+            // If backend order was used, verify signature with backend
+            if (backendOrder && response.razorpay_signature) {
+                try {
+                    const verifyResp = await fetch(`${backendApiBase}/api/verify-payment`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature
+                        })
+                    });
+                    const verifyData = await verifyResp.json();
+                    if (!verifyData.success) {
+                        alert('पेमेंट स्वाक्षरी पडताळणी अयशस्वी: ' + (verifyData.message || 'Signature mismatch'));
+                        return;
+                    }
+                } catch (verifyErr) {
+                    console.warn('[Razorpay Signature Check Warning]', verifyErr);
+                }
+            }
+
+            alert('पेमेंट यशस्वी! पेमेंट आयडी: ' + response.razorpay_payment_id);
             addMoneyToFirebaseWallet(amountToAdd);
         },
-        "theme": { "color": "#2563eb" }
+        modal: {
+            ondismiss: function () {
+                console.log('[Razorpay] User cancelled the checkout modal');
+            }
+        },
+        theme: { color: '#2563eb' }
     };
-    var rzp1 = new Razorpay(options);
-    rzp1.open();
+
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function (failResp) {
+        console.error('[Razorpay Payment Failed]', failResp);
+        alert('पेमेंट अयशस्वी झाले: ' + (failResp.error?.description || 'कृपया पुन्हा प्रयत्न करा.'));
+    });
+    rzp.open();
 }
 
 function addMoneyToFirebaseWallet(amount) {
