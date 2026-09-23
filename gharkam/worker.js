@@ -1118,7 +1118,7 @@ function updateWorkerService() {
 }
 
 async function payWithRazorpay() {
-    const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_test_TfRI4blGMFIbhG';
+    const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_live_TfQXrLjDz1z9nO';
     const amountToAdd = 100; // in Rupees
     const amountInPaise = amountToAdd * 100;
     const backendApiBase = window.GHARMITRA_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
