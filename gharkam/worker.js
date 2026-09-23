@@ -1118,7 +1118,7 @@ function updateWorkerService() {
 }
 
 async function payWithRazorpay() {
-    const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_live_TfQXrLjDz1z9nO';
+    const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_test_TfRI4blGMFIbhG';
     const amountToAdd = 100; // in Rupees
     const amountInPaise = amountToAdd * 100;
     const backendApiBase = window.GHARMITRA_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
@@ -1195,6 +1195,8 @@ async function payWithRazorpay() {
 
     if (backendOrder && backendOrder.order_id) {
         options.order_id = backendOrder.order_id;
+    } else if (window.RAZORPAY_TEST_ORDER_ID) {
+        options.order_id = window.RAZORPAY_TEST_ORDER_ID;
     }
 
     const rzp = new Razorpay(options);
