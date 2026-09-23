@@ -3,6 +3,7 @@ package com.gharmitra.app;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -10,9 +11,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.CookieManager;
 import android.webkit.GeolocationPermissions;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -64,25 +67,27 @@ public class MainActivity extends Activity {
         settings.setAllowFileAccess(true);
 
         String defaultUA = settings.getUserAgentString();
-        settings.setUserAgentString(defaultUA + " GharmitraApp/1.0 SecureApp");
+        // Remove '; wv' and 'Version/X.X' so Razorpay and web gateways recognize standard Chrome Mobile and display UPI
+        String cleanedUA = defaultUA.replace("; wv", "").replaceAll("Version\\/\\d+\\.\\d+\\s*", "");
+        settings.setUserAgentString(cleanedUA);
+
+        // Enable third-party cookies for payment gateways and banking authentication
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
+        }
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.startsWith("tel:") || url.startsWith("mailto:") || url.startsWith("sms:") ||
-                    url.startsWith("whatsapp:") || url.contains("api.whatsapp.com") || url.contains("wa.me") ||
-                    url.contains("maps.google.com") || url.contains("goo.gl/maps")) {
-                    try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                        startActivity(intent);
-                        return true;
-                    } catch (Exception e) {
-                        Toast.makeText(MainActivity.this, "ॲप उघडता आले नाही", Toast.LENGTH_SHORT).show();
-                        return true;
-                    }
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                if (request != null && request.getUrl() != null) {
+                    return handleCustomUrl(view, request.getUrl().toString());
                 }
-                view.loadUrl(url);
-                return true;
+                return false;
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return handleCustomUrl(view, url);
             }
 
             @Override
@@ -127,6 +132,82 @@ public class MainActivity extends Activity {
         });
 
         webView.loadUrl(APP_URL);
+    }
+
+    /**
+     * Intercepts and dispatches custom URI schemes (UPI payments, intents, calls, whatsapp, maps)
+     */
+    private boolean handleCustomUrl(WebView view, String url) {
+        if (url == null || url.trim().isEmpty()) {
+            return false;
+        }
+
+        // 1. Direct UPI / Payment app schemes (Google Pay, PhonePe, Paytm, BHIM, Cred, etc.)
+        if (url.startsWith("upi://") || url.startsWith("tez://") ||
+            url.startsWith("phonepe://") || url.startsWith("paytmmp://") ||
+            url.startsWith("bhim://") || url.startsWith("credpay://") ||
+            url.startsWith("gpay://")) {
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+                return true;
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(MainActivity.this, "मोबाईलमध्ये कोणतेही UPI ॲप (GPay / PhonePe / Paytm) सापडले नाही.", Toast.LENGTH_LONG).show();
+                return true;
+            } catch (Exception e) {
+                Toast.makeText(MainActivity.this, "पेमेंट उघडताना त्रुटी: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        }
+
+        // 2. Android Intent schemes (e.g. intent://...#Intent;scheme=upi;package=...;end)
+        if (url.startsWith("intent://")) {
+            try {
+                Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                if (intent != null) {
+                    PackageManager pm = getPackageManager();
+                    if (intent.resolveActivity(pm) != null) {
+                        startActivity(intent);
+                        return true;
+                    }
+                    // Try fallback URL if available
+                    String fallbackUrl = intent.getStringExtra("browser_fallback_url");
+                    if (fallbackUrl != null && !fallbackUrl.isEmpty()) {
+                        view.loadUrl(fallbackUrl);
+                        return true;
+                    }
+                    // Try opening Google Play Store if package is specified
+                    String packageName = intent.getPackage();
+                    if (packageName != null && !packageName.isEmpty()) {
+                        try {
+                            Intent marketIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName));
+                            startActivity(marketIntent);
+                            return true;
+                        } catch (ActivityNotFoundException ignored) {}
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+
+        // 3. Communications & Maps schemes
+        if (url.startsWith("tel:") || url.startsWith("mailto:") || url.startsWith("sms:") ||
+            url.startsWith("whatsapp:") || url.contains("api.whatsapp.com") || url.contains("wa.me") ||
+            url.contains("maps.google.com") || url.contains("goo.gl/maps")) {
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+                return true;
+            } catch (Exception e) {
+                Toast.makeText(MainActivity.this, "ॲप उघडता आले नाही", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        }
+
+        // 4. Default: Standard HTTP / HTTPS navigation remains within WebView
+        return false;
     }
 
     private void requestAppPermissions() {

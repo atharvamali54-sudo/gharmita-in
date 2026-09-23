@@ -1198,6 +1198,22 @@ async function payWithRazorpay(customAmount) {
             email: (window.auth && auth.currentUser && auth.currentUser.email) || 'partner@gharmitra.online',
             contact: (typeof getCurrentWorkerMobile === 'function' ? getCurrentWorkerMobile() : '') || '9876543210'
         },
+        config: {
+            display: {
+                blocks: {
+                    upi: {
+                        name: "Pay via UPI / QR",
+                        instruments: [
+                            { method: "upi" }
+                        ]
+                    }
+                },
+                sequence: ["block.upi", "block.other"],
+                preferences: {
+                    show_default_blocks: true
+                }
+            }
+        },
         handler: async function (response) {
             console.log('[Razorpay Response]', response);
 
