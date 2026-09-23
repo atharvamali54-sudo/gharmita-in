@@ -154,12 +154,25 @@ img {
     display: none !important;
 }
 
-/* Razorpay Checkout Frame must never be blurred or obscured */
-.razorpay-container,
-.razorpay-backdrop,
+/* Razorpay Checkout Frame must receive all clicks; backdrop must never block clicks */
+.razorpay-container {
+    filter: none !important;
+    backdrop-filter: none !important;
+    z-index: 2147483647 !important;
+}
+
+.razorpay-backdrop {
+    filter: none !important;
+    backdrop-filter: none !important;
+    z-index: 2147483640 !important;
+    pointer-events: none !important;
+}
+
+iframe.razorpay-checkout-frame,
 iframe[name^="razorpay"],
 iframe[id^="razorpay"] {
     filter: none !important;
     backdrop-filter: none !important;
     z-index: 2147483647 !important;
+    pointer-events: auto !important;
 }
