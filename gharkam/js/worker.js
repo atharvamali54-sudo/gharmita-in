@@ -1117,10 +1117,52 @@ function updateWorkerService() {
     renderJobs();
 }
 
-async function payWithRazorpay() {
-    const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_live_TfQXrLjDz1z9nO';
-    const amountToAdd = 1; // in Rupees (₹1 Live Verification Payment)
+function openCreditModal() {
+    const modal = document.getElementById('creditModal');
+    if (modal) {
+        const curWalletEl = document.getElementById('walletAmount');
+        const modalWalletEl = document.getElementById('modalCurrentWallet');
+        if (curWalletEl && modalWalletEl) {
+            modalWalletEl.innerText = curWalletEl.innerText;
+        }
+        modal.classList.remove('hidden');
+        const input = document.getElementById('creditAmountInput');
+        if (input) {
+            setTimeout(() => input.focus(), 100);
+        }
+    }
+}
+
+function closeCreditModal() {
+    const modal = document.getElementById('creditModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function setQuickCreditAmount(amt) {
+    const input = document.getElementById('creditAmountInput');
+    if (input) input.value = amt;
+}
+
+function submitCreditPayment() {
+    const input = document.getElementById('creditAmountInput');
+    let amt = parseInt(input ? input.value : 0, 10);
+    if (!amt || isNaN(amt) || amt < 10) {
+        alert("कृपया किमान ₹१० किंवा त्याहून अधिक रक्कम टाका (Minimum amount is ₹10).");
+        if (input) {
+            input.value = '10';
+            input.focus();
+        }
+        return;
+    }
+    payWithRazorpay(amt);
+}
+
+async function payWithRazorpay(customAmount) {
+    // Enforce minimum ₹10 as requested
+    const parsedAmount = parseInt(customAmount, 10);
+    const amountToAdd = (!isNaN(parsedAmount) && parsedAmount >= 10) ? parsedAmount : 10;
     const amountInPaise = amountToAdd * 100;
+    const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_live_TfQXrLjDz1z9nO';
     const backendApiBase = window.GHARMITRA_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
 
     // Attempt to create order via backend if available
@@ -1150,11 +1192,11 @@ async function payWithRazorpay() {
         amount: (backendOrder && backendOrder.amount) ? backendOrder.amount : amountInPaise,
         currency: 'INR',
         name: 'Gharmitra Online',
-        description: 'Gharmitra Partner Service Credits',
+        description: `Gharmitra Partner Service Credits (₹${amountToAdd})`,
         prefill: {
             name: (window.auth && auth.currentUser && auth.currentUser.displayName) || 'Gharmitra Partner',
             email: (window.auth && auth.currentUser && auth.currentUser.email) || 'partner@gharmitra.online',
-            contact: '9876543210'
+            contact: (typeof getCurrentWorkerMobile === 'function' ? getCurrentWorkerMobile() : '') || '9876543210'
         },
         handler: async function (response) {
             console.log('[Razorpay Response]', response);
@@ -1181,8 +1223,9 @@ async function payWithRazorpay() {
                 }
             }
 
-            alert('पेमेंट यशस्वी! पेमेंट आयडी: ' + response.razorpay_payment_id);
+            alert(`पेमेंट यशस्वी! पेमेंट आयडी: ${response.razorpay_payment_id}\nखात्यात ₹${amountToAdd} क्रेडिट जमा झाले!`);
             addMoneyToFirebaseWallet(amountToAdd);
+            closeCreditModal();
         },
         modal: {
             ondismiss: function () {

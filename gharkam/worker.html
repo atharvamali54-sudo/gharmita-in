@@ -112,8 +112,8 @@ Service: <strong id="workerService" class="text-white">Loading...</strong>
 <div class="inner-3d-box p-4 rounded-2xl text-center min-w-[145px] w-full sm:w-auto text-slate-800">
 <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">SERVICE CREDITS</span>
 <span class="text-2xl font-black text-emerald-600 block my-1">₹<span id="walletAmount">50</span></span>
-<button onclick="payWithRazorpay()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs py-2 px-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1">
-<i class="fa-solid fa-coins text-[10px]"></i> Buy Credits (₹1)
+<button onclick="openCreditModal()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs py-2 px-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1">
+<i class="fa-solid fa-coins text-[10px]"></i> Buy Credits (क्रेडिट जोडा)
 </button>
 </div>
 </div>
@@ -323,9 +323,66 @@ Service: <strong id="workerService" class="text-white">Loading...</strong>
     </div>
 </div>
 
+<!-- Add Credit Custom Amount Modal -->
+<div id="creditModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4 relative">
+        <button type="button" onclick="closeCreditModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition">✕</button>
+        
+        <div class="w-14 h-14 rounded-2xl bg-blue-100 text-blue-600 text-2xl flex items-center justify-center mx-auto shadow-sm">
+            <i class="fa-solid fa-coins"></i>
+        </div>
+        
+        <div>
+            <h3 class="font-black text-slate-800 text-base">क्रेडिट रिचार्ज करा (Add Credits)</h3>
+            <p class="text-xs text-slate-500 mt-1">नवीन कामे स्वीकारण्यासाठी क्रेडिट रक्कम निवडा किंवा टाका.</p>
+        </div>
+
+        <div class="bg-blue-50/70 p-3 rounded-2xl border border-blue-100 flex justify-between items-center text-xs">
+            <span class="text-slate-600 font-semibold">सध्याचे क्रेडिट शिल्लक:</span>
+            <span class="text-base font-black text-emerald-600">₹<span id="modalCurrentWallet">50</span></span>
+        </div>
+
+        <div>
+            <label class="block text-left text-[11px] font-bold text-slate-600 mb-1.5">रक्कम टाका (किमान ₹१०):</label>
+            <div class="relative flex items-center">
+                <span class="absolute left-4 text-2xl font-black text-slate-400">₹</span>
+                <input type="number" id="creditAmountInput" min="10" step="1" value="50" placeholder="किमान ₹10" class="w-full text-center text-3xl font-black text-slate-800 bg-slate-50 border-2 border-slate-300 focus:border-blue-600 rounded-2xl py-3 pl-8 pr-4 outline-none transition shadow-inner">
+            </div>
+            <p class="text-[11px] text-amber-600 font-bold text-left mt-1.5 flex items-center gap-1">
+                <i class="fa-solid fa-circle-info"></i> कामगार स्वतः हवी तेवढी रक्कम टाकू शकतात (किमान ₹१०).
+            </p>
+        </div>
+
+        <!-- Quick Select Amount Chips -->
+        <div>
+            <span class="block text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">जलद पर्याय (Quick Select)</span>
+            <div class="grid grid-cols-5 gap-1.5">
+                <button type="button" onclick="setQuickCreditAmount(10)" class="bg-slate-100 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition">₹10</button>
+                <button type="button" onclick="setQuickCreditAmount(50)" class="bg-slate-100 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition">₹50</button>
+                <button type="button" onclick="setQuickCreditAmount(100)" class="bg-slate-100 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition">₹100</button>
+                <button type="button" onclick="setQuickCreditAmount(200)" class="bg-slate-100 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition">₹200</button>
+                <button type="button" onclick="setQuickCreditAmount(500)" class="bg-slate-100 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition">₹500</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-2">
+            <button type="button" onclick="closeCreditModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-xs transition">
+                रद्द करा
+            </button>
+            <button type="button" onclick="submitCreditPayment()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-lock text-[10px]"></i> पेमेंट करा
+            </button>
+        </div>
+
+        <p class="text-[10px] text-slate-400 flex items-center justify-center gap-1">
+            <i class="fa-solid fa-shield-halved text-emerald-600"></i> UPI • Google Pay • Cards • Razorpay
+        </p>
+    </div>
+</div>
+
 <script src="js/firebase.js"></script>
-<script src="js/call-masking.js?v=7.0"></script>
-<script src="js/worker.js?v=7.0"></script>
-<script src="js/pwa.js?v=7.0"></script>
+<script src="js/call-masking.js?v=8.0"></script>
+<script src="js/worker.js?v=8.0"></script>
+<script src="js/pwa.js?v=8.0"></script>
 </body>
 </html>
