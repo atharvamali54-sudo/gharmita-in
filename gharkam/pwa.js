@@ -113,15 +113,12 @@ function ensurePwaModalHtml() {
 
             <!-- Action buttons -->
             <div class="space-y-2 pt-1">
-                <button onclick="triggerPwaInstall()" id="pwaInstallBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg transition text-sm flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-download"></i> 📲 आत्ताच इन्स्टॉल करा
-                </button>
+                <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/Gharmitra-Secure.apk" target="_blank" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-brands fa-android text-emerald-400 text-base"></i> <span>Android APK डाउनलोड करा (नो स्क्रीनशॉट)</span>
+                </a>
                 <button onclick="shareGharmitraApp()" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-2.5 px-4 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-brands fa-whatsapp text-base"></i> 📤 मित्रांना ॲप शेअर करा (Share)
                 </button>
-                <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/Gharmitra-Secure.apk" target="_blank" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-2.5 px-4 rounded-xl shadow transition text-xs flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-brands fa-android text-emerald-400 text-sm"></i> <span>Android APK डाउनलोड करा (नो स्क्रीनशॉट)</span>
-                </a>
                 <button onclick="dismissPwaModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-4 rounded-xl transition text-xs cursor-pointer">
                     नंतर करा (Maybe Later)
                 </button>
