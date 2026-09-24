@@ -760,7 +760,7 @@ populateBookingProfile();
             const statusCol = document.getElementById('customerLiveStatusColumn');
             if (statusCol) {
                 statusCol.classList.remove('hidden');
-                statusCol.classList.add('flex');
+                statusCol.classList.add('show-tracking');
             }
 
             if (activeListener) {
@@ -1099,7 +1099,7 @@ populateBookingProfile();
             const col = document.getElementById('customerLiveStatusColumn');
             if (col) {
                 col.classList.remove('hidden');
-                col.classList.add('flex');
+                col.classList.add('show-tracking');
             }
             trackLiveStatus(orderId);
             setTimeout(() => {

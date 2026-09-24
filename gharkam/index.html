@@ -24,18 +24,18 @@
       (function() {
           try {
               var ua = navigator.userAgent || '';
-              var isApp = ua.indexOf('GharmitraApp') !== -1 ||
+              var isApk = ua.indexOf('GharmitraApp') !== -1 ||
                           ua.indexOf('SecureApp') !== -1 ||
-                          (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-                          window.navigator.standalone === true ||
-                          document.referrer.indexOf('android-app://') !== -1 ||
                           window.location.search.indexOf('app=1') !== -1 ||
-                          window.location.search.indexOf('mode=app') !== -1 ||
-                          sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true' ||
-                          localStorage.getItem('gharmitra_mobile_app_mode') === 'true';
-              if (isApp) {
+                          window.location.search.indexOf('mode=app') !== -1;
+              if (isApk) {
                   document.documentElement.classList.add('is-mobile-app');
-                  sessionStorage.setItem('gharmitra_mobile_app_mode', 'true');
+                  sessionStorage.setItem('gharmitra_apk_mode', 'true');
+              } else {
+                  document.documentElement.classList.remove('is-mobile-app');
+                  sessionStorage.removeItem('gharmitra_mobile_app_mode');
+                  localStorage.removeItem('gharmitra_mobile_app_mode');
+                  sessionStorage.removeItem('gharmitra_apk_mode');
               }
           } catch(e) {}
       })();

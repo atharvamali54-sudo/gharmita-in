@@ -28,18 +28,18 @@
       (function() {
           try {
               var ua = navigator.userAgent || '';
-              var isApp = ua.indexOf('GharmitraApp') !== -1 ||
+              var isApk = ua.indexOf('GharmitraApp') !== -1 ||
                           ua.indexOf('SecureApp') !== -1 ||
-                          (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-                          window.navigator.standalone === true ||
-                          document.referrer.indexOf('android-app://') !== -1 ||
                           window.location.search.indexOf('app=1') !== -1 ||
-                          window.location.search.indexOf('mode=app') !== -1 ||
-                          sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true' ||
-                          localStorage.getItem('gharmitra_mobile_app_mode') === 'true';
-              if (isApp) {
+                          window.location.search.indexOf('mode=app') !== -1;
+              if (isApk) {
                   document.documentElement.classList.add('is-mobile-app');
-                  sessionStorage.setItem('gharmitra_mobile_app_mode', 'true');
+                  sessionStorage.setItem('gharmitra_apk_mode', 'true');
+              } else {
+                  document.documentElement.classList.remove('is-mobile-app');
+                  sessionStorage.removeItem('gharmitra_mobile_app_mode');
+                  localStorage.removeItem('gharmitra_mobile_app_mode');
+                  sessionStorage.removeItem('gharmitra_apk_mode');
               }
           } catch(e) {}
       })();
@@ -183,7 +183,7 @@
                 </form>
             </div>
 
-            <div id="customerLiveStatusColumn" class="hidden lg:flex lg:col-span-5 bg-slate-50 p-6 md:p-8 border-t lg:border-t-0 lg:border-l border-slate-200 flex-col justify-between">
+            <div id="customerLiveStatusColumn" class="lg:col-span-5 bg-slate-50 p-6 md:p-8 border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
@@ -522,8 +522,8 @@
         </div>
     </div>
 
-    <!-- Mobile Bottom Navigation Bar (Customer) -->
-    <nav class="app-bottom-nav md:hidden" id="customerBottomNav" aria-label="Customer Mobile Navigation">
+    <!-- Mobile Bottom Navigation Bar (Customer - APK Only) -->
+    <nav class="app-bottom-nav" id="customerBottomNav" aria-label="Customer Mobile Navigation">
         <button type="button" class="bottom-nav-item active" id="cNavHome" onclick="customerNavTo('home')">
             <i class="fa-solid fa-house"></i>
             <span>मुख्य पान</span>

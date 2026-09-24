@@ -201,13 +201,6 @@ html.is-mobile-app header button[onclick*="openMyOrdersModal"] {
     display: none !important;
 }
 
-@media (max-width: 768px) {
-    header button[onclick*="openProfileModal"],
-    header button[onclick*="openMyOrdersModal"] {
-        display: none !important;
-    }
-}
-
 /* 2. Mobile App Header responsiveness */
 html.is-mobile-app header {
     width: 100% !important;
@@ -312,7 +305,7 @@ html.is-mobile-app header > div:last-child button {
    ========================================================= */
 
 .app-bottom-nav {
-    display: none;
+    display: none !important;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -329,22 +322,7 @@ html.is-mobile-app header > div:last-child button {
     user-select: none;
 }
 
-@media (max-width: 768px) {
-    .app-bottom-nav {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-around !important;
-    }
-    
-    body {
-        padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
-    }
-    
-    #pwaFloatingShareBtn {
-        bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
-    }
-}
-
+/* In Mobile App (APK Only) */
 html.is-mobile-app .app-bottom-nav {
     display: flex !important;
     align-items: center !important;
@@ -357,6 +335,14 @@ html.is-mobile-app body {
 
 html.is-mobile-app #pwaFloatingShareBtn {
     bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+html.is-mobile-app #customerLiveStatusColumn {
+    display: none !important;
+}
+
+html.is-mobile-app #customerLiveStatusColumn.show-tracking {
+    display: flex !important;
 }
 
 .bottom-nav-item {

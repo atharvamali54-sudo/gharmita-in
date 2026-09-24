@@ -22,23 +22,17 @@ if ('serviceWorker' in navigator) {
 // --- 2. Check if Running in Standalone Mode or Mobile App (Installed App / Android WebView) ---
 function isAppAlreadyInstalled() {
     const ua = navigator.userAgent || '';
-    const isApp = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+    const isApk = ua.includes('GharmitraApp') ||
+                  ua.includes('SecureApp') ||
+                  window.location.search.includes('app=1') ||
+                  window.location.search.includes('mode=app');
+    if (isApk) {
+        document.documentElement.classList.add('is-mobile-app');
+    }
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
            window.navigator.standalone === true ||
            document.referrer.includes('android-app://') ||
-           ua.includes('GharmitraApp') ||
-           ua.includes('SecureApp') ||
-           window.location.search.includes('app=1') ||
-           window.location.search.includes('mode=app') ||
-           sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true' ||
-           localStorage.getItem('gharmitra_mobile_app_mode') === 'true';
-
-    if (isApp) {
-        document.documentElement.classList.add('is-mobile-app');
-        try {
-            sessionStorage.setItem('gharmitra_mobile_app_mode', 'true');
-        } catch(e) {}
-    }
-    return isApp;
+           isApk;
 }
 
 // --- 3. Check if on iOS Safari ---
