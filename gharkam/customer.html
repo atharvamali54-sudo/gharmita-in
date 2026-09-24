@@ -23,6 +23,27 @@
     <link rel="icon" type="image/png" href="icons/favicon.png">
     <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/customer.css">
+  <!-- Immediate Mobile App Detection (Applies mobile styling before render, web is 100% untouched) -->
+  <script>
+      (function() {
+          try {
+              var ua = navigator.userAgent || '';
+              var isApp = ua.indexOf('GharmitraApp') !== -1 ||
+                          ua.indexOf('SecureApp') !== -1 ||
+                          (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                          window.navigator.standalone === true ||
+                          document.referrer.indexOf('android-app://') !== -1 ||
+                          window.location.search.indexOf('app=1') !== -1 ||
+                          window.location.search.indexOf('mode=app') !== -1 ||
+                          sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true' ||
+                          localStorage.getItem('gharmitra_mobile_app_mode') === 'true';
+              if (isApp) {
+                  document.documentElement.classList.add('is-mobile-app');
+                  sessionStorage.setItem('gharmitra_mobile_app_mode', 'true');
+              }
+          } catch(e) {}
+      })();
+  </script>
 </head>
 <body class="bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-900 min-h-screen p-4 md:p-8 flex items-center justify-center font-sans">
 

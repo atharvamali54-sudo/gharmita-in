@@ -24,7 +24,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_URL = "https://atharvamali54-sudo.github.io/gharmita-in/gharkam/index.html";
+    private static final String APP_URL = "https://atharvamali54-sudo.github.io/gharmita-in/gharkam/index.html?app=1";
     private static final int PERMISSION_REQUEST_CODE = 101;
     private static final int FILE_CHOOSER_REQUEST_CODE = 102;
 
@@ -94,6 +94,7 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 progressBar.setVisibility(View.GONE);
+                view.evaluateJavascript("try { document.documentElement.classList.add('is-mobile-app'); sessionStorage.setItem('gharmitra_mobile_app_mode', 'true'); } catch(e){}", null);
             }
         });
 

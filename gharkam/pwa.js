@@ -19,11 +19,26 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// --- 2. Check if Running in Standalone Mode (Installed App) ---
+// --- 2. Check if Running in Standalone Mode or Mobile App (Installed App / Android WebView) ---
 function isAppAlreadyInstalled() {
-    return window.matchMedia('(display-mode: standalone)').matches ||
+    const ua = navigator.userAgent || '';
+    const isApp = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
            window.navigator.standalone === true ||
-           document.referrer.includes('android-app://');
+           document.referrer.includes('android-app://') ||
+           ua.includes('GharmitraApp') ||
+           ua.includes('SecureApp') ||
+           window.location.search.includes('app=1') ||
+           window.location.search.includes('mode=app') ||
+           sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true' ||
+           localStorage.getItem('gharmitra_mobile_app_mode') === 'true';
+
+    if (isApp) {
+        document.documentElement.classList.add('is-mobile-app');
+        try {
+            sessionStorage.setItem('gharmitra_mobile_app_mode', 'true');
+        } catch(e) {}
+    }
+    return isApp;
 }
 
 // --- 3. Check if on iOS Safari ---
@@ -177,6 +192,7 @@ function showIosInstructions() {
 }
 
 function showInstallButtons() {
+    if (isAppAlreadyInstalled()) return;
     document.querySelectorAll('.pwa-install-btn').forEach(btn => btn.classList.remove('hidden'));
 }
 
