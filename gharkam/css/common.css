@@ -191,12 +191,21 @@ html.is-mobile-app body {
     box-sizing: border-box !important;
 }
 
-/* 1. In Mobile App Header: Remove "शेअर करा" / Share & "Install App" buttons */
+/* 1. In Mobile App Header: Remove "शेअर करा" / Share, "Install App", "Edit Profile" and "Your Orders" buttons */
 html.is-mobile-app header button[onclick*="shareGharmitraApp"],
 html.is-mobile-app header button[title*="शेअर करा"],
 html.is-mobile-app header .pwa-install-btn,
-html.is-mobile-app header button[onclick*="showPwaInstallModal"] {
+html.is-mobile-app header button[onclick*="showPwaInstallModal"],
+html.is-mobile-app header button[onclick*="openProfileModal"],
+html.is-mobile-app header button[onclick*="openMyOrdersModal"] {
     display: none !important;
+}
+
+@media (max-width: 768px) {
+    header button[onclick*="openProfileModal"],
+    header button[onclick*="openMyOrdersModal"] {
+        display: none !important;
+    }
 }
 
 /* 2. Mobile App Header responsiveness */

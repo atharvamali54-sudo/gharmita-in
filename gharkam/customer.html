@@ -67,6 +67,7 @@
                 <button onclick="openMyOrdersModal()" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2 px-4 rounded-xl transition border border-white/20 flex items-center gap-2">
                     <i class="fa-solid fa-clock-rotate-left"></i> Your Orders
                 </button>
+                <span id="location-status" class="text-xs bg-yellow-400 text-gray-900 px-3 py-1.5 rounded-full font-semibold shadow-inner">📍 Pune Verified</span>
             </div>
         </header>
 
@@ -182,7 +183,7 @@
                 </form>
             </div>
 
-            <div class="lg:col-span-5 bg-slate-50 p-6 md:p-8 border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col justify-between">
+            <div id="customerLiveStatusColumn" class="hidden lg:flex lg:col-span-5 bg-slate-50 p-6 md:p-8 border-t lg:border-t-0 lg:border-l border-slate-200 flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">

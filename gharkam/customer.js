@@ -757,6 +757,12 @@ populateBookingProfile();
         function trackLiveStatus(orderId) {
             currentOrderId = orderId;
 
+            const statusCol = document.getElementById('customerLiveStatusColumn');
+            if (statusCol) {
+                statusCol.classList.remove('hidden');
+                statusCol.classList.add('flex');
+            }
+
             if (activeListener) {
                 database.ref("orders/" + activeListener).off();
             }
@@ -955,23 +961,77 @@ populateBookingProfile();
             });
         }
 
+        function getLoggedInCustomerMobile() {
+            let mob = '';
+            try {
+                if (typeof customerProfile !== 'undefined' && customerProfile && customerProfile.mobile) {
+                    mob = String(customerProfile.mobile).replace(/\D/g, '').slice(-10);
+                }
+            } catch(e) {}
+            if (!mob || mob.length !== 10) {
+                try {
+                    const session = readCustomerSession();
+                    if (session && session.mobile) {
+                        mob = String(session.mobile).replace(/\D/g, '').slice(-10);
+                    }
+                } catch(e) {}
+            }
+            if (!mob || mob.length !== 10) {
+                const el = document.getElementById('customerMobile');
+                if (el && el.value) {
+                    mob = String(el.value).replace(/\D/g, '').slice(-10);
+                }
+            }
+            if (!mob || mob.length !== 10) {
+                try {
+                    const raw = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+                    if (raw && raw.mobile) {
+                        mob = String(raw.mobile).replace(/\D/g, '').slice(-10);
+                    }
+                } catch(e) {}
+            }
+            if (!mob || mob.length !== 10) {
+                const fallback = localStorage.getItem('gharmitra_customer_mobile') || localStorage.getItem('customer_mobile') || '';
+                if (fallback) mob = String(fallback).replace(/\D/g, '').slice(-10);
+            }
+            return mob;
+        }
+
         function openMyOrdersModal() {
-            document.getElementById('myOrdersModal').classList.remove('hidden');
-            document.getElementById('myOrdersModal').classList.add('flex');
-            const formMobile = document.getElementById('customerMobile').value;
-            if(formMobile) {
-                document.getElementById('searchMobileInput').value = formMobile;
+            const modal = document.getElementById('myOrdersModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+            const userMobile = getLoggedInCustomerMobile();
+            const searchInput = document.getElementById('searchMobileInput');
+            if (userMobile && userMobile.length === 10) {
+                if (searchInput) searchInput.value = userMobile;
+                fetchCustomerOrders();
+            } else if (searchInput && searchInput.value.trim().length === 10) {
                 fetchCustomerOrders();
             }
         }
 
         function closeMyOrdersModal() {
-            document.getElementById('myOrdersModal').classList.remove('flex');
-            document.getElementById('myOrdersModal').classList.add('hidden');
+            const modal = document.getElementById('myOrdersModal');
+            if (modal) {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }
         }
 
         function fetchCustomerOrders() {
-            const mobile = document.getElementById('searchMobileInput').value.trim();
+            let mobile = document.getElementById('searchMobileInput').value.trim();
+            if (!mobile || mobile.length !== 10) {
+                const autoMob = getLoggedInCustomerMobile();
+                if (autoMob && autoMob.length === 10) {
+                    mobile = autoMob;
+                    const searchInput = document.getElementById('searchMobileInput');
+                    if (searchInput) searchInput.value = mobile;
+                }
+            }
+
             const container = document.getElementById('ordersListContainer');
 
             if (!mobile || mobile.length !== 10) {
@@ -979,7 +1039,7 @@ populateBookingProfile();
                 return;
             }
 
-            container.innerHTML = '<p class="text-xs text-slate-400 text-center py-6"><i class="fa-solid fa-spinner fa-spin"></i> Fetching orders...</p>';
+            container.innerHTML = '<p class="text-xs text-slate-400 text-center py-6"><i class="fa-solid fa-spinner fa-spin"></i> ऑर्डर्स लोड होत आहेत...</p>';
 
             database.ref("orders").orderByChild("customerMobile").equalTo(mobile).once("value", (snapshot) => {
                 container.innerHTML = "";
@@ -1036,5 +1096,13 @@ populateBookingProfile();
 
         function trackSelectedOrder(orderId) {
             closeMyOrdersModal();
+            const col = document.getElementById('customerLiveStatusColumn');
+            if (col) {
+                col.classList.remove('hidden');
+                col.classList.add('flex');
+            }
             trackLiveStatus(orderId);
+            setTimeout(() => {
+                if (col) col.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
         }
