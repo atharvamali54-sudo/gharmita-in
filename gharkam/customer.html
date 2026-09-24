@@ -491,16 +491,90 @@
                 </div>
             </div>
 
-            <div id="ordersListContainer" class="overflow-y-auto space-y-3 pr-1 grow mt-2">
-                <p class="text-xs text-slate-400 text-center py-8">Enter your mobile number above to see your order list.</p>
             </div>
         </div>
     </div>
+
+    <!-- Customer Support / Help Modal -->
+    <div id="customerSupportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4 relative animate-in">
+            <button type="button" onclick="closeCustomerSupportModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm transition cursor-pointer">✕</button>
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl shadow-inner">
+                <i class="fa-solid fa-headset"></i>
+            </div>
+            <div>
+                <h3 class="font-black text-slate-900 text-lg">Gharmitra Customer Support</h3>
+                <p class="text-xs text-slate-500 mt-1">पुण्यातील घरकाम व सेवांबाबत कोणतीही मदत हवी असल्यास संपर्क करा.</p>
+            </div>
+            <div class="space-y-2.5 pt-2">
+                <a href="tel:7875160724" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-phone"></i> थेट फोनवर बोला (7875160724)
+                </a>
+                <a href="https://wa.me/917875160724?text=Hello%20Gharmitra%20Support,%20मला%20मदत%20हवी%20आहे." target="_blank" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-3 px-4 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> व्हॉट्सॲपवर चॅट करा (WhatsApp)
+                </a>
+                <a href="contact.html" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 border border-slate-200">
+                    <i class="fa-solid fa-envelope text-slate-500"></i> Contact Us / तपशील
+                </a>
+            </div>
+            <p class="text-[11px] text-slate-400">सकाळी ८:०० ते रात्री ९:०० • पुणे शहर</p>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar (Customer) -->
+    <nav class="app-bottom-nav md:hidden" id="customerBottomNav" aria-label="Customer Mobile Navigation">
+        <button type="button" class="bottom-nav-item active" id="cNavHome" onclick="customerNavTo('home')">
+            <i class="fa-solid fa-house"></i>
+            <span>मुख्य पान</span>
+        </button>
+        <button type="button" class="bottom-nav-item" id="cNavOrders" onclick="customerNavTo('orders')">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span>ऑर्डर्स</span>
+        </button>
+        <button type="button" class="bottom-nav-item" id="cNavProfile" onclick="customerNavTo('profile')">
+            <i class="fa-solid fa-user"></i>
+            <span>प्रोफाईल</span>
+        </button>
+        <button type="button" class="bottom-nav-item" id="cNavHelp" onclick="customerNavTo('help')">
+            <i class="fa-solid fa-headset"></i>
+            <span>सपोर्ट</span>
+        </button>
+    </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="js/firebase.js"></script>
     <script src="js/call-masking.js?v=4.0"></script>
     <script src="js/customer.js?v=4.1"></script>
     <script src="js/pwa.js?v=9.1"></script>
+    <script>
+        function openCustomerSupportModal() {
+            const m = document.getElementById('customerSupportModal');
+            if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+        }
+        function closeCustomerSupportModal() {
+            const m = document.getElementById('customerSupportModal');
+            if (m) { m.classList.remove('flex'); m.classList.add('hidden'); }
+        }
+        function customerNavTo(tab) {
+            document.querySelectorAll('#customerBottomNav .bottom-nav-item').forEach(b => b.classList.remove('active'));
+            if (tab === 'home') {
+                const btn = document.getElementById('cNavHome');
+                if (btn) btn.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (tab === 'orders') {
+                const btn = document.getElementById('cNavOrders');
+                if (btn) btn.classList.add('active');
+                openMyOrdersModal();
+            } else if (tab === 'profile') {
+                const btn = document.getElementById('cNavProfile');
+                if (btn) btn.classList.add('active');
+                openProfileModal();
+            } else if (tab === 'help') {
+                const btn = document.getElementById('cNavHelp');
+                if (btn) btn.classList.add('active');
+                openCustomerSupportModal();
+            }
+        }
+    </script>
 </body>
 </html>

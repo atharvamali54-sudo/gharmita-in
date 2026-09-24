@@ -401,9 +401,191 @@ Service: <strong id="workerService" class="text-white">Loading...</strong>
     </div>
 </div>
 
+<!-- Worker Profile Modal -->
+<div id="workerProfileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4 relative animate-in">
+        <button type="button" onclick="closeWorkerProfileModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm transition cursor-pointer">✕</button>
+        
+        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-2xl font-black flex items-center justify-center mx-auto shadow-md border-2 border-white">
+            <i class="fa-solid fa-user-gear"></i>
+        </div>
+
+        <div>
+            <h3 class="font-black text-slate-900 text-lg" id="modalWorkerNameDisplay">Worker Profile</h3>
+            <span class="inline-block bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-200 mt-1">
+                ID: <span id="modalWorkerIdDisplay">GK-0000</span>
+            </span>
+        </div>
+
+        <div class="bg-slate-50 rounded-2xl p-4 text-left space-y-3 border border-slate-100 text-xs">
+            <div class="flex items-center justify-between">
+                <span class="text-slate-500 font-semibold">कामगार नाव:</span>
+                <div class="flex items-center gap-2">
+                    <strong class="text-slate-800" id="modalWorkerNameText">--</strong>
+                    <button type="button" onclick="closeWorkerProfileModal(); editWorkerName();" class="text-blue-600 underline font-bold">बदला</button>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <span class="text-slate-500 font-semibold">सर्विस प्रकार:</span>
+                <div class="flex items-center gap-2">
+                    <strong class="text-slate-800" id="modalWorkerServiceText">--</strong>
+                    <button type="button" onclick="closeWorkerProfileModal(); openServiceModal();" class="text-blue-600 underline font-bold">बदला</button>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <span class="text-slate-500 font-semibold">रेटिंग आणि रिव्ह्यू:</span>
+                <div class="flex items-center gap-1.5">
+                    <span class="bg-amber-400 text-slate-900 font-black px-2 py-0.5 rounded text-[11px] flex items-center gap-1">
+                        ⭐ <span id="modalWorkerRatingText">5.0</span>
+                    </span>
+                    <span class="text-slate-500">(<span id="modalWorkerReviewsText">0</span> Reviews)</span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1 border-t border-slate-200">
+                <span class="text-slate-500 font-semibold">सर्विस क्रेडिट शिल्लक:</span>
+                <div class="flex items-center gap-2">
+                    <strong class="text-emerald-600 font-black text-sm">₹<span id="modalWorkerWalletText">50</span></strong>
+                    <button type="button" onclick="closeWorkerProfileModal(); openCreditModal();" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg transition shadow-sm">+ जोडा</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-2">
+            <button type="button" onclick="toggleDuty(); closeWorkerProfileModal();" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-power-off text-blue-600"></i> Duty चालू / बंद करा
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Worker Help & Support Modal -->
+<div id="workerHelpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4 relative animate-in">
+        <button type="button" onclick="closeWorkerHelpModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm transition cursor-pointer">✕</button>
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl shadow-inner">
+            <i class="fa-solid fa-headset"></i>
+        </div>
+        <div>
+            <h3 class="font-black text-slate-900 text-lg">Worker Support Helpline</h3>
+            <p class="text-xs text-slate-500 mt-1">कामे, पेमेंट किंवा ॲपबाबत कोणतीही अडचण असल्यास सपोर्ट टीमशी संपर्क करा.</p>
+        </div>
+        <div class="space-y-2.5 pt-2">
+            <a href="tel:7875160724" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-2">
+                <i class="fa-solid fa-phone"></i> कॉल करा (7875160724)
+            </a>
+            <a href="https://wa.me/917875160724?text=Hello%20Gharmitra%20Worker%20Support,%20मला%20मदत%20हवी%20आहे." target="_blank" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-3 px-4 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-2">
+                <i class="fa-brands fa-whatsapp text-lg"></i> व्हॉट्सॲपवर मेसेज करा (WhatsApp)
+            </a>
+        </div>
+        <p class="text-[11px] text-slate-400">सकाळी ८:०० ते रात्री ९:०० • कामगार सहाय्यता केंद्र</p>
+    </div>
+</div>
+
+<!-- Mobile Bottom Navigation Bar (Worker) -->
+<nav class="app-bottom-nav md:hidden" id="workerBottomNav" aria-label="Worker Mobile Navigation">
+    <button type="button" class="bottom-nav-item active" id="wNavJobs" onclick="workerNavTo('jobs')">
+        <i class="fa-solid fa-briefcase"></i>
+        <span>कामे</span>
+    </button>
+    <button type="button" class="bottom-nav-item" id="wNavEarnings" onclick="workerNavTo('earnings')">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>कमाई</span>
+    </button>
+    <button type="button" class="bottom-nav-item" id="wNavProfile" onclick="workerNavTo('profile')">
+        <i class="fa-solid fa-user-gear"></i>
+        <span>प्रोफाईल</span>
+    </button>
+    <button type="button" class="bottom-nav-item" id="wNavHelp" onclick="workerNavTo('help')">
+        <i class="fa-solid fa-headset"></i>
+        <span>सपोर्ट</span>
+    </button>
+</nav>
+
 <script src="js/firebase.js"></script>
 <script src="js/call-masking.js?v=9.0"></script>
 <script src="js/worker.js?v=9.1"></script>
 <script src="js/pwa.js?v=9.1"></script>
+<script>
+    function openWorkerProfileModal() {
+        const modal = document.getElementById('workerProfileModal');
+        if (modal) {
+            const uName = document.getElementById('workerUsername')?.innerText || 'कामगार';
+            const wId = document.getElementById('workerID')?.innerText || 'GK-0000';
+            const wService = document.getElementById('workerService')?.innerText || 'Service';
+            const wRating = document.getElementById('workerAvgRating')?.innerText || '5.0';
+            const wReviews = document.getElementById('workerTotalReviews')?.innerText || '0';
+            const wWallet = document.getElementById('walletAmount')?.innerText || '50';
+
+            const nameDisplay = document.getElementById('modalWorkerNameDisplay');
+            const idDisplay = document.getElementById('modalWorkerIdDisplay');
+            const nameText = document.getElementById('modalWorkerNameText');
+            const serviceText = document.getElementById('modalWorkerServiceText');
+            const ratingText = document.getElementById('modalWorkerRatingText');
+            const reviewsText = document.getElementById('modalWorkerReviewsText');
+            const walletText = document.getElementById('modalWorkerWalletText');
+
+            if (nameDisplay) nameDisplay.innerText = uName;
+            if (idDisplay) idDisplay.innerText = wId;
+            if (nameText) nameText.innerText = uName;
+            if (serviceText) serviceText.innerText = wService;
+            if (ratingText) ratingText.innerText = wRating;
+            if (reviewsText) reviewsText.innerText = wReviews;
+            if (walletText) walletText.innerText = wWallet;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+
+    function closeWorkerProfileModal() {
+        const modal = document.getElementById('workerProfileModal');
+        if (modal) {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+    }
+
+    function openWorkerHelpModal() {
+        const modal = document.getElementById('workerHelpModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+
+    function closeWorkerHelpModal() {
+        const modal = document.getElementById('workerHelpModal');
+        if (modal) {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+    }
+
+    function workerNavTo(tab) {
+        document.querySelectorAll('#workerBottomNav .bottom-nav-item').forEach(b => b.classList.remove('active'));
+        if (tab === 'jobs') {
+            const btn = document.getElementById('wNavJobs');
+            if (btn) btn.classList.add('active');
+            const target = document.getElementById('availableJobsContainer') || document.querySelector('header');
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (tab === 'earnings') {
+            const btn = document.getElementById('wNavEarnings');
+            if (btn) btn.classList.add('active');
+            const target = document.getElementById('weeklyEarningsChart') || document.getElementById('todayEarnings');
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (tab === 'profile') {
+            const btn = document.getElementById('wNavProfile');
+            if (btn) btn.classList.add('active');
+            openWorkerProfileModal();
+        } else if (tab === 'help') {
+            const btn = document.getElementById('wNavHelp');
+            if (btn) btn.classList.add('active');
+            openWorkerHelpModal();
+        }
+    }
+</script>
 </body>
 </html>
