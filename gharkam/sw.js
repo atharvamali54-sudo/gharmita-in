@@ -3,7 +3,7 @@
 // Cache Version: gharmitra-pwa-v1
 // =========================================================
 
-const CACHE_NAME = 'gharmitra-pwa-v34';
+const CACHE_NAME = 'gharmitra-pwa-v35';
 
 const STATIC_ASSETS = [
     './',
@@ -29,7 +29,8 @@ const STATIC_ASSETS = [
     './icons/favicon.png',
     './js/pwa.js',
     './js/firebase.js',
-    './js/call-masking.js'
+    './js/call-masking.js',
+    './js/voice-booking.js'
 ];
 
 // --- 1. Install Event (Pre-cache core app shell) ---
