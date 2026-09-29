@@ -1003,4 +1003,20 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileInput.addEventListener('input', checkWorkerSavedPhotoOnMobileInput);
         mobileInput.addEventListener('blur', checkWorkerSavedPhotoOnMobileInput);
     }
+    // Check URL parameters for tab/role
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const role = urlParams.get('role') || urlParams.get('tab') || urlParams.get('type');
+        if (role === 'worker') {
+            setRole('worker');
+        } else if (role === 'customer') {
+            setRole('customer');
+        }
+        const mode = urlParams.get('mode');
+        if (mode === 'signin' || mode === 'login') {
+            if (isSignupMode) toggleMode();
+        } else if (mode === 'signup' || mode === 'register') {
+            if (!isSignupMode) toggleMode();
+        }
+    } catch(e) {}
 });
