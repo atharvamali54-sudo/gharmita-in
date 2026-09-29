@@ -54,7 +54,7 @@ jobs:
           name: "Gharmitra Android App (Official Secure APK)"
           body: |
             ## 📱 Gharmitra Official Android App (APK)
-            - 🛡️ **FLAG_SECURE Active:** हार्डवेअर स्क्रीनशॉट आणि स्क्रीन रेकॉर्डिंग पूर्णपणे बंद!
+            - 📸 **Screenshots Enabled:** युझर्ससाठी स्क्रीनशॉट आणि पेमेंट पावत्या सेव्ह करण्याची सुविधा सुरु.
             - ⚡ रिअल-टाईम लोकेशन ट्रॅकिंग आणि लाऊड डिलिव्हरी रिंगटोन.
             - 🏠 पुणे शहरासाठी सर्व घरगुती सेवा.
           files: release-apk/Gharmitra-Secure.apk

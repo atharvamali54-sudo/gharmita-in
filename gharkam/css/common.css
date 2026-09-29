@@ -1,4 +1,63 @@
-/* Shared styles can be added here when both dashboards use the same CSS. */
+/* =========================================================
+   Zero-Horizontal-Movement & Strict Viewport Boundary Rules
+   ========================================================= */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden !important;
+    overscroll-behavior-x: none !important;
+    touch-action: pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden !important;
+    overscroll-behavior-x: none !important;
+    touch-action: pan-y pinch-zoom;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Allow horizontal scroll only when explicitly intended */
+.allow-horizontal-scroll {
+    overflow-x: auto !important;
+    touch-action: pan-x pan-y !important;
+}
+
+/* =========================================================
+   App vs Browser Mode Button Visibility Controls
+   In App / WebView: Hide Share and Install App buttons
+   In Normal Browser: Keep them visible and functional
+   ========================================================= */
+@media all and (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+    .gharmitra-share-btn,
+    .pwa-install-btn,
+    [onclick*="shareGharmitraApp"],
+    [onclick*="showPwaInstallModal"],
+    #pwaFloatingShareBtn {
+        display: none !important;
+    }
+}
+
+html.is-app-env .gharmitra-share-btn,
+html.is-app-env .pwa-install-btn,
+html.is-app-env [onclick*="shareGharmitraApp"],
+html.is-app-env [onclick*="showPwaInstallModal"],
+html.is-app-env #pwaFloatingShareBtn,
+body.is-app-env .gharmitra-share-btn,
+body.is-app-env .pwa-install-btn,
+body.is-app-env [onclick*="shareGharmitraApp"],
+body.is-app-env [onclick*="showPwaInstallModal"],
+body.is-app-env #pwaFloatingShareBtn {
+    display: none !important;
+}
 
 /* =========================================================
    Live Delivery Tracking Styles (Swiggy / Zomato / Uber Style)

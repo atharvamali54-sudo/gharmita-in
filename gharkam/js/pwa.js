@@ -19,11 +19,71 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// --- 2. Check if Running in Standalone Mode (Installed App) ---
+// --- 2. Check if Running in App / WebView / Standalone Mode ---
 function isAppAlreadyInstalled() {
-    return window.matchMedia('(display-mode: standalone)').matches ||
-           window.navigator.standalone === true ||
-           document.referrer.includes('android-app://');
+    try {
+        // 1. Explicit native bridge injected by Android/iOS wrapper
+        if (window.GharmitraNative || window.Android || window.AndroidBridge || 
+            (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.GharmitraNative)) {
+            return true;
+        }
+
+        // 2. URL query parameters (?app=true, ?mode=app, ?source=app, ?webview=true)
+        if (window.location && window.location.search) {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('app') === 'true' || params.get('mode') === 'app' || 
+                params.get('source') === 'app' || params.get('webview') === 'true') {
+                try { sessionStorage.setItem('gharmitra_is_app', 'true'); } catch (e) {}
+                return true;
+            }
+        }
+
+        // 3. Persisted in sessionStorage across in-app navigations
+        try {
+            if (sessionStorage.getItem('gharmitra_is_app') === 'true') {
+                return true;
+            }
+        } catch (e) {}
+
+        // 4. PWA Standalone, Fullscreen, or Minimal-UI display modes
+        if (window.matchMedia) {
+            if (window.matchMedia('(display-mode: standalone)').matches ||
+                window.matchMedia('(display-mode: fullscreen)').matches ||
+                window.matchMedia('(display-mode: minimal-ui)').matches) {
+                return true;
+            }
+        }
+
+        // 5. iOS standalone mode
+        if (window.navigator && window.navigator.standalone === true) {
+            return true;
+        }
+
+        // 6. Android App referrer (TWA / Intent launch)
+        if (document.referrer && (document.referrer.includes('android-app://') || document.referrer.includes('com.gharmitra.app'))) {
+            return true;
+        }
+
+        // 7. User Agent Inspection
+        const ua = (window.navigator && window.navigator.userAgent) ? window.navigator.userAgent.toLowerCase() : '';
+        if (ua.includes('gharmitraapp')) {
+            return true;
+        }
+        // Standard Android System WebView tokens: '; wv' or 'Version/X.X' with 'Chrome'
+        if (ua.includes('; wv') || ua.includes(';wv')) {
+            return true;
+        }
+        // iOS WebViews (WKWebView or UIWebView inside an app: contains AppleWebKit and Mobile but not Safari product token)
+        const isIOS = /iphone|ipod|ipad/i.test(ua);
+        if (isIOS && !ua.includes('safari') && ua.includes('applewebkit')) {
+            return true;
+        }
+
+    } catch (err) {
+        console.warn('[Gharmitra PWA] App detection error:', err);
+    }
+
+    return false;
 }
 
 // --- 3. Check if on iOS Safari ---
@@ -114,7 +174,7 @@ function ensurePwaModalHtml() {
             <!-- Action buttons -->
             <div class="space-y-2 pt-1">
                 <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/Gharmitra-Secure.apk" target="_blank" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-brands fa-android text-emerald-400 text-base"></i> <span>Android APK डाउनलोड करा (नो स्क्रीनशॉट)</span>
+                    <i class="fa-brands fa-android text-emerald-400 text-base"></i> <span>Android APK डाउनलोड करा</span>
                 </a>
                 <button onclick="shareGharmitraApp()" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-2.5 px-4 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-brands fa-whatsapp text-base"></i> 📤 मित्रांना ॲप शेअर करा (Share)
@@ -177,11 +237,55 @@ function showIosInstructions() {
 }
 
 function showInstallButtons() {
-    document.querySelectorAll('.pwa-install-btn').forEach(btn => btn.classList.remove('hidden'));
+    if (isAppAlreadyInstalled()) return;
+    document.querySelectorAll('.pwa-install-btn, [onclick*="showPwaInstallModal"]').forEach(btn => {
+        btn.classList.remove('hidden');
+        btn.style.display = '';
+        btn.removeAttribute('aria-hidden');
+    });
 }
 
 function hideInstallButtons() {
-    document.querySelectorAll('.pwa-install-btn').forEach(btn => btn.classList.add('hidden'));
+    document.querySelectorAll('.pwa-install-btn, [onclick*="showPwaInstallModal"]').forEach(btn => {
+        btn.classList.add('hidden');
+        btn.style.setProperty('display', 'none', 'important');
+        btn.setAttribute('aria-hidden', 'true');
+    });
+}
+
+function showShareButtons() {
+    if (isAppAlreadyInstalled()) return;
+    document.querySelectorAll('.gharmitra-share-btn, [onclick*="shareGharmitraApp"]').forEach(btn => {
+        btn.classList.remove('hidden');
+        btn.style.display = '';
+        btn.removeAttribute('aria-hidden');
+    });
+}
+
+function hideShareButtons() {
+    document.querySelectorAll('.gharmitra-share-btn, [onclick*="shareGharmitraApp"], #pwaFloatingShareBtn').forEach(btn => {
+        btn.classList.add('hidden');
+        btn.style.setProperty('display', 'none', 'important');
+        btn.setAttribute('aria-hidden', 'true');
+    });
+}
+
+function applyAppOrBrowserVisibility() {
+    const isApp = isAppAlreadyInstalled();
+    if (isApp) {
+        if (document.documentElement) document.documentElement.classList.add('is-app-env');
+        if (document.body) document.body.classList.add('is-app-env');
+        hideInstallButtons();
+        hideShareButtons();
+        const floatingShare = document.getElementById('pwaFloatingShareBtn');
+        if (floatingShare) floatingShare.remove();
+    } else {
+        if (document.documentElement) document.documentElement.classList.remove('is-app-env');
+        if (document.body) document.body.classList.remove('is-app-env');
+        showInstallButtons();
+        showShareButtons();
+        ensureFloatingShareButton();
+    }
 }
 
 // --- 7. App Sharing System (Direct WhatsApp, Native Share, and Modal) ---
@@ -350,13 +454,14 @@ function fallbackCopy(text) {
     document.body.removeChild(ta);
 }
 
-// --- 8. Floating WhatsApp Share Button (Available everywhere on Mobile) ---
+// --- 8. Floating WhatsApp Share Button (Available everywhere on Mobile in Browser) ---
 function ensureFloatingShareButton() {
+    if (isAppAlreadyInstalled()) return; // Hidden completely in App
     if (document.getElementById('pwaFloatingShareBtn')) return;
 
     const btn = document.createElement('div');
     btn.id = 'pwaFloatingShareBtn';
-    btn.className = 'fixed bottom-5 right-4 z-40 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs py-2.5 px-3.5 rounded-full shadow-2xl flex items-center gap-2 cursor-pointer border-2 border-white transition transform active:scale-95 select-none';
+    btn.className = 'gharmitra-share-btn fixed bottom-5 right-4 z-40 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs py-2.5 px-3.5 rounded-full shadow-2xl flex items-center gap-2 cursor-pointer border-2 border-white transition transform active:scale-95 select-none';
     btn.onclick = () => shareGharmitraApp();
     btn.innerHTML = `
         <i class="fa-brands fa-whatsapp text-lg"></i>
@@ -374,6 +479,8 @@ function showPwaToast(msg) {
 }
 
 // --- 9. Global Window Attachments ---
+window.isAppAlreadyInstalled = isAppAlreadyInstalled;
+window.applyAppOrBrowserVisibility = applyAppOrBrowserVisibility;
 window.shareGharmitraApp = shareGharmitraApp;
 window.openShareModal = openShareModal;
 window.closeShareModal = closeShareModal;
@@ -386,17 +493,14 @@ window.hidePwaInstallModal = hidePwaInstallModal;
 window.dismissPwaModal = dismissPwaModal;
 window.triggerPwaInstall = triggerPwaInstall;
 
-// --- 10. Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
+// --- 10. Initialization & App State Application ---
+function initPwaAndAppState() {
+    applyAppOrBrowserVisibility();
     ensurePwaModalHtml();
     ensureShareModalHtml();
-    ensureFloatingShareButton();
 
-    if (isAppAlreadyInstalled()) {
-        hideInstallButtons();
-    } else {
-        showInstallButtons();
-
+    if (!isAppAlreadyInstalled()) {
+        ensureFloatingShareButton();
         if (isIosSafari()) {
             const dismissedTime = localStorage.getItem(PWA_DISMISSED_KEY);
             const now = Date.now();
@@ -404,13 +508,87 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => showPwaInstallModal(), 2500);
             }
         }
+    } else {
+        const floatingShare = document.getElementById('pwaFloatingShareBtn');
+        if (floatingShare) floatingShare.remove();
     }
 
-    // Auto-open share modal if launched via Android shortcut (?action=share)
-    if (window.location.search.includes('action=share')) {
+    // Auto-open share modal if launched via Android shortcut (?action=share) and not in app
+    if (window.location.search.includes('action=share') && !isAppAlreadyInstalled()) {
         setTimeout(() => openShareModal(), 400);
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPwaAndAppState);
+} else {
+    initPwaAndAppState();
+}
+
+// Immediate execution to prevent button flicker before DOMContentLoaded
+applyAppOrBrowserVisibility();
+
+// Listen for standalone display-mode changes dynamically
+if (window.matchMedia) {
+    const standaloneQuery = window.matchMedia('(display-mode: standalone)');
+    if (standaloneQuery.addEventListener) {
+        standaloneQuery.addEventListener('change', () => applyAppOrBrowserVisibility());
+    } else if (standaloneQuery.addListener) {
+        standaloneQuery.addListener(() => applyAppOrBrowserVisibility());
+    }
+}
+
+// =========================================================
+// 11. Global Zero-Horizontal-Movement & Touch Gesture Blocker
+// Prevents Left/Right swipe from moving or sliding the page,
+// while vertical scrolling (Up/Down) remains 100% smooth and native.
+// =========================================================
+(function initHorizontalSwipeBlocker() {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    window.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length === 1) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        if (!e.touches || e.touches.length !== 1) return;
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const deltaX = Math.abs(currentX - touchStartX);
+        const deltaY = Math.abs(currentY - touchStartY);
+
+        // If gesture is primarily horizontal (Left-to-Right or Right-to-Left)
+        if (deltaX > deltaY && deltaX > 8) {
+            const target = e.target;
+            // Allow native behavior inside interactive inputs or explicit horizontal scroll areas
+            const isTextControl = target && (
+                target.tagName === 'TEXTAREA' || 
+                (target.tagName === 'INPUT' && (
+                    target.type === 'text' || target.type === 'tel' || target.type === 'email' || 
+                    target.type === 'password' || target.type === 'search' || target.type === 'number' || target.type === 'range'
+                ))
+            );
+            const isExplicitHorizontalScroll = target && target.closest && target.closest('.allow-horizontal-scroll, [data-allow-horizontal="true"]');
+
+            if (!isTextControl && !isExplicitHorizontalScroll) {
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
+            }
+        }
+    }, { passive: false });
+
+    // Lock window.scrollX to 0 at all times so the page never rests scrolled sideways
+    window.addEventListener('scroll', () => {
+        if (window.scrollX !== 0) {
+            window.scrollTo(0, window.scrollY);
+        }
+    }, { passive: true });
+})();
 
 // =========================================================
 // Anti-Screenshot & Screen Recording Prevention Suite

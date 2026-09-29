@@ -459,6 +459,31 @@ function startDispatchTimers() {
     }, 1000);
 }
 
+// Instant Worker Avatar Render on Startup
+(function initWorkerPhotoImmediately() {
+    try {
+        const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+        let photo = session.photo || session.photoUrl;
+        if (!photo && session.mobile) {
+            try {
+                const k1 = JSON.parse(localStorage.getItem('gharmitra_user_worker_' + session.mobile) || '{}');
+                photo = k1.photo || k1.photoUrl || null;
+            } catch(e) {}
+        }
+        if (photo) {
+            const setAvatar = () => {
+                const el = document.getElementById('workerHeaderAvatar');
+                if (el) el.src = photo;
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setAvatar);
+            } else {
+                setAvatar();
+            }
+        }
+    } catch(e) {}
+})();
+
 // Page Load Var Local Session Check
 document.addEventListener("DOMContentLoaded", () => {
     loadLocalWorkerSession();
@@ -550,6 +575,142 @@ function editWorkerName() {
     alert("नाव अपडेट झाले: " + trimmed);
 }
 
+function applyWorkerPhoto(photoUrl) {
+    if (!photoUrl) return;
+    const headerImg = document.getElementById('workerHeaderAvatar');
+    if (headerImg) headerImg.src = photoUrl;
+    const topImg = document.getElementById('topWorkerAvatar');
+    if (topImg) topImg.src = photoUrl;
+    const topBadge = document.getElementById('topWorkerAvatarBadge');
+    if (topBadge) topBadge.classList.remove('hidden');
+    const modalImg = document.getElementById('workerModalPhotoPreview');
+    if (modalImg) modalImg.src = photoUrl;
+    try {
+        let s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+        s.photo = photoUrl;
+        s.photoUrl = photoUrl;
+        localStorage.setItem('current_user_session', JSON.stringify(s));
+        if (s.mobile) {
+            ['gharmitra_user_worker_' + s.mobile, 'gharkam_user_' + s.mobile, 'gharmitra_user_' + s.mobile].forEach(k => {
+                try {
+                    let cur = JSON.parse(localStorage.getItem(k) || '{}');
+                    cur.photo = photoUrl;
+                    cur.photoUrl = photoUrl;
+                    localStorage.setItem(k, JSON.stringify(cur));
+                } catch (e) {}
+            });
+        }
+    } catch (e) {}
+}
+
+function triggerWorkerDashboardPhotoChange() {
+    const modal = document.getElementById('workerPhotoUpdateModal');
+    const modalPreview = document.getElementById('workerModalPhotoPreview');
+    const curAvatar = document.getElementById('workerHeaderAvatar');
+    if (modalPreview && curAvatar) {
+        modalPreview.src = curAvatar.src;
+    }
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeWorkerPhotoModal() {
+    const modal = document.getElementById('workerPhotoUpdateModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function triggerDashboardCamera() {
+    const cam = document.getElementById('dashboardWorkerPhotoCamera');
+    if (cam) cam.click();
+}
+
+function triggerDashboardGallery() {
+    const gal = document.getElementById('dashboardWorkerPhotoGallery');
+    if (gal) gal.click();
+}
+
+function compressWorkerDashboardImage(file, maxWidth = 360, maxHeight = 360, quality = 0.72) {
+    return new Promise((resolve, reject) => {
+        if (!file || !file.type.match(/image.*/)) {
+            return reject(new Error('Selected file is not an image'));
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                let width = img.width;
+                let height = img.height;
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                resolve(compressedDataUrl);
+            };
+            img.onerror = () => reject(new Error('Image failed to load for compression'));
+            img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('File reading error'));
+        reader.readAsDataURL(file);
+    });
+}
+
+async function handleDashboardWorkerPhotoSelected(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    try {
+        const compressedBase64 = await compressWorkerDashboardImage(file, 360, 360, 0.72);
+        applyWorkerPhoto(compressedBase64);
+        closeWorkerPhotoModal();
+
+        const mobile = getCurrentWorkerMobile();
+        const uid = currentWorkerUid || getLocalWorkerId();
+
+        if (mobile) {
+            ['gharmitra_user_worker_' + mobile, 'gharkam_user_' + mobile, 'gharmitra_user_' + mobile].forEach(k => {
+                try {
+                    let cur = JSON.parse(localStorage.getItem(k) || '{}');
+                    cur.photo = compressedBase64;
+                    cur.photoUrl = compressedBase64;
+                    localStorage.setItem(k, JSON.stringify(cur));
+                } catch (e) {}
+            });
+
+            if (typeof database !== 'undefined') {
+                database.ref('workers/accounts/workers/' + mobile).update({
+                    photo: compressedBase64,
+                    photoUrl: compressedBase64,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP
+                }).catch(() => {});
+            }
+        }
+
+        if (uid && typeof database !== 'undefined') {
+            database.ref('workers/' + uid).update({
+                photo: compressedBase64,
+                photoUrl: compressedBase64
+            }).catch(() => {});
+        }
+
+        alert("✅ कामगाराचा नवीन फोटो यशस्वीरित्या सेव्ह झाला!");
+    } catch (err) {
+        console.error("Dashboard photo change error:", err);
+        alert("❌ फोटो सेव्ह करण्यात अडचण आली. कृपया दुसरा फोटो निवडा.");
+    }
+}
+
 function loadLocalWorkerSession() {
     let session = localStorage.getItem('current_user_session');
     if (session) {
@@ -572,16 +733,35 @@ function loadLocalWorkerSession() {
 
         let name = resolveWorkerName(userData);
         const service = userData.workType || userData.service || "Cleaning";
+        let photo = userData.photo || userData.photoUrl || null;
+        const workerMobile = userData.mobile || getCurrentWorkerMobile();
+
+        if (!photo && workerMobile) {
+            try {
+                const k1 = JSON.parse(localStorage.getItem('gharmitra_user_worker_' + workerMobile) || '{}');
+                photo = k1.photo || k1.photoUrl || null;
+            } catch(e) {}
+            if (!photo) {
+                try {
+                    const k2 = JSON.parse(localStorage.getItem('gharkam_user_' + workerMobile) || '{}');
+                    photo = k2.photo || k2.photoUrl || null;
+                } catch(e) {}
+            }
+        }
 
         updateWorkerUI({
             name: name || "Worker",
             service: service,
             wallet: userData.balance || 50,
-            workerIndex: userData.mobile ? userData.mobile.slice(-6) : 100001
+            workerIndex: userData.mobile ? userData.mobile.slice(-6) : 100001,
+            photo: photo,
+            photoUrl: photo
         });
+        if (photo) {
+            applyWorkerPhoto(photo);
+        }
 
         // Fallback: Query Firebase worker node or order history
-        const workerMobile = userData.mobile || getCurrentWorkerMobile();
         const uid = currentWorkerUid || getLocalWorkerId();
         if (uid) {
             database.ref('workers/' + uid).on('value', (snap) => {
@@ -590,6 +770,9 @@ function loadLocalWorkerSession() {
                     const fbName = wData.name || wData.fullName || wData.workerName;
                     if (fbName && fbName !== "Worker") {
                         applyWorkerName(fbName);
+                    }
+                    if (wData.photo || wData.photoUrl) {
+                        applyWorkerPhoto(wData.photo || wData.photoUrl);
                     }
                     let calcRating = 5.0;
                     let calcReviews = 0;
@@ -612,6 +795,20 @@ function loadLocalWorkerSession() {
             });
 
             if (workerMobile) {
+                database.ref('workers/accounts/workers/' + workerMobile).once('value').then(aSnap => {
+                    const aData = aSnap.val();
+                    if (aData && (aData.photo || aData.photoUrl)) {
+                        applyWorkerPhoto(aData.photo || aData.photoUrl);
+                    }
+                }).catch(() => {});
+
+                database.ref('workers/local_worker_' + workerMobile).once('value').then(lwSnap => {
+                    const lwData = lwSnap.val();
+                    if (lwData && (lwData.photo || lwData.photoUrl)) {
+                        applyWorkerPhoto(lwData.photo || lwData.photoUrl);
+                    }
+                }).catch(() => {});
+
                 database.ref('orders').orderByChild('customerMobile').equalTo(workerMobile).limitToLast(5).once('value').then(oSnap => {
                     const orders = oSnap.val();
                     if (orders) {
@@ -926,19 +1123,39 @@ auth.onAuthStateChanged((user) => {
                     calcTotalReviews = Number(workerData.totalReviews || 0);
                 }
 
+                // Resolve worker photo across all possible sources
+                let finalPhoto = workerData.photo || workerData.photoUrl || userData.photo || userData.photoUrl || localSession.photo || localSession.photoUrl || null;
+                const workerMobile = userData.mobile || localSession.mobile || getCurrentWorkerMobile();
+                if (!finalPhoto && workerMobile) {
+                    try {
+                        const k1 = JSON.parse(localStorage.getItem('gharmitra_user_worker_' + workerMobile) || '{}');
+                        finalPhoto = k1.photo || k1.photoUrl || null;
+                    } catch(e) {}
+                    if (!finalPhoto) {
+                        try {
+                            const k2 = JSON.parse(localStorage.getItem('gharkam_user_' + workerMobile) || '{}');
+                            finalPhoto = k2.photo || k2.photoUrl || null;
+                        } catch(e) {}
+                    }
+                }
+
                 const combinedData = {
                     name: finalName,
                     service: finalService,
                     wallet: workerData.wallet !== undefined ? workerData.wallet : (localSession.balance || 50),
                     workerIndex: workerData.workerIndex || Math.floor(100000 + Math.random() * 900000),
                     rating: calcRating,
-                    totalReviews: calcTotalReviews
+                    totalReviews: calcTotalReviews,
+                    photo: finalPhoto,
+                    photoUrl: finalPhoto
                 };
 
                 if (!workerSnap.exists()) {
                     // Do not overwrite activeOrderId if an order was accepted
                     // while the worker profile was being initialized.
                     workerRef.update(combinedData);
+                } else if (finalPhoto && (!workerData.photo || !workerData.photoUrl)) {
+                    workerRef.update({ photo: finalPhoto, photoUrl: finalPhoto }).catch(() => {});
                 }
 
                 updateWorkerUI(combinedData);
@@ -955,6 +1172,10 @@ auth.onAuthStateChanged((user) => {
 function updateWorkerUI(data) {
     if (data.name) {
         document.getElementById('workerUsername').innerText = data.name;
+    }
+    const photoToApply = data.photo || data.photoUrl;
+    if (photoToApply) {
+        applyWorkerPhoto(photoToApply);
     }
     
     const workerNum = data.workerIndex || 1;
@@ -1256,8 +1477,32 @@ async function payWithRazorpay(customAmount) {
                 }
             }
 
+            // Secure server-authoritative recharge
+            try {
+                const token = localStorage.getItem('gharmitra_auth_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                fetch(`${backendApiBase}/api/wallet/recharge`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                        amount: amountToAdd
+                    })
+                }).then(r => r.json()).then(rData => {
+                    if (rData.success && rData.balance !== undefined) {
+                        const el = document.getElementById('walletAmount');
+                        if (el) el.innerText = rData.balance;
+                    }
+                }).catch(err => console.warn('[Wallet Recharge Error]', err));
+            } catch (err) {
+                console.warn('[Wallet Recharge Error]', err);
+            }
+
             alert(`पेमेंट यशस्वी! पेमेंट आयडी: ${response.razorpay_payment_id}\nखात्यात ₹${amountToAdd} क्रेडिट जमा झाले!`);
-            addMoneyToFirebaseWallet(amountToAdd);
             closeCreditModal();
         },
         modal: {
@@ -1285,13 +1530,8 @@ async function payWithRazorpay(customAmount) {
 }
 
 function addMoneyToFirebaseWallet(amount) {
-    const user = auth.currentUser;
-    if (user) {
-        database.ref('workers/' + user.uid + '/wallet').transaction(currentBalance => (currentBalance || 50) + amount);
-    } else {
-        let currentWallet = parseInt(document.getElementById('walletAmount').innerText) || 50;
-        document.getElementById('walletAmount').innerText = currentWallet + amount;
-    }
+    // Client-side direct write removed for security.
+    // Balances are authoritatively managed and verified server-side.
 }
 
 function escapeChatText(value) {
@@ -1672,6 +1912,7 @@ function acceptOrder(orderId) {
                         workerId: currentWorkerUid,
                         workerMobile: getCurrentWorkerMobile(),
                         workerName: document.getElementById('workerUsername')?.innerText || 'Worker',
+                        workerPhoto: document.getElementById('workerHeaderAvatar')?.src || '',
                         acceptedAt: firebase.database.ServerValue.TIMESTAMP,
                         onTheWayDeadline: orderNow() + ON_THE_WAY_WINDOW_MS,
                         offerWorkerUid: null,

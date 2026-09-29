@@ -25,6 +25,30 @@
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
     <link rel="stylesheet" href="css/common.css">
+    <script>
+        (function(){
+            try {
+                var isStandalone = window.matchMedia && (
+                    window.matchMedia('(display-mode: standalone)').matches ||
+                    window.matchMedia('(display-mode: fullscreen)').matches ||
+                    window.matchMedia('(display-mode: minimal-ui)').matches
+                );
+                var isIosStandalone = window.navigator && window.navigator.standalone === true;
+                var isAndroidApp = (document.referrer && (document.referrer.indexOf('android-app://') !== -1 || document.referrer.indexOf('com.gharmitra.app') !== -1));
+                var urlParams = new URLSearchParams(window.location.search);
+                var isUrlApp = urlParams.get('app') === 'true' || urlParams.get('mode') === 'app' || urlParams.get('source') === 'app' || urlParams.get('webview') === 'true';
+                var isStoredApp = sessionStorage.getItem('gharmitra_is_app') === 'true';
+                var ua = (window.navigator && window.navigator.userAgent) ? window.navigator.userAgent.toLowerCase() : '';
+                var isUaApp = ua.indexOf('gharmitraapp') !== -1 || ua.indexOf('; wv') !== -1 || ua.indexOf(';wv') !== -1;
+                var isNativeApp = !!(window.GharmitraNative || window.Android || window.AndroidBridge);
+
+                if (isStandalone || isIosStandalone || isAndroidApp || isUrlApp || isStoredApp || isUaApp || isNativeApp) {
+                    document.documentElement.classList.add('is-app-env');
+                    sessionStorage.setItem('gharmitra_is_app', 'true');
+                }
+            } catch(e) {}
+        })();
+    </script>
     <style>
         .admin-badge {
             display: inline-flex;
@@ -479,6 +503,6 @@
 
     <script src="js/firebase.js"></script>
     <script src="js/admin.js?v=2.7"></script>
-    <script src="js/pwa.js?v=9.1"></script>
+    <script src="js/pwa.js?v=9.3"></script>
 </body>
 </html>

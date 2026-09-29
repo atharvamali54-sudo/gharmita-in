@@ -740,7 +740,8 @@ function renderWorkersTable() {
             wallet: w.wallet !== undefined ? w.wallet : 50,
             isDutyOn: (w.isDutyOn || w.dutyStatus === 'ON' || Boolean(w.activeOrderId)),
             activeOrderId: w.activeOrderId || null,
-            ratings: w.ratings || {}
+            ratings: w.ratings || {},
+            photo: w.photo || w.photoUrl || u.photo || u.photoUrl || null
         };
     });
 
@@ -776,8 +777,13 @@ function renderWorkersTable() {
         return `
         <tr class="hover:bg-slate-50 transition border-b border-slate-100">
             <td class="p-3.5">
-                <strong class="text-slate-800 block">${escapeHtml(item.name)}</strong>
-                <span class="text-[10px] text-slate-400">ID: GK-${item.uid.slice(-6).toUpperCase()}</span>
+                <div class="flex items-center gap-2">
+                    ${item.photo ? `<img src="${item.photo}" class="w-8 h-8 rounded-full object-cover border border-amber-300 shadow-sm shrink-0">` : `<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold text-xs flex items-center justify-center border shrink-0"><i class="fa-solid fa-user"></i></div>`}
+                    <div>
+                        <strong class="text-slate-800 block">${escapeHtml(item.name)}</strong>
+                        <span class="text-[10px] text-slate-400">ID: GK-${item.uid.slice(-6).toUpperCase()}</span>
+                    </div>
+                </div>
             </td>
             <td class="p-3.5">
                 <a href="tel:${item.mobile}" class="text-blue-600 hover:underline font-bold text-xs"><i class="fa-solid fa-phone text-[10px]"></i> ${item.mobile}</a>
@@ -1019,14 +1025,42 @@ function submitWorkerWalletRecharge() {
         return;
     }
 
-    const workerRef = database.ref("workers/" + selectedWorkerForRecharge);
-    workerRef.child("wallet").transaction(current => {
-        return (Number(current) || 0) + amount;
-    }).then(() => {
-        alert(`₹${amount} यशस्वीरीत्या कामगाराच्या वॉलेटमध्ये जमा केले!`);
-        closeAdminWalletModal();
-    }).catch(err => {
-        alert("पैसे जमा करताना अडचण आली: " + err.message);
+    const workerMobile = String(selectedWorkerForRecharge).replace(/\D/g, '').slice(-10);
+    const tokenStr = sessionStorage.getItem('gharmitra_admin_token') || localStorage.getItem('gharmitra_auth_token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (tokenStr) headers['Authorization'] = `Bearer ${tokenStr}`;
+
+    fetch('http://localhost:5000/api/admin/recharge-worker', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+            workerMobile: workerMobile,
+            amount: amount,
+            reason: 'Super Admin Manual Recharge'
+        })
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            alert(`₹${amount} यशस्वीरीत्या कामगाराच्या वॉलेटमध्ये जमा केले!`);
+            closeAdminWalletModal();
+            if (typeof renderWorkersTable === 'function') renderWorkersTable();
+        } else {
+            // Fallback for offline backend dev server
+            const workerRef = database.ref("workers/" + selectedWorkerForRecharge);
+            workerRef.child("wallet").transaction(current => (Number(current) || 0) + amount)
+                .then(() => {
+                    alert(`₹${amount} यशस्वीरीत्या कामगाराच्या वॉलेटमध्ये जमा केले!`);
+                    closeAdminWalletModal();
+                })
+                .catch(err => alert("पैसे जमा करताना अडचण आली: " + err.message));
+        }
+    }).catch(() => {
+        const workerRef = database.ref("workers/" + selectedWorkerForRecharge);
+        workerRef.child("wallet").transaction(current => (Number(current) || 0) + amount)
+            .then(() => {
+                alert(`₹${amount} यशस्वीरीत्या कामगाराच्या वॉलेटमध्ये जमा केले!`);
+                closeAdminWalletModal();
+            })
+            .catch(err => alert("पैसे जमा करताना अडचण आली: " + err.message));
     });
 }
 

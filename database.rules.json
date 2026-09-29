@@ -2,69 +2,115 @@
   "rules": {
     ".read": false,
     ".write": false,
+
     "adminAuth": {
       ".read": false,
-      ".write": true,
-      "latestOtpHash": {
-        ".validate": "newData.isString() && newData.val().length <= 128"
-      },
-      "expiresAt": {
-        ".validate": "newData.isNumber()"
-      },
-      "lastLogin": {
-        ".read": false,
-        ".write": true
-      }
+      ".write": false
     },
+
     "settings": {
-      ".read": true,
-      ".write": true
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.role === 'admin'"
     },
+
     "workers": {
-      ".read": true,
-      ".write": true,
+      "$workerId": {
+        ".read": "auth != null && (auth.uid === $workerId || auth.token.role === 'admin')",
+        ".write": "auth != null && (auth.uid === $workerId || auth.token.role === 'admin')",
+        "wallet": {
+          ".write": false
+        },
+        "activeOrderId": {
+          ".write": "auth != null && (auth.uid === $workerId || auth.token.role === 'admin')"
+        },
+        "ratings": {
+          ".write": "auth != null && auth.token.role === 'customer'"
+        }
+      },
       "accounts": {
-        ".read": true,
-        ".write": true,
         "customers": {
           "$mobile": {
-            ".read": true,
-            ".write": true,
-            ".validate": "newData.hasChildren(['mobile'])"
+            ".read": "auth != null && (auth.uid === 'customer_' + $mobile || auth.token.role === 'admin')",
+            ".write": "auth != null && (auth.uid === 'customer_' + $mobile || auth.token.role === 'admin')",
+            "balance": {
+              ".write": false
+            },
+            "role": {
+              ".validate": "data.exists() ? newData.val() === data.val() : newData.val() === 'customer'"
+            }
           }
         },
         "workers": {
           "$mobile": {
-            ".read": true,
-            ".write": true,
-            ".validate": "newData.hasChildren(['mobile'])"
+            ".read": "auth != null && (auth.uid === 'worker_' + $mobile || auth.token.role === 'admin')",
+            ".write": "auth != null && (auth.uid === 'worker_' + $mobile || auth.token.role === 'admin')",
+            "balance": {
+              ".write": false
+            },
+            "role": {
+              ".validate": "data.exists() ? newData.val() === data.val() : newData.val() === 'worker'"
+            }
           }
         }
-      },
-      "$workerId": {
-        ".read": true,
-        ".write": true
       }
     },
+
+    "publicWorkers": {
+      ".read": "auth != null",
+      "$workerId": {
+        ".write": "auth != null && (auth.uid === $workerId || auth.token.role === 'admin')"
+      }
+    },
+
     "orders": {
       ".indexOn": ["customerMobile", "status", "workerUid", "offerWorkerUid", "timestamp"],
-      ".read": true,
-      ".write": true,
       "$orderId": {
-        ".read": true,
-        ".write": true,
+        ".read": "auth != null && (data.child('customerUid').val() === auth.uid || data.child('customerMobile').val() === auth.token.mobile || data.child('workerUid').val() === auth.uid || (auth.token.role === 'worker' && (data.child('status').val() === 'Pending' || data.child('offerWorkerUid').val() === auth.uid)) || auth.token.role === 'admin')",
+        ".write": "auth != null && (!data.exists() || data.child('customerUid').val() === auth.uid || data.child('customerMobile').val() === auth.token.mobile || data.child('workerUid').val() === auth.uid || (auth.token.role === 'worker' && data.child('status').val() === 'Pending') || auth.token.role === 'admin')",
+        "budget": {
+          ".write": "!data.exists()"
+        },
+        "customerMobile": {
+          ".write": "!data.exists()"
+        },
+        "customerUid": {
+          ".write": "!data.exists()"
+        },
+        "status": {
+          ".validate": "newData.isString() && (newData.val() == 'Pending' || newData.val() == 'Offered' || newData.val() == 'Accepted' || newData.val() == 'On The Way' || newData.val() == 'In Progress' || newData.val() == 'Completed' || newData.val() == 'Cancelled')"
+        },
+        "workerLocation": {
+          ".read": "auth != null && (data.parent().child('customerUid').val() === auth.uid || data.parent().child('customerMobile').val() === auth.token.mobile || data.parent().child('workerUid').val() === auth.uid || auth.token.role === 'admin')",
+          ".write": "auth != null && (data.parent().child('workerUid').val() === auth.uid || auth.token.role === 'admin')"
+        },
+        "chat": {
+          ".read": "auth != null && (data.parent().child('customerUid').val() === auth.uid || data.parent().child('customerMobile').val() === auth.token.mobile || data.parent().child('workerUid').val() === auth.uid || auth.token.role === 'admin')",
+          "$msgId": {
+            ".write": "auth != null && (data.parent().parent().child('customerUid').val() === auth.uid || data.parent().parent().child('customerMobile').val() === auth.token.mobile || data.parent().parent().child('workerUid').val() === auth.uid || auth.token.role === 'admin')",
+            ".validate": "newData.hasChildren(['sender', 'text', 'timestamp']) && newData.child('text').isString() && newData.child('text').val().length <= 500"
+          }
+        },
         "completionOtp": {
-          ".validate": "newData.isString() && newData.val().length <= 8"
+          ".validate": "newData.isString() && newData.val().length <= 64"
         }
       }
     },
+
+    "walletLedger": {
+      ".read": false,
+      ".write": false
+    },
+
+    "users": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.token.role === 'admin')",
+        ".write": "auth != null && (auth.uid === $uid || auth.token.role === 'admin')"
+      }
+    },
+
     "notificationEvents": {
       ".read": false,
-      ".write": true
-    },
-    "users": {
-      ".read": true,
-      ".write": true
+      ".write": "auth != null"
     }
   }
 }

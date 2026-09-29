@@ -790,7 +790,8 @@ populateBookingProfile();
                     : (rawWorkerMobile ? '+91 ••••• ••' + String(rawWorkerMobile).slice(-3) : 'Not available');
 
                 let workerDisplayName = data.workerName || "Verified Partner";
-                let workerInfo = `${workerDisplayName} • <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-200"><i class="fa-solid fa-shield-halved"></i> ${maskedWorkerNumber}</span>`;
+                let workerPhotoHtml = (data.workerPhoto) ? `<img src="${data.workerPhoto}" class="w-6 h-6 rounded-full inline-block object-cover border border-amber-300 mr-1.5 shadow-sm align-middle" alt="Worker">` : `<i class="fa-solid fa-user-check text-emerald-600 mr-1"></i>`;
+                let workerInfo = `${workerPhotoHtml}<strong>${workerDisplayName}</strong> • <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-200"><i class="fa-solid fa-shield-halved"></i> ${maskedWorkerNumber}</span>`;
 
                 if (callWorkerBtn) {
                     if (rawWorkerMobile) {

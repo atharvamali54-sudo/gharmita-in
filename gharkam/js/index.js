@@ -32,8 +32,159 @@ let currentRole = 'customer';
         let pendingUserData = null;
         let resetPasswordMobile = null;
         let resetPasswordRole = null;
+        let currentWorkerPhoto = null;
 
         const otpDigitInputs = Array.from(document.querySelectorAll('.otp-digit'));
+
+        // =========================================================
+        // Worker Photo / Selfie Capture & Compression Helpers
+        // =========================================================
+        function triggerWorkerCamera() {
+            const camInput = document.getElementById('workerPhotoCameraInput');
+            if (camInput) camInput.click();
+        }
+
+        function triggerWorkerGallery() {
+            const galInput = document.getElementById('workerPhotoGalleryInput');
+            if (galInput) galInput.click();
+        }
+
+        function clearWorkerPhoto(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            currentWorkerPhoto = null;
+            const base64Input = document.getElementById('workerPhotoBase64');
+            if (base64Input) base64Input.value = '';
+            const camInput = document.getElementById('workerPhotoCameraInput');
+            if (camInput) camInput.value = '';
+            const galInput = document.getElementById('workerPhotoGalleryInput');
+            if (galInput) galInput.value = '';
+
+            const previewImg = document.getElementById('workerPhotoPreviewImg');
+            const placeholder = document.getElementById('workerPhotoPlaceholderIcon');
+            const removeBtn = document.getElementById('removeWorkerPhotoBtn');
+            const badge = document.getElementById('workerPhotoStatusBadge');
+            const hint = document.getElementById('workerPhotoHint');
+
+            if (previewImg) {
+                previewImg.src = '';
+                previewImg.classList.add('hidden');
+            }
+            if (placeholder) placeholder.classList.remove('hidden');
+            if (removeBtn) removeBtn.classList.add('hidden');
+            if (badge) badge.classList.add('hidden');
+            if (hint) hint.innerText = "कॅमेराने सेल्फी घ्या किंवा गॅलरीतून फोटो निवडा.";
+        }
+
+        function setWorkerPhotoPreview(dataUrl, isExisting = false) {
+            if (!dataUrl) return;
+            currentWorkerPhoto = dataUrl;
+            const base64Input = document.getElementById('workerPhotoBase64');
+            if (base64Input) base64Input.value = dataUrl;
+
+            const previewImg = document.getElementById('workerPhotoPreviewImg');
+            const placeholder = document.getElementById('workerPhotoPlaceholderIcon');
+            const removeBtn = document.getElementById('removeWorkerPhotoBtn');
+            const badge = document.getElementById('workerPhotoStatusBadge');
+            const hint = document.getElementById('workerPhotoHint');
+
+            if (previewImg) {
+                previewImg.src = dataUrl;
+                previewImg.classList.remove('hidden');
+            }
+            if (placeholder) placeholder.classList.add('hidden');
+            if (removeBtn) removeBtn.classList.remove('hidden');
+            if (badge) {
+                badge.innerHTML = isExisting ? '<i class="fa-solid fa-check"></i> सेव्ह केलेला फोटो' : '<i class="fa-solid fa-check"></i> फोटो निवडला';
+                badge.classList.remove('hidden');
+            }
+            if (hint) {
+                hint.innerText = isExisting ? "खात्यातील सेव्ह केलेला फोटो लोड झाला आहे. (बदलण्यासाठी सेल्फी घ्या)" : "फोटो यशस्वीरित्या निवडला गेला आहे!";
+            }
+        }
+
+        function compressImageFile(file, maxWidth = 360, maxHeight = 360, quality = 0.72) {
+            return new Promise((resolve, reject) => {
+                if (!file || !file.type.match(/image.*/)) {
+                    return reject(new Error('Selected file is not an image'));
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = Math.round((height * maxWidth) / width);
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = Math.round((width * maxHeight) / height);
+                                height = maxHeight;
+                            }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                        resolve(compressedDataUrl);
+                    };
+                    img.onerror = () => reject(new Error('Image load error for compression'));
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => reject(new Error('File reading error'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleWorkerPhotoSelected(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            showStatus("⏳ फोटो कॉम्प्रेस करत आहे...", "info");
+            try {
+                const compressedBase64 = await compressImageFile(file, 360, 360, 0.72);
+                setWorkerPhotoPreview(compressedBase64, false);
+                showStatus("✅ कामगाराचा फोटो निवडला गेला!", "success");
+                setTimeout(() => showStatus("", "hidden"), 2000);
+            } catch (err) {
+                console.error("Photo compression error:", err);
+                showStatus("❌ फोटो लोड करण्यात अडचण आली. कृपया दुसरा फोटो निवडा.", "error");
+            }
+        }
+
+        function highlightWorkerPhotoInput() {
+            const container = document.getElementById('workerPhotoContainer');
+            const previewBox = document.getElementById('workerPhotoPreviewBox');
+            if (container) {
+                container.classList.add('ring-2', 'ring-rose-500', 'animate-pulse');
+                setTimeout(() => container.classList.remove('ring-2', 'ring-rose-500', 'animate-pulse'), 2500);
+                container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            if (previewBox) {
+                previewBox.classList.add('border-rose-500');
+                setTimeout(() => previewBox.classList.remove('border-rose-500'), 2500);
+            }
+        }
+
+        async function checkWorkerSavedPhotoOnMobileInput() {
+            if (currentRole !== 'worker' || isSignupMode) return;
+            const mobileInput = document.getElementById('mobile');
+            if (!mobileInput) return;
+            const mobile = mobileInput.value.trim().replace(/\D/g, '').slice(-10);
+            if (mobile.length === 10 && !currentWorkerPhoto) {
+                const saved = await getUserForRoleAsync('worker', mobile);
+                if (saved && (saved.photo || saved.photoUrl)) {
+                    setWorkerPhotoPreview(saved.photo || saved.photoUrl, true);
+                }
+            }
+        }
 
         /*
          * Keep customer and worker accounts in separate namespaces.
@@ -82,11 +233,13 @@ let currentRole = 'customer';
                     workType: enrichedUser.workType || enrichedUser.service || null,
                     service: enrichedUser.service || enrichedUser.workType || null,
                     balance: typeof enrichedUser.balance !== 'undefined' ? enrichedUser.balance : 50,
+                    photo: enrichedUser.photo || enrichedUser.photoUrl || null,
+                    photoUrl: enrichedUser.photoUrl || enrichedUser.photo || null,
                     updatedAt: firebase.database.ServerValue.TIMESTAMP
                 };
 
                 // Store in central accounts registry
-                database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).set(cloudData)
+                database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).update(cloudData)
                     .catch(err => console.warn('Cloud account sync error:', err));
 
                 // If worker, also sync with workers/local_worker_<mobile>
@@ -97,7 +250,9 @@ let currentRole = 'customer';
                         mobile: cleanMobile,
                         workType: cloudData.workType || 'Cleaning',
                         service: cloudData.service || 'Cleaning',
-                        wallet: cloudData.balance || 50
+                        wallet: cloudData.balance || 50,
+                        photo: cloudData.photo,
+                        photoUrl: cloudData.photoUrl
                     }).catch(err => console.warn('Worker sync error:', err));
                 }
             }
@@ -184,7 +339,9 @@ let currentRole = 'customer';
                             role: 'worker',
                             workType: wData.workType || wData.service || 'Cleaning',
                             service: wData.service || wData.workType || 'Cleaning',
-                            balance: typeof wData.wallet !== 'undefined' ? wData.wallet : 50
+                            balance: typeof wData.wallet !== 'undefined' ? wData.wallet : 50,
+                            photo: wData.photo || wData.photoUrl || (localUser ? localUser.photo : null),
+                            photoUrl: wData.photoUrl || wData.photo || (localUser ? localUser.photoUrl : null)
                         };
                         saveUserToLocalStorageOnly('worker', recovered);
                         return recovered;
@@ -373,6 +530,7 @@ let currentRole = 'customer';
             } else {
                 tabW.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-yellow-500 text-gray-900 transition";
                 tabC.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-700 transition";
+                checkWorkerSavedPhotoOnMobileInput();
             }
             if(!isForgotPasswordMode) updateFormUI();
         }
@@ -384,6 +542,9 @@ let currentRole = 'customer';
             document.getElementById('otpContainer').classList.add('hidden');
             document.getElementById('newPasswordContainer').classList.add('hidden');
             document.getElementById('submitBtn').classList.remove('hidden');
+            if (currentRole === 'worker' && !isSignupMode) {
+                checkWorkerSavedPhotoOnMobileInput();
+            }
             updateFormUI();
         }
 
@@ -400,6 +561,8 @@ let currentRole = 'customer';
             const passwordContainer = document.getElementById('passwordContainer');
             const passwordInput = document.getElementById('password');
             const forgotLinkContainer = document.getElementById('forgotPasswordLinkContainer');
+            const workerPhotoContainer = document.getElementById('workerPhotoContainer');
+            const workerPhotoSubtext = document.getElementById('workerPhotoSubtext');
 
             let roleName = currentRole === 'customer' ? 'Customer' : 'Worker';
 
@@ -409,9 +572,22 @@ let currentRole = 'customer';
                 workTypeContainer.classList.add('hidden');
             }
 
+            // Worker Photo / Selfie Container Control
+            if (currentRole === 'worker') {
+                if (workerPhotoContainer) workerPhotoContainer.classList.remove('hidden');
+                if (workerPhotoSubtext) {
+                    workerPhotoSubtext.innerText = isSignupMode
+                        ? "नवीन अकाउंट तयार करताना थेट सेल्फी काढा किंवा फोटो अपलोड करा. हीच सेल्फी तुमच्या वर्कर पॅनेलमध्ये दिसेल."
+                        : "लॉगिन व ओळख पडताळणीसाठी कामगाराचा थेट सेल्फी किंवा फोटो आवश्यक आहे.";
+                }
+            } else {
+                if (workerPhotoContainer) workerPhotoContainer.classList.add('hidden');
+                clearWorkerPhoto();
+            }
+
             if (isSignupMode) {
                 title.innerText = roleName + " Signup";
-                sub.innerText = "Create account using Email OTP & Password";
+                sub.innerText = currentRole === 'worker' ? "Create account with Photo, Email OTP & Password" : "Create account using Email OTP & Password";
                 btn.innerText = "Send OTP & Verify";
                 fullNameContainer.classList.remove('hidden');
                 fullNameInput.required = true;
@@ -424,7 +600,7 @@ let currentRole = 'customer';
                 toggleTxt.innerHTML = `Already have an account? <a href="#" onclick="toggleMode()" class="text-blue-600 font-bold hover:underline">Sign In</a>`;
             } else {
                 title.innerText = roleName + " Sign In";
-                sub.innerText = "Enter Mobile & Password to Sign In";
+                sub.innerText = currentRole === 'worker' ? "Enter Mobile, Password & Photo to Sign In" : "Enter Mobile & Password to Sign In";
                 btn.innerText = "Sign In";
                 fullNameContainer.classList.add('hidden');
                 fullNameInput.required = false;
@@ -594,6 +770,13 @@ let currentRole = 'customer';
                     return;
                 }
 
+                // Worker Photo Verification during Signup
+                if (currentRole === 'worker' && !currentWorkerPhoto) {
+                    showStatus("❌ कामगाराचा फोटो (Selfie / Photo) आवश्यक आहे! कृपया सेल्फी काढा किंवा गॅलरीतून फोटो निवडा.", "error");
+                    highlightWorkerPhotoInput();
+                    return;
+                }
+
                 showStatus("⏳ मोबाईल नंबर तपासत आहे...", "info");
                 const existingUser = await getUserForRoleAsync(currentRole, mobile);
 
@@ -607,7 +790,9 @@ let currentRole = 'customer';
                 const hashedPassword = await hashPasswordWithSalt(password, mobile);
                 pendingUserData = { 
                     fullName, name: fullName, mobile, email, password: hashedPassword, role: currentRole, balance: 50, 
-                    workType: selectedWorkType, service: selectedWorkType
+                    workType: selectedWorkType, service: selectedWorkType,
+                    photo: currentWorkerPhoto || null,
+                    photoUrl: currentWorkerPhoto || null
                 };
 
                 generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
@@ -636,6 +821,41 @@ let currentRole = 'customer';
                     return;
                 }
 
+                // Worker Photo / Selfie Verification during Sign In
+                if (currentRole === 'worker') {
+                    let workerPhotoToUse = currentWorkerPhoto;
+                    if (!workerPhotoToUse && savedUser) {
+                        workerPhotoToUse = savedUser.photo || savedUser.photoUrl || null;
+                    }
+
+                    if (!workerPhotoToUse) {
+                        showStatus("❌ कामगाराचा फोटो (Selfie / Photo) आवश्यक आहे! कृपया लॉगिन करण्यासाठी सेल्फी काढा किंवा फोटो निवडा.", "error");
+                        highlightWorkerPhotoInput();
+                        return;
+                    }
+
+                    savedUser.photo = workerPhotoToUse;
+                    savedUser.photoUrl = workerPhotoToUse;
+                    savedUser.lastLoginPhoto = workerPhotoToUse;
+                    savedUser.lastLoginAt = new Date().toISOString();
+
+                    // Sync photo to Firebase worker records
+                    if (typeof database !== 'undefined') {
+                        database.ref('workers/accounts/workers/' + mobile).update({
+                            photo: workerPhotoToUse,
+                            photoUrl: workerPhotoToUse,
+                            lastLoginPhoto: workerPhotoToUse,
+                            lastLoginAt: firebase.database.ServerValue.TIMESTAMP
+                        }).catch(() => {});
+
+                        database.ref('workers/local_worker_' + mobile).update({
+                            photo: workerPhotoToUse,
+                            photoUrl: workerPhotoToUse,
+                            lastLoginPhoto: workerPhotoToUse
+                        }).catch(() => {});
+                    }
+                }
+
                 // Automatic seamless migration: If account had plaintext password, hash it now!
                 if (savedUser.password && !savedUser.password.startsWith('sha256$')) {
                     const migratedHash = await hashPasswordWithSalt(password, mobile);
@@ -647,6 +867,21 @@ let currentRole = 'customer';
                             migratedAt: firebase.database.ServerValue.TIMESTAMP
                         }).catch(() => {});
                     }
+                }
+
+                // Server-Issued Token & scrypt Migration Request
+                try {
+                    fetch('http://localhost:5000/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mobile, password, role: currentRole })
+                    }).then(r => r.json()).then(lData => {
+                        if (lData.success && lData.token) {
+                            localStorage.setItem('gharmitra_auth_token', lData.token);
+                        }
+                    }).catch(e => console.warn('[Backend Auth Sync Warning]:', e));
+                } catch(apiErr) {
+                    console.warn('[Backend Auth Sync Warning]:', apiErr);
                 }
 
                 // Save session on this new device
@@ -707,6 +942,10 @@ let currentRole = 'customer';
             if (userEnteredOTP === generatedOTP) {
                 showStatus("⏳ OTP verify hot ahe...", "info");
                 animateOtpVerification(async () => {
+                    if (pendingUserData.role === 'worker' && currentWorkerPhoto) {
+                        pendingUserData.photo = currentWorkerPhoto;
+                        pendingUserData.photoUrl = currentWorkerPhoto;
+                    }
                     // Save to both LocalStorage AND Firebase Realtime Database
                     saveUserForRole(pendingUserData.role, pendingUserData);
                     localStorage.setItem('current_user_session', JSON.stringify(pendingUserData));
@@ -716,10 +955,22 @@ let currentRole = 'customer';
                         const cleanMobile = String(pendingUserData.mobile).replace(/\D/g, '').slice(-10);
                         const roleNode = pendingUserData.role === 'worker' ? 'workers' : 'customers';
                         try {
-                            await database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).set({
+                            await database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).update({
                                 ...pendingUserData,
                                 updatedAt: firebase.database.ServerValue.TIMESTAMP
                             });
+                            if (pendingUserData.role === 'worker') {
+                                await database.ref('workers/local_worker_' + cleanMobile).update({
+                                    fullName: pendingUserData.fullName || pendingUserData.name || '',
+                                    name: pendingUserData.name || pendingUserData.fullName || '',
+                                    mobile: cleanMobile,
+                                    workType: pendingUserData.workType || 'Cleaning',
+                                    service: pendingUserData.service || 'Cleaning',
+                                    wallet: pendingUserData.balance || 50,
+                                    photo: pendingUserData.photo || currentWorkerPhoto || null,
+                                    photoUrl: pendingUserData.photoUrl || currentWorkerPhoto || null
+                                });
+                            }
                         } catch(e) {
                             console.warn("Cloud account save error:", e);
                         }
@@ -747,4 +998,9 @@ let currentRole = 'customer';
 // Automatically sync any existing local accounts on this device up to the cloud
 document.addEventListener('DOMContentLoaded', () => {
     syncExistingLocalAccountsToCloud();
+    const mobileInput = document.getElementById('mobile');
+    if (mobileInput) {
+        mobileInput.addEventListener('input', checkWorkerSavedPhotoOnMobileInput);
+        mobileInput.addEventListener('blur', checkWorkerSavedPhotoOnMobileInput);
+    }
 });

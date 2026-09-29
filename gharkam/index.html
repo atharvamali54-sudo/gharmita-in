@@ -17,32 +17,64 @@
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css">
-  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/common.css?v=32">
+  <link rel="stylesheet" href="css/index.css?v=32">
+  <script>
+      (function(){
+          try {
+              var isStandalone = window.matchMedia && (
+                  window.matchMedia('(display-mode: standalone)').matches ||
+                  window.matchMedia('(display-mode: fullscreen)').matches ||
+                  window.matchMedia('(display-mode: minimal-ui)').matches
+              );
+              var isIosStandalone = window.navigator && window.navigator.standalone === true;
+              var isAndroidApp = (document.referrer && (document.referrer.indexOf('android-app://') !== -1 || document.referrer.indexOf('com.gharmitra.app') !== -1));
+              var urlParams = new URLSearchParams(window.location.search);
+              var isUrlApp = urlParams.get('app') === 'true' || urlParams.get('mode') === 'app' || urlParams.get('source') === 'app' || urlParams.get('webview') === 'true';
+              var isStoredApp = sessionStorage.getItem('gharmitra_is_app') === 'true';
+              var ua = (window.navigator && window.navigator.userAgent) ? window.navigator.userAgent.toLowerCase() : '';
+              var isUaApp = ua.indexOf('gharmitraapp') !== -1 || ua.indexOf('; wv') !== -1 || ua.indexOf(';wv') !== -1;
+              var isNativeApp = !!(window.GharmitraNative || window.Android || window.AndroidBridge);
+
+              if (isStandalone || isIosStandalone || isAndroidApp || isUrlApp || isStoredApp || isUaApp || isNativeApp) {
+                  document.documentElement.classList.add('is-app-env');
+                  sessionStorage.setItem('gharmitra_is_app', 'true');
+              }
+          } catch(e) {}
+      })();
+  </script>
 </head>
 <body class="hero-bg min-h-screen flex flex-col justify-between text-gray-800">
 
-    <header class="liquid-header w-full py-4 px-6 flex justify-between items-center border-b border-white/20">
-        <div class="flex items-center space-x-3">
-            <div class="brand-mark p-2 rounded-full font-bold text-blue-600 text-xl">🏠 GK</div>
-            <div>
-                <h1 class="text-white text-2xl font-bold">GHARMITRA<span class="text-blue-200">.online</span></h1>
-                <p class="text-xs text-blue-200">Pune City Services</p>
+    <header class="liquid-header w-full py-3 sm:py-4 px-3 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 border-b border-white/20">
+        <div class="w-full sm:w-auto flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
+                <div class="brand-mark p-1.5 sm:p-2 rounded-full font-bold text-blue-600 text-lg sm:text-xl">🏠 GK</div>
+                <div>
+                    <h1 class="text-white text-xl sm:text-2xl font-bold tracking-tight">GHARMITRA<span class="text-blue-200 text-sm sm:text-base font-bold">.online</span></h1>
+                    <p class="text-[11px] sm:text-xs text-blue-200">Pune City Services</p>
+                </div>
             </div>
+            <!-- Mobile-only WhatsApp button on top row -->
+            <button type="button" onclick="shareGharmitraApp()" title="Gharmitra ॲप व्हॉट्सॲपवर शेअर करा" class="gharmitra-share-btn sm:hidden bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-[11px] py-1.5 px-2.5 rounded-xl shadow-md transition flex items-center gap-1 cursor-pointer border border-white/30 shrink-0">
+                <i class="fa-brands fa-whatsapp text-xs"></i> <span>शेअर करा</span>
+            </button>
         </div>
-                <div class="flex items-center gap-2">
-            <button type="button" onclick="shareGharmitraApp()" title="Gharmitra ॲप व्हॉट्सॲपवर शेअर करा" class="bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-xs py-1.5 px-3 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer border border-white/30 shrink-0">
+
+        <div class="w-full sm:w-auto flex flex-wrap items-center justify-center sm:justify-end gap-1.5 sm:gap-2">
+            <!-- Desktop WhatsApp button -->
+            <button type="button" onclick="shareGharmitraApp()" title="Gharmitra ॲप व्हॉट्सॲपवर शेअर करा" class="gharmitra-share-btn hidden sm:inline-flex bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-xs py-1.5 px-3 rounded-xl shadow-md transition items-center gap-1.5 cursor-pointer border border-white/30 shrink-0">
                 <i class="fa-brands fa-whatsapp text-sm"></i> <span>शेअर करा</span>
             </button>
-            <button onclick="showPwaInstallModal()" class="pwa-install-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-1.5 px-3 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
-                <i class="fa-solid fa-download"></i> <span>Install App</span>
+            <button onclick="showPwaInstallModal()" class="pwa-install-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] sm:text-xs py-1.5 px-2.5 sm:px-3 rounded-xl shadow transition flex items-center gap-1 sm:gap-1.5 cursor-pointer shrink-0">
+                <i class="fa-solid fa-download text-xs"></i> <span>Install App</span>
             </button>
-            <span id="location-status" class="text-xs bg-yellow-400 text-gray-900 px-3 py-1.5 rounded-full font-semibold shadow-inner">📍 Pune Verified</span>
+            <span id="location-status" class="text-[11px] sm:text-xs bg-yellow-400 text-gray-900 px-2.5 sm:px-3 py-1.5 rounded-full font-semibold shadow-inner shrink-0">📍 Pune Verified</span>
         </div>
     </header>
 
-    <main class="flex-grow flex items-center justify-center px-4 py-10">
-        <div class="max-w-md w-full glass-card p-8">
+    <main class="flex-grow flex items-center justify-center px-4 py-8 sm:py-10">
+        <div class="max-w-md w-full glass-card p-5 sm:p-8">
             
              <div class="role-switch flex mb-6 p-1 rounded-xl">
                 <button onclick="setRole('customer')" id="tabCustomer" class="flex-1 py-2 text-sm font-bold rounded-lg bg-blue-600 text-white transition">Customer</button>
@@ -91,8 +123,58 @@
                         <option value="Pest Control">🦟 Pest Control</option>
                         <option value="Gardening">🌿 Gardening</option>
                         <option value="Moving & Shifting">📦 Moving & Shifting</option>
-                        
                     </select>
+                </div>
+
+                <!-- Worker Photo / Selfie Container (Required for Worker Login & Signup) -->
+                <div id="workerPhotoContainer" class="hidden p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl transition">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                            <i class="fa-solid fa-camera text-amber-600 text-sm"></i> 
+                            <span>कामगाराचा फोटो / थेट सेल्फी (Worker Photo / Selfie) <span class="text-rose-600 font-bold">*</span></span>
+                        </label>
+                        <span id="workerPhotoStatusBadge" class="hidden text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-300">
+                            <i class="fa-solid fa-check"></i> सेल्फी जोडली
+                        </span>
+                    </div>
+                    <p id="workerPhotoSubtext" class="text-[11px] text-amber-900/80 mb-3 leading-tight">
+                        नवीन अकाउंट तयार करताना थेट सेल्फी काढा किंवा फोटो अपलोड करा. हीच सेल्फी तुमच्या वर्कर पॅनेलमध्ये दिसेल.
+                    </p>
+
+                    <div class="flex items-center gap-3">
+                        <!-- Photo Preview Box -->
+                        <div class="relative shrink-0">
+                            <div id="workerPhotoPreviewBox" onclick="triggerWorkerCamera()" class="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-amber-300 flex flex-col items-center justify-center text-amber-500 cursor-pointer overflow-hidden shadow-inner hover:border-amber-500 transition group" title="फोटो घेण्यासाठी क्लिक करा">
+                                <i id="workerPhotoPlaceholderIcon" class="fa-solid fa-user-circle text-3xl text-amber-400 group-hover:scale-110 transition"></i>
+                                <img id="workerPhotoPreviewImg" src="" alt="Worker Photo" class="hidden w-full h-full object-cover">
+                            </div>
+                            <button type="button" id="removeWorkerPhotoBtn" onclick="clearWorkerPhoto(event)" class="hidden absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow hover:bg-rose-600 transition" title="फोटो काढा">
+                                ✕
+                            </button>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex-1 space-y-1.5">
+                            <div class="flex gap-2">
+                                <button type="button" onclick="triggerWorkerCamera()" class="flex-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-900 font-bold text-xs py-2 px-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 border border-amber-400/50 cursor-pointer">
+                                    <i class="fa-solid fa-camera text-slate-900"></i>
+                                    <span>सेल्फी काढा</span>
+                                </button>
+                                <button type="button" onclick="triggerWorkerGallery()" class="bg-white hover:bg-amber-100/60 active:scale-95 text-amber-900 font-semibold text-xs py-2 px-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1 border border-amber-200 cursor-pointer">
+                                    <i class="fa-solid fa-image text-amber-600"></i>
+                                    <span>गॅलरी</span>
+                                </button>
+                            </div>
+                            <p id="workerPhotoHint" class="text-[10px] text-gray-500">
+                                कॅमेराने सेल्फी घ्या किंवा गॅलरीतून फोटो निवडा.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Hidden file inputs for Camera & Gallery -->
+                    <input type="file" id="workerPhotoCameraInput" accept="image/*" capture="user" class="hidden" onchange="handleWorkerPhotoSelected(event)">
+                    <input type="file" id="workerPhotoGalleryInput" accept="image/*" class="hidden" onchange="handleWorkerPhotoSelected(event)">
+                    <input type="hidden" id="workerPhotoBase64" value="">
                 </div>
 
                 <div id="forgotPasswordLinkContainer" class="hidden text-right">
@@ -186,8 +268,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="js/firebase.js"></script>
-    <script src="js/index.js?v=2.0"></script>
-    <script src="js/pwa.js?v=9.1"></script>
+    <script src="js/firebase.js?v=32"></script>
+    <script src="js/index.js?v=32"></script>
+    <script src="js/pwa.js?v=32"></script>
 </body>
 </html>

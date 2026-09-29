@@ -31,32 +31,61 @@
     <meta name="apple-mobile-web-app-title" content="Gharmitra">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
-    <link rel="stylesheet" href="css/common.css?v=5.0">
-  <link rel="stylesheet" href="css/worker.css">
-</head>
-<body class="bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-900 min-h-screen p-4 md:p-8 flex items-center justify-center font-sans">
+    <link rel="stylesheet" href="css/common.css?v=32">
+    <link rel="stylesheet" href="css/worker.css?v=32">
+    <script>
+        (function(){
+            try {
+                var isStandalone = window.matchMedia && (
+                    window.matchMedia('(display-mode: standalone)').matches ||
+                    window.matchMedia('(display-mode: fullscreen)').matches ||
+                    window.matchMedia('(display-mode: minimal-ui)').matches
+                );
+                var isIosStandalone = window.navigator && window.navigator.standalone === true;
+                var isAndroidApp = (document.referrer && (document.referrer.indexOf('android-app://') !== -1 || document.referrer.indexOf('com.gharmitra.app') !== -1));
+                var urlParams = new URLSearchParams(window.location.search);
+                var isUrlApp = urlParams.get('app') === 'true' || urlParams.get('mode') === 'app' || urlParams.get('source') === 'app' || urlParams.get('webview') === 'true';
+                var isStoredApp = sessionStorage.getItem('gharmitra_is_app') === 'true';
+                var ua = (window.navigator && window.navigator.userAgent) ? window.navigator.userAgent.toLowerCase() : '';
+                var isUaApp = ua.indexOf('gharmitraapp') !== -1 || ua.indexOf('; wv') !== -1 || ua.indexOf(';wv') !== -1;
+                var isNativeApp = !!(window.GharmitraNative || window.Android || window.AndroidBridge);
 
-<div class="w-full max-w-5xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-white/20">
-<header class="bg-blue-600 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-md select-none">
-<div class="flex items-center gap-3">
-<div class="flex items-center gap-2 text-2xl font-black tracking-tight text-white">
-<span class="bg-white text-blue-600 p-2 rounded-xl text-lg flex items-center justify-center shadow-sm">🏠 GK</span>
-<span>GHARMITRA<span class="text-blue-200">.online</span></span>
+                if (isStandalone || isIosStandalone || isAndroidApp || isUrlApp || isStoredApp || isUaApp || isNativeApp) {
+                    document.documentElement.classList.add('is-app-env');
+                    sessionStorage.setItem('gharmitra_is_app', 'true');
+                }
+            } catch(e) {}
+        })();
+    </script>
+</head>
+<body class="bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-900 min-h-screen p-2 sm:p-4 md:p-8 flex items-center justify-center font-sans">
+
+<div class="w-full max-w-5xl bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+<header class="bg-blue-600 px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-3 shadow-md select-none">
+<div class="w-full sm:w-auto flex items-center justify-between gap-2">
+    <div class="flex items-center gap-2 text-xl sm:text-2xl font-black tracking-tight text-white shrink-0">
+        <span class="bg-white text-blue-600 p-1.5 sm:p-2 rounded-xl text-base sm:text-lg flex items-center justify-center shadow-sm">🏠 GK</span>
+        <span class="tracking-tight">GHARMITRA<span class="text-blue-200 text-sm sm:text-base font-bold">.online</span></span>
+    </div>
+    <!-- Mobile-only WhatsApp button on top row -->
+    <button type="button" onclick="shareGharmitraApp()" title="Gharmitra ॲप व्हॉट्सॲपवर शेअर करा" class="gharmitra-share-btn sm:hidden bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-[11px] py-1.5 px-2.5 rounded-xl transition flex items-center gap-1 shadow-sm shrink-0 border border-white/30 cursor-pointer">
+        <i class="fa-brands fa-whatsapp text-xs"></i> <span>शेअर करा</span>
+    </button>
+    <span class="hidden md:inline-block text-xs font-semibold bg-blue-700 text-blue-100 px-3 py-1 rounded-full border border-blue-500">
+        Worker Dashboard
+    </span>
 </div>
-<span class="hidden md:inline-block text-xs font-semibold bg-blue-700 text-blue-100 px-3 py-1 rounded-full border border-blue-500">
-Worker Dashboard
-</span>
-</div>
-<div class="flex items-center gap-2">
-<button type="button" onclick="shareGharmitraApp()" title="Gharmitra ॲप व्हॉट्सॲपवर शेअर करा" class="bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-xs py-1.5 px-3 rounded-xl transition flex items-center gap-1.5 shadow-md shrink-0 border border-white/30 cursor-pointer">
-    <i class="fa-brands fa-whatsapp text-sm"></i> <span>शेअर करा</span>
-</button>
-<button onclick="showPwaInstallModal()" class="pwa-install-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-1.5 px-3 rounded-xl shadow transition flex items-center gap-1.5">
-    <i class="fa-solid fa-download"></i> <span>Install App</span>
-</button>
-<span id="headerDutyStatus" class="text-xs font-bold bg-white text-blue-700 border border-white/20 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
-<span id="dutyDot" class="w-2 h-2 rounded-full bg-red-500"></span> <span id="dutyText">Duty OFF</span>
-</span>
+<div class="w-full sm:w-auto flex flex-wrap items-center justify-center sm:justify-end gap-1.5 sm:gap-2">
+    <!-- Desktop WhatsApp button -->
+    <button type="button" onclick="shareGharmitraApp()" title="Gharmitra ॲप व्हॉट्सॲपवर शेअर करा" class="gharmitra-share-btn hidden sm:inline-flex bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-xs py-1.5 px-3 rounded-xl transition items-center gap-1.5 shadow-md shrink-0 border border-white/30 cursor-pointer">
+        <i class="fa-brands fa-whatsapp text-sm"></i> <span>शेअर करा</span>
+    </button>
+    <button onclick="showPwaInstallModal()" class="pwa-install-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] sm:text-xs py-1.5 px-2.5 sm:px-3 rounded-xl shadow transition flex items-center gap-1 sm:gap-1.5 shrink-0">
+        <i class="fa-solid fa-download text-xs"></i> <span>Install App</span>
+    </button>
+    <span id="headerDutyStatus" class="text-[11px] sm:text-xs font-bold bg-white text-blue-700 border border-white/20 px-2.5 sm:px-3 py-1.5 rounded-full flex items-center gap-1 sm:gap-1.5 shadow-sm shrink-0">
+        <span id="dutyDot" class="w-2 h-2 rounded-full bg-red-500"></span> <span id="dutyText">Duty OFF</span>
+    </span>
 </div>
 </header>
 
@@ -84,29 +113,42 @@ Worker Dashboard
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
 <div class="lg:col-span-7 p-6 md:p-8 bg-white border-b lg:border-b-0 border-slate-200">
 <div class="card-3d p-6 rounded-3xl text-white mb-6 relative overflow-hidden flex flex-col sm:flex-row justify-between items-center gap-4">
-<div class="space-y-1.5 w-full sm:w-auto text-left">
-<div class="flex items-center gap-2">
-<h2 class="font-black text-xl tracking-wide text-white">Gharmitra Worker Panel</h2>
-<span class="bg-emerald-400/20 text-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-400/30">Verified Partner</span>
-</div>
-<p class="text-sm font-semibold text-blue-100 flex items-center gap-1.5 flex-wrap">
-<i class="fa-solid fa-user-gear text-xs text-blue-300"></i> Worker: <span id="workerUsername" class="text-white font-bold underline decoration-blue-300 underline-offset-2">Loading...</span>
-<button onclick="editWorkerName()" title="नाव बदला" class="bg-white/20 hover:bg-white/30 text-white text-[10px] px-2 py-0.5 rounded-md transition underline flex items-center gap-1">Change</button>
-</p>
-<p class="text-xs font-medium text-blue-200 tracking-wide flex items-center gap-2 flex-wrap">
-<span>ID: <strong id="workerID" class="text-white">GK-000000</strong></span>
-<span>|</span>
-<span class="flex items-center gap-1.5">
-Service: <strong id="workerService" class="text-white">Loading...</strong>
-<button onclick="openServiceModal()" class="bg-white/20 hover:bg-white/30 text-white text-[10px] px-2 py-0.5 rounded-md transition underline">Change</button>
-</span>
-</p>
-<div class="flex items-center gap-2 pt-1">
-<span class="bg-amber-400 text-slate-900 text-xs font-black px-2 py-0.5 rounded-md flex items-center gap-1">
-<i class="fa-solid fa-star text-[10px]"></i> <span id="workerAvgRating">5.0</span>
-</span>
-<span class="text-xs text-blue-100 font-medium">(<span id="workerTotalReviews">0</span> Reviews)</span>
-</div>
+<div class="flex items-center gap-4 w-full sm:w-auto text-left">
+    <!-- Worker Photo Avatar -->
+    <div class="relative shrink-0">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/10 p-1 border-2 border-amber-300/80 shadow-lg overflow-hidden backdrop-blur-sm">
+            <img id="workerHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231e293b'/%3E%3Ccircle cx='32' cy='24' r='12' fill='%23f59e0b'/%3E%3Cpath d='M14 54c0-9.94 8.06-18 18-18s18 8.06 18 18' fill='%23f59e0b'/%3E%3C/svg%3E" alt="Worker Photo" class="w-full h-full object-cover rounded-xl" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 64 64\'%3E%3Crect width=\'64\' height=\'64\' rx=\'16\' fill=\'%231e293b\'/%3E%3Ccircle cx=\'32\' cy=\'24\' r=\'12\' fill=\'%23f59e0b\'/%3E%3Cpath d=\'M14 54c0-9.94 8.06-18 18-18s18 8.06 18 18\' fill=\'%23f59e0b\'/%3E%3C/svg%3E'">
+        </div>
+        <button onclick="triggerWorkerDashboardPhotoChange()" title="फोटो बदला (Update Photo)" class="absolute -bottom-1 -right-1 w-6 h-6 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-full text-xs font-bold flex items-center justify-center shadow border border-white cursor-pointer transition">
+            <i class="fa-solid fa-camera text-[10px]"></i>
+        </button>
+    </div>
+
+    <div class="space-y-1.5 w-full sm:w-auto text-left">
+        <div class="flex items-center gap-2">
+            <h2 class="font-black text-xl tracking-wide text-white">Gharmitra Worker Panel</h2>
+            <span class="bg-emerald-400/20 text-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-400/30">Verified Partner</span>
+        </div>
+        <p class="text-sm font-semibold text-blue-100 flex items-center gap-1.5 flex-wrap">
+            <i class="fa-solid fa-user-gear text-xs text-blue-300"></i> Worker: <span id="workerUsername" class="text-white font-bold underline decoration-blue-300 underline-offset-2">Loading...</span>
+            <button onclick="editWorkerName()" title="नाव बदला" class="bg-white/20 hover:bg-white/30 text-white text-[10px] px-2 py-0.5 rounded-md transition underline flex items-center gap-1">Change</button>
+            <button onclick="triggerWorkerDashboardPhotoChange()" title="फोटो बदला" class="bg-white/20 hover:bg-white/30 text-white text-[10px] px-2 py-0.5 rounded-md transition underline flex items-center gap-1"><i class="fa-solid fa-camera text-[9px]"></i> Photo</button>
+        </p>
+        <p class="text-xs font-medium text-blue-200 tracking-wide flex items-center gap-2 flex-wrap">
+            <span>ID: <strong id="workerID" class="text-white">GK-000000</strong></span>
+            <span>|</span>
+            <span class="flex items-center gap-1.5">
+            Service: <strong id="workerService" class="text-white">Loading...</strong>
+            <button onclick="openServiceModal()" class="bg-white/20 hover:bg-white/30 text-white text-[10px] px-2 py-0.5 rounded-md transition underline">Change</button>
+            </span>
+        </p>
+        <div class="flex items-center gap-2 pt-1">
+            <span class="bg-amber-400 text-slate-900 text-xs font-black px-2 py-0.5 rounded-md flex items-center gap-1">
+                <i class="fa-solid fa-star text-[10px]"></i> <span id="workerAvgRating">5.0</span>
+            </span>
+            <span class="text-xs text-blue-100 font-medium">(<span id="workerTotalReviews">0</span> Reviews)</span>
+        </div>
+    </div>
 </div>
 
 <div class="inner-3d-box p-4 rounded-2xl text-center min-w-[145px] w-full sm:w-auto text-slate-800">
@@ -380,9 +422,42 @@ Service: <strong id="workerService" class="text-white">Loading...</strong>
     </div>
 </div>
 
-<script src="js/firebase.js"></script>
-<script src="js/call-masking.js?v=9.0"></script>
-<script src="js/worker.js?v=9.1"></script>
-<script src="js/pwa.js?v=9.1"></script>
+<!-- Worker Photo Update Modal -->
+<div id="workerPhotoUpdateModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4 border border-slate-100 animate-in fade-in zoom-in duration-200">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h3 class="font-black text-slate-800 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-camera text-amber-500"></i> कामगाराचा फोटो बदला
+            </h3>
+            <button onclick="closeWorkerPhotoModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">✕</button>
+        </div>
+
+        <div class="w-28 h-28 mx-auto rounded-3xl bg-slate-100 p-1 border-2 border-dashed border-amber-300 overflow-hidden shadow-inner flex items-center justify-center">
+            <img id="workerModalPhotoPreview" src="" alt="Worker Photo" class="w-full h-full object-cover rounded-2xl">
+        </div>
+
+        <div class="space-y-2">
+            <button type="button" onclick="triggerDashboardCamera()" class="w-full bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-900 font-bold py-3 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs">
+                <i class="fa-solid fa-camera text-sm"></i> <span>कॅमेराने सेल्फी काढा</span>
+            </button>
+            <button type="button" onclick="triggerDashboardGallery()" class="w-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs">
+                <i class="fa-solid fa-image text-sm"></i> <span>गॅलरीतून फोटो निवडा</span>
+            </button>
+        </div>
+
+        <p class="text-[11px] text-slate-500">
+            फोटो बदलल्यानंतर तो लगेच ग्राहकांना आणि डॅशबोर्डवर दिसेल.
+        </p>
+    </div>
+</div>
+
+<!-- Hidden inputs for updating worker photo directly from dashboard -->
+<input type="file" id="dashboardWorkerPhotoCamera" accept="image/*" capture="user" class="hidden" onchange="handleDashboardWorkerPhotoSelected(event)">
+<input type="file" id="dashboardWorkerPhotoGallery" accept="image/*" class="hidden" onchange="handleDashboardWorkerPhotoSelected(event)">
+
+<script src="js/firebase.js?v=32"></script>
+<script src="js/call-masking.js?v=32"></script>
+<script src="js/worker.js?v=32"></script>
+<script src="js/pwa.js?v=32"></script>
 </body>
 </html>

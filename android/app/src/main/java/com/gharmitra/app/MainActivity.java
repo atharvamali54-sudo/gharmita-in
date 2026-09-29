@@ -24,7 +24,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_URL = "https://atharvamali54-sudo.github.io/gharmita-in/gharkam/index.html";
+    private static final String APP_URL = "https://atharvamali54-sudo.github.io/gharmita-in/gharkam/index.html?app=true";
     private static final int PERMISSION_REQUEST_CODE = 101;
     private static final int FILE_CHOOSER_REQUEST_CODE = 102;
 
@@ -38,13 +38,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         // =========================================================
-        // BLOCK SCREENSHOTS & SCREEN RECORDING (FLAG_SECURE)
-        // Hard-blocks hardware buttons (Power + Volume) & 3-finger swipe
+        // SCREENSHOTS & SCREEN CAPTURE ENABLED
+        // Allows normal screenshots (Power + Volume Down, 3-finger swipe)
         // =========================================================
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE
-        );
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
 
         setContentView(R.layout.activity_main);
 
@@ -69,7 +66,10 @@ public class MainActivity extends Activity {
         String defaultUA = settings.getUserAgentString();
         // Remove '; wv' and 'Version/X.X' so Razorpay and web gateways recognize standard Chrome Mobile and display UPI
         String cleanedUA = defaultUA.replace("; wv", "").replaceAll("Version\\/\\d+\\.\\d+\\s*", "");
-        settings.setUserAgentString(cleanedUA);
+        settings.setUserAgentString(cleanedUA + " GharmitraApp/1.0");
+
+        // Native app interface bridge for reliable web-app detection
+        webView.addJavascriptInterface(new Object(), "GharmitraNative");
 
         // Enable third-party cookies for payment gateways and banking authentication
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -214,7 +214,8 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             String[] permissions = new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.CAMERA
             };
             boolean need = false;
             for (String perm : permissions) {
@@ -239,6 +240,12 @@ public class MainActivity extends Activity {
                     String dataString = data.getDataString();
                     if (dataString != null) {
                         results = new Uri[]{Uri.parse(dataString)};
+                    } else if (data.getClipData() != null) {
+                        int count = data.getClipData().getItemCount();
+                        results = new Uri[count];
+                        for (int i = 0; i < count; i++) {
+                            results[i] = data.getClipData().getItemAt(i).getUri();
+                        }
                     }
                 }
                 fileUploadCallback.onReceiveValue(results);

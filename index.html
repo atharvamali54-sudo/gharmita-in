@@ -12,7 +12,25 @@
     <link rel="manifest" href="gharkam/manifest.json">
     <meta name="theme-color" content="#1d4ed8">
     <style>
-        body { font-family: 'Poppins', sans-serif; }
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        html {
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden !important;
+            overscroll-behavior-x: none !important;
+            touch-action: pan-y pinch-zoom;
+            -webkit-overflow-scrolling: touch;
+        }
+        body {
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden !important;
+            overscroll-behavior-x: none !important;
+            touch-action: pan-y pinch-zoom;
+            font-family: 'Poppins', sans-serif;
+        }
         .gradient-hero {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
         }
@@ -35,15 +53,15 @@
 
     <!-- Main Navigation Header -->
     <header class="bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200/80 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex justify-between items-center">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3.5 flex justify-between items-center gap-2">
             
             <!-- Brand Logo -->
-            <a href="index.html" class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-md">🏠</div>
+            <a href="index.html" class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center text-base sm:text-xl shadow-md">🏠</div>
                 <div>
-                    <span class="font-black text-xl tracking-tight text-slate-900">GHARMITRA<span class="text-blue-600">.online</span></span>
-                    <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span> Pune Verified Home Services
+                    <span class="font-black text-lg sm:text-xl tracking-tight text-slate-900">GHARMITRA<span class="text-blue-600 text-sm sm:text-base">.online</span></span>
+                    <p class="text-[9px] sm:text-[10px] text-slate-500 font-semibold uppercase tracking-wider flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span> Pune Verified Home Services
                     </p>
                 </div>
             </a>
@@ -58,13 +76,13 @@
             </nav>
 
             <!-- Action Buttons -->
-            <div class="flex items-center gap-2 sm:gap-3">
-                <a href="gharkam/index.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-briefcase text-slate-500"></i>
+            <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                <a href="gharkam/index.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition flex items-center gap-1 sm:gap-1.5">
+                    <i class="fa-solid fa-briefcase text-slate-500 text-xs"></i>
                     <span class="hidden sm:inline">कामगार</span> लॉगिन
                 </a>
-                <a href="gharkam/index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow-md shadow-blue-500/20 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-calendar-check"></i>
+                <a href="gharkam/index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[11px] sm:text-xs px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl shadow-md shadow-blue-500/20 transition flex items-center gap-1 sm:gap-1.5">
+                    <i class="fa-solid fa-calendar-check text-xs"></i>
                     <span>सेवा बुक करा</span>
                 </a>
             </div>
@@ -686,5 +704,6 @@
 
     </footer>
 
+    <script src="gharkam/js/pwa.js?v=9.3"></script>
 </body>
 </html>
