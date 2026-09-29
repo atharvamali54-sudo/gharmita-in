@@ -205,6 +205,91 @@
                         <input type="file" id="jobPhoto" accept="image/*" class="w-full text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
                     </div>
 
+                    <!-- Voice Note Recording (Optional) -->
+                    <div id="voiceNoteSection" class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                                VOICE NOTE (OPTIONAL)
+                            </label>
+                            <span id="voiceNoteBadge" class="hidden text-[10px] font-bold px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full items-center gap-1 shadow-2xs">
+                                <i class="fa-solid fa-check-circle text-emerald-600"></i> Attached
+                            </span>
+                        </div>
+
+                        <!-- Prompt / Inactive State -->
+                        <div id="voiceRecordPrompt" class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-lg shrink-0">
+                                    🎙️
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800">Explain your work by voice</p>
+                                    <p class="text-[11px] text-slate-500">Record a clear voice message (up to 30 seconds)</p>
+                                </div>
+                            </div>
+                            <button type="button" id="startVoiceRecordBtn" onclick="startVoiceRecording()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-2 px-4 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer">
+                                🎙️ Record Voice
+                            </button>
+                        </div>
+
+                        <!-- Active Recording State -->
+                        <div id="voiceRecordingActive" class="hidden p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex-col sm:flex-row items-center justify-between gap-3 transition">
+                            <div class="flex items-center gap-3">
+                                <span class="relative flex h-3.5 w-3.5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-600"></span>
+                                </span>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-black text-rose-700 uppercase tracking-wider">Recording Voice Note...</span>
+                                        <span id="voiceRecordTimer" class="font-mono text-xs font-bold text-rose-600 bg-white px-2 py-0.5 rounded border border-rose-200">00:00 / 00:30</span>
+                                    </div>
+                                    <p class="text-[11px] text-rose-500">Speak clearly. Recording will auto-stop at 30 seconds.</p>
+                                </div>
+                            </div>
+                            <button type="button" id="stopVoiceRecordBtn" onclick="stopVoiceRecording()" class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs py-2 px-4 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer">
+                                <i class="fa-solid fa-stop text-[11px]"></i> Stop &amp; Save
+                            </button>
+                        </div>
+
+                        <!-- Audio Preview Player (After Recording) -->
+                        <div id="voiceAudioPreviewCard" class="hidden p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2.5 transition">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-waveform-lines text-emerald-600 text-sm"></i>
+                                    <span class="text-xs font-bold text-emerald-900">Voice Note Attached</span>
+                                    <span id="voiceAudioDurationBadge" class="text-[10px] font-mono font-bold text-emerald-800 bg-white px-1.5 py-0.5 rounded border border-emerald-200">00:00</span>
+                                </div>
+                                <button type="button" id="deleteVoiceNoteBtn" onclick="deleteVoiceNote()" class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1 hover:underline cursor-pointer" title="Delete voice note">
+                                    <i class="fa-solid fa-trash-can text-[11px]"></i> Delete / Re-record
+                                </button>
+                            </div>
+
+                            <div class="bg-white p-2.5 rounded-xl border border-emerald-100 flex items-center gap-3 shadow-xs">
+                                <button type="button" id="voicePlayPauseBtn" onclick="togglePlayVoicePreview()" class="w-9 h-9 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center text-sm shadow transition shrink-0 cursor-pointer" title="Play / Pause Voice Note">
+                                    <i id="voicePlayIcon" class="fa-solid fa-play ml-0.5"></i>
+                                </button>
+
+                                <div class="flex-1 space-y-1">
+                                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden cursor-pointer" onclick="seekVoicePreview(event)" id="voiceProgressTrack" title="Click to seek">
+                                        <div id="voiceProgressBar" class="bg-emerald-500 h-full w-0 rounded-full transition-all duration-100"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                                        <span id="voiceCurrentTime">00:00</span>
+                                        <span id="voiceTotalTime">00:00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <audio id="voiceAudioElement" class="hidden" preload="auto"></audio>
+
+                            <p class="text-[10px] text-emerald-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                                Audio preview is verified and will be delivered to the assigned worker.
+                            </p>
+                        </div>
+                    </div>
+
                     <!-- WhatsApp Order Updates Opt-In -->
                     <div class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-950 shadow-sm">
                         <input type="checkbox" id="whatsappOptIn" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-slate-300 cursor-pointer">
@@ -244,6 +329,58 @@
                             <p><strong>Assigned Worker:</strong> <span id="statusWorker" class="text-blue-600 font-medium">Finding Worker...</span></p>
                             <p><strong>Worker Rating:</strong> ⭐ <span id="statusWorkerRating" class="text-amber-600 font-bold">Loading...</span></p>
                             <p><strong>Address:</strong> <span id="statusAddress">-</span></p>
+                        </div>
+
+                        <!-- Family Safety Share Card (Right Side - Live Booking Status) -->
+                        <div id="familySafetyShareCard" class="hidden rounded-2xl border border-blue-200/90 bg-gradient-to-br from-blue-50/70 via-white to-slate-50 p-4 shadow-sm space-y-3 transition">
+                            <div class="flex items-center justify-between gap-2 border-b border-blue-100 pb-2.5">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-shield-halved text-blue-600"></i> Family Safety Card
+                                    </h4>
+                                </div>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                    <i class="fa-solid fa-check-circle text-emerald-600"></i> Identity &amp; Police Verified
+                                </span>
+                            </div>
+
+                            <!-- Worker Profile Badge Row -->
+                            <div class="flex items-center gap-3">
+                                <div class="relative shrink-0">
+                                    <img id="safetyWorkerAvatar" src="https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=100&auto=format&fit=crop&q=80" alt="Worker Profile" class="w-13 h-13 rounded-2xl object-cover border-2 border-white shadow-md bg-slate-100">
+                                    <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-2xs" title="Identity & Police Verified">
+                                        ✓
+                                    </span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <h5 id="safetyWorkerName" class="text-sm font-black text-slate-900 truncate">Verified Partner</h5>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5 truncate">
+                                        <span id="safetyWorkerService" class="font-semibold text-blue-600">Home Service</span>
+                                        <span>•</span>
+                                        <span id="safetyWorkerPhone" class="font-medium text-slate-600">+91 ••••• ••••</span>
+                                    </p>
+                                    <div class="mt-1 flex items-center gap-2">
+                                        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                                            ⭐ <span id="safetyWorkerRating">4.9 Verified</span>
+                                        </span>
+                                        <span class="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
+                                            <i class="fa-solid fa-id-card text-[9px]"></i> Aadhaar Verified
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- WhatsApp Safety Share Button -->
+                            <button type="button" id="shareSafetyWhatsappBtn" onclick="shareFamilySafetyOnWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20ba59] active:scale-[0.99] text-white font-extrabold text-xs py-3 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 border border-white/20 cursor-pointer">
+                                <i class="fa-brands fa-whatsapp text-base"></i>
+                                <span>👨‍👩‍👧 Share Safety Details on WhatsApp</span>
+                            </button>
+                            <p class="text-[10px] text-center text-slate-400">
+                                Instantly share worker photo, verified credentials &amp; live tracking with family.
+                            </p>
                         </div>
 
                         <!-- Swiggy/Zomato-style live tracking card -->

@@ -609,7 +609,7 @@ populateBookingProfile();
 
             database.ref('orders/' + orderId).once('value').then(snapshot => {
                 const order = snapshot.val();
-                if (!order || !['Accepted', 'On The Way'].includes(order.status)) {
+                if (!order || !['Accepted', 'On The Way', 'In Progress'].includes(order.status)) {
                     alert("Worker ने order accept केल्यानंतरच chat सुरू करता येईल.");
                     return;
                 }
@@ -648,7 +648,7 @@ populateBookingProfile();
 
             database.ref('orders/' + activeCustomerChatOrderId).once('value').then(snapshot => {
                 const order = snapshot.val();
-                if (!order || !['Accepted', 'On The Way'].includes(order.status)) {
+                if (!order || !['Accepted', 'On The Way', 'In Progress'].includes(order.status)) {
                     closeCustomerChatModal();
                     alert("ही order पूर्ण झाली आहे. Chat बंद करण्यात आला आहे.");
                     return;
@@ -667,6 +667,265 @@ populateBookingProfile();
                 alert("मेसेज पाठवताना अडचण आली.");
             });
         }
+
+        // ==========================================
+        // VOICE NOTE RECORDING & PREVIEW LOGIC
+        // ==========================================
+        let voiceMediaRecorder = null;
+        let voiceAudioChunks = [];
+        let voiceStream = null;
+        let voiceRecordTimer = null;
+        let voiceRecordSeconds = 0;
+        const MAX_VOICE_RECORD_SECONDS = 30;
+        let currentVoiceNoteBlob = null;
+        let currentVoiceNoteDataUrl = "";
+        let isVoicePlaying = false;
+
+        function triggerHapticFeedback(duration = 60) {
+            if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+                try {
+                    navigator.vibrate(duration);
+                } catch (e) {
+                    console.debug('Haptic feedback error:', e);
+                }
+            }
+        }
+
+        async function startVoiceRecording() {
+            triggerHapticFeedback(60);
+
+            const promptEl = document.getElementById('voiceRecordPrompt');
+            const activeEl = document.getElementById('voiceRecordingActive');
+            const previewEl = document.getElementById('voiceAudioPreviewCard');
+            const badgeEl = document.getElementById('voiceNoteBadge');
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("तुमच्या ब्राउझरमध्ये व्हॉइस रेकॉर्डिंग सपोर्ट नाही / Voice recording is not supported in this browser.");
+                return;
+            }
+
+            try {
+                voiceAudioChunks = [];
+                voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                let mimeType = 'audio/webm;codecs=opus';
+                if (typeof MediaRecorder !== 'undefined' && typeof MediaRecorder.isTypeSupported === 'function') {
+                    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                        mimeType = 'audio/webm;codecs=opus';
+                    } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                        mimeType = 'audio/mp4';
+                    } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+                        mimeType = 'audio/ogg';
+                    } else {
+                        mimeType = '';
+                    }
+                }
+
+                voiceMediaRecorder = mimeType ? new MediaRecorder(voiceStream, { mimeType }) : new MediaRecorder(voiceStream);
+
+                voiceMediaRecorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        voiceAudioChunks.push(event.data);
+                    }
+                };
+
+                voiceMediaRecorder.onstop = () => {
+                    if (voiceStream) {
+                        voiceStream.getTracks().forEach(track => track.stop());
+                        voiceStream = null;
+                    }
+                    if (voiceRecordTimer) {
+                        clearInterval(voiceRecordTimer);
+                        voiceRecordTimer = null;
+                    }
+
+                    if (voiceAudioChunks.length > 0) {
+                        const recordedBlob = new Blob(voiceAudioChunks, { type: voiceMediaRecorder.mimeType || 'audio/webm' });
+                        currentVoiceNoteBlob = recordedBlob;
+
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            currentVoiceNoteDataUrl = reader.result;
+                            setupVoicePreviewPlayer(currentVoiceNoteDataUrl);
+                        };
+                        reader.readAsDataURL(recordedBlob);
+                    }
+                };
+
+                voiceMediaRecorder.start(200);
+                voiceRecordSeconds = 0;
+                updateVoiceTimerDisplay();
+
+                if (promptEl) promptEl.classList.add('hidden');
+                if (previewEl) previewEl.classList.add('hidden');
+                if (badgeEl) badgeEl.classList.add('hidden');
+                if (activeEl) {
+                    activeEl.classList.remove('hidden');
+                    activeEl.classList.add('flex');
+                }
+
+                voiceRecordTimer = setInterval(() => {
+                    voiceRecordSeconds++;
+                    updateVoiceTimerDisplay();
+                    if (voiceRecordSeconds >= MAX_VOICE_RECORD_SECONDS) {
+                        stopVoiceRecording();
+                    }
+                }, 1000);
+
+            } catch (err) {
+                console.error("Microphone access error:", err);
+                alert("मायक्रोफोन परवानगी नाकारली किंवा त्रुटी आली / Microphone permission denied or error: " + err.message);
+            }
+        }
+
+        function stopVoiceRecording() {
+            triggerHapticFeedback(60);
+
+            if (voiceMediaRecorder && voiceMediaRecorder.state !== 'inactive') {
+                try {
+                    voiceMediaRecorder.stop();
+                } catch (e) {
+                    console.error("Error stopping voice recorder:", e);
+                }
+            }
+            if (voiceRecordTimer) {
+                clearInterval(voiceRecordTimer);
+                voiceRecordTimer = null;
+            }
+        }
+
+        function updateVoiceTimerDisplay() {
+            const timerDisplay = document.getElementById('voiceRecordTimer');
+            if (!timerDisplay) return;
+            const mins = String(Math.floor(voiceRecordSeconds / 60)).padStart(2, '0');
+            const secs = String(voiceRecordSeconds % 60).padStart(2, '0');
+            timerDisplay.innerText = `${mins}:${secs} / 00:30`;
+        }
+
+        function setupVoicePreviewPlayer(audioSrc) {
+            const promptEl = document.getElementById('voiceRecordPrompt');
+            const activeEl = document.getElementById('voiceRecordingActive');
+            const previewEl = document.getElementById('voiceAudioPreviewCard');
+            const badgeEl = document.getElementById('voiceNoteBadge');
+            const audioEl = document.getElementById('voiceAudioElement');
+            const progressBar = document.getElementById('voiceProgressBar');
+            const currentTimeEl = document.getElementById('voiceCurrentTime');
+            const totalTimeEl = document.getElementById('voiceTotalTime');
+            const durationBadge = document.getElementById('voiceAudioDurationBadge');
+
+            if (activeEl) {
+                activeEl.classList.add('hidden');
+                activeEl.classList.remove('flex');
+            }
+            if (promptEl) promptEl.classList.add('hidden');
+            if (badgeEl) {
+                badgeEl.classList.remove('hidden');
+                badgeEl.classList.add('inline-flex');
+            }
+            if (previewEl) previewEl.classList.remove('hidden');
+
+            if (audioEl) {
+                audioEl.src = audioSrc;
+                audioEl.load();
+
+                audioEl.onloadedmetadata = () => {
+                    const dur = Math.round(audioEl.duration) || voiceRecordSeconds || 0;
+                    const durStr = `00:${String(dur).padStart(2, '0')}`;
+                    if (totalTimeEl) totalTimeEl.innerText = durStr;
+                    if (durationBadge) durationBadge.innerText = `${dur}s`;
+                };
+
+                audioEl.ontimeupdate = () => {
+                    if (audioEl.duration) {
+                        const percent = (audioEl.currentTime / audioEl.duration) * 100;
+                        if (progressBar) progressBar.style.width = percent + '%';
+                        const curSec = Math.floor(audioEl.currentTime);
+                        if (currentTimeEl) currentTimeEl.innerText = `00:${String(curSec).padStart(2, '0')}`;
+                    }
+                };
+
+                audioEl.onended = () => {
+                    isVoicePlaying = false;
+                    const playIcon = document.getElementById('voicePlayIcon');
+                    if (playIcon) playIcon.className = 'fa-solid fa-play text-white text-xs ml-0.5';
+                    if (progressBar) progressBar.style.width = '0%';
+                    if (currentTimeEl) currentTimeEl.innerText = '00:00';
+                };
+            }
+        }
+
+        function togglePlayVoicePreview() {
+            triggerHapticFeedback(60);
+            const audioEl = document.getElementById('voiceAudioElement');
+            const playIcon = document.getElementById('voicePlayIcon');
+            if (!audioEl) return;
+
+            if (isVoicePlaying) {
+                audioEl.pause();
+                isVoicePlaying = false;
+                if (playIcon) playIcon.className = 'fa-solid fa-play text-white text-xs ml-0.5';
+            } else {
+                audioEl.play().then(() => {
+                    isVoicePlaying = true;
+                    if (playIcon) playIcon.className = 'fa-solid fa-pause text-white text-xs';
+                }).catch(err => {
+                    console.error("Audio playback error:", err);
+                });
+            }
+        }
+
+        function seekVoicePreview(event) {
+            const audioEl = document.getElementById('voiceAudioElement');
+            const track = document.getElementById('voiceProgressTrack');
+            if (!audioEl || !track || !audioEl.duration) return;
+
+            const rect = track.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const fraction = Math.max(0, Math.min(1, clickX / rect.width));
+            audioEl.currentTime = fraction * audioEl.duration;
+        }
+
+        function deleteVoiceNote() {
+            triggerHapticFeedback(60);
+
+            const audioEl = document.getElementById('voiceAudioElement');
+            if (audioEl) {
+                audioEl.pause();
+                audioEl.src = "";
+            }
+            isVoicePlaying = false;
+            currentVoiceNoteBlob = null;
+            currentVoiceNoteDataUrl = "";
+            voiceAudioChunks = [];
+            voiceRecordSeconds = 0;
+
+            const promptEl = document.getElementById('voiceRecordPrompt');
+            const activeEl = document.getElementById('voiceRecordingActive');
+            const previewEl = document.getElementById('voiceAudioPreviewCard');
+            const badgeEl = document.getElementById('voiceNoteBadge');
+            const playIcon = document.getElementById('voicePlayIcon');
+            const progressBar = document.getElementById('voiceProgressBar');
+            const currentTimeEl = document.getElementById('voiceCurrentTime');
+
+            if (playIcon) playIcon.className = 'fa-solid fa-play text-white text-xs ml-0.5';
+            if (progressBar) progressBar.style.width = '0%';
+            if (currentTimeEl) currentTimeEl.innerText = '00:00';
+
+            if (previewEl) previewEl.classList.add('hidden');
+            if (activeEl) {
+                activeEl.classList.add('hidden');
+                activeEl.classList.remove('flex');
+            }
+            if (badgeEl) badgeEl.classList.add('hidden');
+            if (promptEl) promptEl.classList.remove('hidden');
+        }
+
+        window.startVoiceRecording = startVoiceRecording;
+        window.stopVoiceRecording = stopVoiceRecording;
+        window.togglePlayVoicePreview = togglePlayVoicePreview;
+        window.seekVoicePreview = seekVoicePreview;
+        window.deleteVoiceNote = deleteVoiceNote;
+        window.triggerHapticFeedback = triggerHapticFeedback;
 
         async function handleFormSubmit(e) {
             e.preventDefault();
@@ -726,6 +985,7 @@ populateBookingProfile();
                     }
                 }
 
+                const whatsappOptIn = document.getElementById('whatsappOptIn') ? document.getElementById('whatsappOptIn').checked : true;
                 const payload = {
                     service: service,
                     customerName: name,
@@ -737,11 +997,17 @@ populateBookingProfile();
                     date: date,
                     time: time,
                     photoUrl: photoUrl,
+                    voiceNoteUrl: currentVoiceNoteDataUrl || "",
+                    hasVoiceNote: !!currentVoiceNoteDataUrl,
                     status: "Pending",
+                    whatsappOptIn: whatsappOptIn,
+                    startOtp: String(Math.floor(1000 + Math.random() * 9000)),
+                    completionOtp: String(Math.floor(1000 + Math.random() * 9000)),
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
 
                 await newOrderRef.set(payload);
+                deleteVoiceNote();
                 alert("तुमची अपॉइंटमेंट यशस्वीरीत्या बुक झाली आहे!");
                 trackLiveStatus(currentOrderId);
 
@@ -754,6 +1020,53 @@ populateBookingProfile();
             }
         }
 
+        // ==========================================
+        // FAMILY SAFETY SHARE CARD LOGIC
+        // ==========================================
+        let currentTrackedOrderData = null;
+
+        function shareFamilySafetyOnWhatsApp() {
+            triggerHapticFeedback(60);
+
+            const orderId = currentOrderId || '';
+            const orderData = currentTrackedOrderData || {};
+
+            const shortOrderId = orderId ? orderId.slice(-6).toUpperCase() : 'N/A';
+            const workerName = orderData.workerName || 'Verified Professional';
+            const workerMobile = orderData.workerMobile || 'Masked / Protected';
+            const serviceName = orderData.service || 'Home Service';
+            const address = orderData.address || 'Pune';
+            const workerRating = document.getElementById('safetyWorkerRating') ? document.getElementById('safetyWorkerRating').innerText : '4.9 Verified';
+
+            const originUrl = (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null')
+                ? window.location.origin
+                : 'https://gharmitra.online';
+            const liveTrackLink = orderId ? `${originUrl}/gharkam/customer.html?track=${encodeURIComponent(orderId)}` : originUrl;
+
+            const message = 
+`🛡️ *GHARMITRA FAMILY SAFETY DETAILS*
+━━━━━━━━━━━━━━━━━━━━
+Dear Family, here are the verified details of the home service technician visiting our home:
+
+👤 *Worker Name:* ${workerName}
+📞 *Mobile:* ${workerMobile}
+⭐ *Rating:* ${workerRating}
+🛠️ *Service:* ${serviceName}
+📍 *Address:* ${address}
+🆔 *Order ID:* #${shortOrderId}
+🔒 *Verification Status:* Identity & Police Verified (Aadhaar Verified)
+
+🗺️ *Live Tracking & Safety:*
+${liveTrackLink}
+
+_Sent securely via Gharmitra Family Safety Shield._`;
+
+            const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        window.shareFamilySafetyOnWhatsApp = shareFamilySafetyOnWhatsApp;
+
         function trackLiveStatus(orderId) {
             currentOrderId = orderId;
 
@@ -765,6 +1078,8 @@ populateBookingProfile();
             database.ref("orders/" + orderId).on("value", (snapshot) => {
                 const data = snapshot.val();
                 if(!data) return;
+
+                currentTrackedOrderData = data;
 
                 document.getElementById('statusService').innerText = data.service || "-";
                 document.getElementById('statusBudget').innerText = data.budget ? data.budget.replace('₹', '') : "-";
@@ -831,7 +1146,34 @@ populateBookingProfile();
                     ratingDisplay.innerText = "Not assigned yet";
                 }
 
-                const canCommunicate = data.status === 'Accepted' || data.status === 'On The Way';
+                // Family Safety Share Card
+                const safetyCard = document.getElementById('familySafetyShareCard');
+                if (safetyCard) {
+                    const isWorkerAssigned = !!(data.workerName || data.workerMobile || ['Accepted', 'On The Way', 'In Progress', 'Completed'].includes(data.status));
+                    if (isWorkerAssigned && data.status !== 'Cancelled') {
+                        safetyCard.classList.remove('hidden');
+
+                        const safetyWorkerName = document.getElementById('safetyWorkerName');
+                        const safetyWorkerAvatar = document.getElementById('safetyWorkerAvatar');
+                        const safetyWorkerService = document.getElementById('safetyWorkerService');
+                        const safetyWorkerPhone = document.getElementById('safetyWorkerPhone');
+                        const safetyWorkerRating = document.getElementById('safetyWorkerRating');
+
+                        if (safetyWorkerName) safetyWorkerName.innerText = data.workerName || "Verified Partner";
+                        if (safetyWorkerAvatar) {
+                            safetyWorkerAvatar.src = data.workerPhoto || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=100&auto=format&fit=crop&q=80";
+                        }
+                        if (safetyWorkerService) safetyWorkerService.innerText = data.service || "Home Service";
+                        if (safetyWorkerPhone) safetyWorkerPhone.innerText = maskedWorkerNumber;
+                        if (safetyWorkerRating && ratingDisplay) {
+                            safetyWorkerRating.innerText = ratingDisplay.innerText || "4.9 Verified";
+                        }
+                    } else {
+                        safetyCard.classList.add('hidden');
+                    }
+                }
+
+                const canCommunicate = data.status === 'Accepted' || data.status === 'On The Way' || data.status === 'In Progress';
                 if (customerCommActions) {
                     customerCommActions.classList.toggle('hidden', !canCommunicate);
                 } else if (customerChatAction) {
@@ -846,7 +1188,7 @@ populateBookingProfile();
 
                 // Swiggy-style live moving location handling. The worker
                 // publishes GPS coordinates under this order in Firebase.
-                if (data.status === 'On The Way') {
+                if (data.status === 'On The Way' || data.status === 'In Progress') {
                     mapContainer.classList.remove('hidden');
                     currentTrackedOrder = data;
                     currentOrderCustomerCoords = getOrderCustomerCoords(data);
@@ -859,17 +1201,45 @@ populateBookingProfile();
                     stopWorkerLocationTracking();
                 }
 
+                // Security Start PIN Card (Active when Accepted or On The Way)
+                const startOtpCard = document.getElementById('customerStartOtpCard');
+                const startOtpDisplay = document.getElementById('customerStartOtpCodeDisplay');
+                if (data.startOtp && (data.status === 'Accepted' || data.status === 'On The Way')) {
+                    if (startOtpCard) startOtpCard.classList.remove('hidden');
+                    if (startOtpDisplay) startOtpDisplay.innerText = data.startOtp;
+                } else {
+                    if (startOtpCard) startOtpCard.classList.add('hidden');
+                }
+
+                // Completion OTP Card (Active when In Progress)
                 const otpCard = document.getElementById('customerCompletionOtpCard');
                 const otpDisplay = document.getElementById('customerOtpCodeDisplay');
-                if (data.completionOtp && data.status !== 'Completed' && data.status !== 'Cancelled') {
+                if (data.completionOtp && data.status === 'In Progress') {
                     if (otpCard) otpCard.classList.remove('hidden');
                     if (otpDisplay) otpDisplay.innerText = data.completionOtp;
                 } else {
                     if (otpCard) otpCard.classList.add('hidden');
                 }
 
+                // WhatsApp Track & PIN Quick Share Box
+                const waTrackArea = document.getElementById('customerWhatsAppTrackArea');
+                const waShareBtn = document.getElementById('customerTrackWhatsAppShareBtn');
+                if (waTrackArea && waShareBtn) {
+                    if (data.status !== 'Completed' && data.status !== 'Cancelled') {
+                        waTrackArea.classList.remove('hidden');
+                        const originUrl = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://gharmitra.online';
+                        const liveTrackLink = `${originUrl}/gharkam/customer.html?track=${encodeURIComponent(orderId)}`;
+                        const shareTxt = `नमस्कार! माझी घरमित्र ऑर्डर तपशील:\n📌 ऑर्डर आयडी: #${orderId.slice(-6).toUpperCase()}\n🛠️ सेवा: ${data.service || ''}\n🔐 सुरक्षा स्टार्ट पिन: ${data.startOtp || 'N/A'}\n📍 थेट ट्रॅकिंग लिंक: ${liveTrackLink}`;
+                        waShareBtn.href = `https://wa.me/?text=${encodeURIComponent(shareTxt)}`;
+                    } else {
+                        waTrackArea.classList.add('hidden');
+                    }
+                }
+
                 if (data.status === 'Completed' || data.status === 'Cancelled') {
+                    if (startOtpCard) startOtpCard.classList.add('hidden');
                     if (otpCard) otpCard.classList.add('hidden');
+                    if (waTrackArea) waTrackArea.classList.add('hidden');
                     stepsContainer.classList.add('hidden');
                     cancelContainer.classList.add('hidden');
                     completedMsgBox.classList.remove('hidden');
@@ -904,6 +1274,8 @@ populateBookingProfile();
                     document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     document.getElementById('step4Dot').className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                    const step5Dot = document.getElementById('step5Dot');
+                    if (step5Dot) step5Dot.className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
 
                     if (data.status === 'Pending') {
                         badgeEl.className = "bg-amber-100 text-amber-700 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
@@ -925,6 +1297,15 @@ populateBookingProfile();
                         document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                    }
+                    else if (data.status === 'In Progress') {
+                        badgeEl.className = "bg-amber-100 text-amber-800 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
+                        badgeTextEl.innerText = "Work In Progress";
+                        workerMobileEl.innerHTML = workerInfo;
+                        document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step4Dot').className = "w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     }
                 }
             });
@@ -956,86 +1337,392 @@ populateBookingProfile();
             });
         }
 
+        // Helper to retrieve logged-in customer mobile number
+        function getLoggedInCustomerMobile() {
+            if (window.customerProfile && window.customerProfile.mobile) {
+                return String(window.customerProfile.mobile).replace(/\D/g, '').slice(-10);
+            }
+            if (typeof readCustomerSession === 'function') {
+                const s = readCustomerSession();
+                if (s && s.mobile) return String(s.mobile).replace(/\D/g, '').slice(-10);
+            }
+            const formMob = document.getElementById('customerMobile')?.value?.trim();
+            if (formMob && formMob.length >= 10) return formMob.replace(/\D/g, '').slice(-10);
+            const profMob = document.getElementById('profileMobile')?.value?.trim();
+            if (profMob && profMob.length >= 10) return profMob.replace(/\D/g, '').slice(-10);
+
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('gharmitra_user_customer_') || key.startsWith('gharmitra_user_') || key === 'current_user_session')) {
+                        const parsed = JSON.parse(localStorage.getItem(key));
+                        if (parsed && parsed.mobile) {
+                            return String(parsed.mobile).replace(/\D/g, '').slice(-10);
+                        }
+                    }
+                }
+            } catch(e) {}
+            return '';
+        }
+
         function openMyOrdersModal() {
-            document.getElementById('myOrdersModal').classList.remove('hidden');
-            document.getElementById('myOrdersModal').classList.add('flex');
-            const formMobile = document.getElementById('customerMobile').value;
-            if(formMobile) {
-                document.getElementById('searchMobileInput').value = formMobile;
-                fetchCustomerOrders();
+            const modal = document.getElementById('myOrdersModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            const signedInMobile = getLoggedInCustomerMobile();
+            const searchInput = document.getElementById('searchMobileInput');
+
+            if (searchInput) {
+                if (signedInMobile && signedInMobile.length === 10) {
+                    searchInput.value = signedInMobile;
+                    fetchCustomerOrders();
+                } else if (searchInput.value && searchInput.value.replace(/\D/g, '').length === 10) {
+                    fetchCustomerOrders();
+                } else {
+                    searchInput.focus();
+                }
             }
         }
 
         function closeMyOrdersModal() {
-            document.getElementById('myOrdersModal').classList.remove('flex');
-            document.getElementById('myOrdersModal').classList.add('hidden');
+            const modal = document.getElementById('myOrdersModal');
+            if (modal) {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }
         }
 
         function fetchCustomerOrders() {
-            const mobile = document.getElementById('searchMobileInput').value.trim();
+            const inputEl = document.getElementById('searchMobileInput');
             const container = document.getElementById('ordersListContainer');
+            const searchBtn = document.getElementById('searchOrdersBtn');
+            if (!container) return;
+
+            const rawMobile = inputEl ? inputEl.value.trim() : '';
+            const mobile = rawMobile.replace(/\D/g, '').slice(-10);
 
             if (!mobile || mobile.length !== 10) {
                 alert("कृपया अचूक १० अंकी मोबाईल नंबर प्रविष्ट करा!");
+                if (inputEl) inputEl.focus();
                 return;
             }
 
-            container.innerHTML = '<p class="text-xs text-slate-400 text-center py-6"><i class="fa-solid fa-spinner fa-spin"></i> Fetching orders...</p>';
+            if (searchBtn) {
+                searchBtn.disabled = true;
+                searchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Searching...</span>';
+            }
 
-            database.ref("orders").orderByChild("customerMobile").equalTo(mobile).once("value", (snapshot) => {
-                container.innerHTML = "";
-                const orders = snapshot.val();
+            container.innerHTML = '<p class="text-xs text-slate-400 text-center py-8"><i class="fa-solid fa-spinner fa-spin mr-1"></i> ऑर्डर्स शोधत आहोत...</p>';
 
-                if (!orders) {
-                    container.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">या मोबाईल नंबरवर कोणतीही ऑर्डर सापडली नाही.</p>';
-                    return;
+            // Load orders and match by mobile
+            database.ref("orders").once("value", (snapshot) => {
+                if (searchBtn) {
+                    searchBtn.disabled = false;
+                    searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> <span>Search</span>';
                 }
 
-                Object.keys(orders).reverse().forEach(orderId => {
-                    const order = orders[orderId];
-                    let badgeColor = "bg-amber-100 text-amber-700";
-                    if(order.status === 'Accepted') badgeColor = "bg-blue-100 text-blue-700";
-                    if(order.status === 'On The Way') badgeColor = "bg-indigo-100 text-indigo-700";
-                    if(order.status === 'Completed') badgeColor = "bg-emerald-100 text-emerald-700";
-                    if(order.status === 'Cancelled') badgeColor = "bg-red-100 text-red-700";
+                const all = snapshot.val() || {};
+                const matchedOrders = {};
 
-                    const isCompleted = order.status === 'Completed';
-                    const rateButtonHtml = isCompleted && !order.isRated ? `
-                        <button onclick="openOrderRating('${orderId}')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-1.5 px-3 rounded-lg text-[11px] transition flex items-center gap-1">
-                            <i class="fa-solid fa-star text-[10px]"></i> Rate Worker
+                Object.keys(all).forEach(key => {
+                    const ord = all[key];
+                    if (!ord) return;
+                    const ordMob = String(ord.customerMobile || '').replace(/\D/g, '').slice(-10);
+                    if (ordMob === mobile) {
+                        matchedOrders[key] = ord;
+                    }
+                });
+
+                renderCustomerOrdersList(matchedOrders, mobile);
+
+            }).catch(error => {
+                console.error("Fetch Orders Error:", error);
+                if (searchBtn) {
+                    searchBtn.disabled = false;
+                    searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> <span>Search</span>';
+                }
+                container.innerHTML = '<p class="text-xs text-red-500 text-center py-8">ऑर्डर्स लोड करताना अडचण आली: ' + escapeHtml(error.message) + '</p>';
+            });
+        }
+
+        function renderCustomerOrdersList(orders, searchedMobile) {
+            const container = document.getElementById('ordersListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const keys = Object.keys(orders || {});
+            if (keys.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 px-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl">
+                            <i class="fa-solid fa-box-open"></i>
+                        </div>
+                        <p class="text-xs font-bold text-slate-700">मोबाईल नंबर ${escapeHtml(searchedMobile)} वर कोणतीही ऑर्डर सापडली नाही.</p>
+                        <p class="text-[11px] text-slate-500">तुम्ही नवीन अपॉइंटमेंट बुक करू शकता.</p>
+                        <button type="button" onclick="closeMyOrdersModal()" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-xl transition">
+                            नवीन अपॉइंटमेंट बुक करा
                         </button>
-                    ` : '';
+                    </div>
+                `;
+                return;
+            }
+
+            // Separate active and past orders
+            const activeOrders = [];
+            const pastOrders = [];
+
+            // Sort newest first
+            keys.sort((a, b) => (orders[b].timestamp || 0) - (orders[a].timestamp || 0)).forEach(orderId => {
+                const order = orders[orderId];
+                if (['Pending', 'Accepted', 'On The Way', 'In Progress'].includes(order.status)) {
+                    activeOrders.push({ id: orderId, data: order });
+                } else {
+                    pastOrders.push({ id: orderId, data: order });
+                }
+            });
+
+            // 1. Render Active Orders (if any)
+            if (activeOrders.length > 0) {
+                const activeHeader = document.createElement('div');
+                activeHeader.className = "flex items-center gap-2 pt-1 pb-1";
+                activeHeader.innerHTML = `
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">चालू ऑर्डर्स (Active & Live Orders - ${activeOrders.length})</h4>
+                `;
+                container.appendChild(activeHeader);
+
+                activeOrders.forEach(({ id: orderId, data: order }) => {
+                    let badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+                    let statusLabel = "ऑर्डर प्राप्त (Pending)";
+                    if (order.status === 'Accepted') {
+                        badgeClass = "bg-blue-100 text-blue-800 border-blue-300";
+                        statusLabel = "कारागिराने स्वीकारली (Accepted)";
+                    } else if (order.status === 'On The Way') {
+                        badgeClass = "bg-indigo-100 text-indigo-800 border-indigo-300";
+                        statusLabel = "मार्गस्थ आहे (On The Way)";
+                    } else if (order.status === 'In Progress') {
+                        badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+                        statusLabel = "काम चालू आहे (In Progress)";
+                    }
 
                     const card = document.createElement('div');
-                    card.className = "bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3 text-xs hover:border-blue-400 transition cursor-pointer";
+                    card.className = "bg-gradient-to-br from-white to-blue-50/40 border-2 border-blue-300 p-4 rounded-2xl space-y-3 text-xs shadow-sm hover:shadow-md transition";
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between border-b pb-2 border-blue-100">
+                            <span class="font-black text-slate-900 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-wrench text-blue-600"></i> ${escapeHtml(order.service || 'सर्व्हिस')}
+                            </span>
+                            <span class="px-2.5 py-1 rounded-full font-bold text-[10px] border ${badgeClass}">
+                                ${statusLabel}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-slate-600">
+                            <p><strong>ऑर्डर आयडी:</strong> <span class="font-mono font-bold text-slate-800">#${orderId.slice(-6).toUpperCase()}</span></p>
+                            <p><strong>बजेट:</strong> <span class="text-emerald-700 font-extrabold">${escapeHtml(order.budget || '-')}</span></p>
+                            <p><strong>तारीख:</strong> ${escapeHtml(order.date || '-')} (${escapeHtml(order.time || '-')})</p>
+                            <p><strong>परिसर:</strong> ${escapeHtml(order.area || '-')}</p>
+                            ${order.workerName ? `<p class="col-span-2 text-indigo-700 font-bold"><i class="fa-solid fa-helmet-safety mr-1"></i> कारागीर: ${escapeHtml(order.workerName)}</p>` : ''}
+                        </div>
+                        ${order.startOtp && order.status !== 'In Progress' ? `
+                            <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-amber-900"><i class="fa-solid fa-shield-halved text-amber-600 mr-1"></i> सुरक्षा स्टार्ट पिन:</span>
+                                <span class="font-mono font-black text-sm tracking-widest bg-white px-2.5 py-1 rounded-lg border border-amber-300 text-amber-900">${order.startOtp}</span>
+                            </div>
+                        ` : ''}
+                        <button onclick="trackSelectedOrder('${orderId}')" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-location-crosshairs text-amber-300"></i>
+                            <span>थेट ट्रॅक करा (Live Tracking Status)</span>
+                        </button>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            // 2. Render Past Orders (if any)
+            if (pastOrders.length > 0) {
+                const pastHeader = document.createElement('div');
+                pastHeader.className = "flex items-center gap-2 pt-3 pb-1";
+                pastHeader.innerHTML = `
+                    <i class="fa-solid fa-history text-slate-400"></i>
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider">मागील ऑर्डर्स (Past Orders - ${pastOrders.length})</h4>
+                `;
+                container.appendChild(pastHeader);
+
+                pastOrders.forEach(({ id: orderId, data: order }) => {
+                    const isCompleted = order.status === 'Completed';
+                    const badgeClass = isCompleted ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200";
+                    const statusText = isCompleted ? "पूर्ण झाले (Completed)" : "रद्द केले (Cancelled)";
+
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-50 border border-slate-200 p-3.5 rounded-2xl space-y-2 text-xs hover:border-slate-300 transition";
                     card.innerHTML = `
                         <div class="flex items-center justify-between border-b pb-2 border-slate-200">
-                            <span class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-wrench text-blue-600"></i> ${escapeHtml(order.service)}</span>
-                            <span class="px-2.5 py-1 rounded-full font-bold text-[10px] ${badgeColor}">${order.status}</span>
+                            <span class="font-bold text-slate-800"><i class="fa-solid fa-wrench text-slate-500"></i> ${escapeHtml(order.service || 'सर्व्हिस')}</span>
+                            <span class="px-2 py-0.5 rounded-full font-bold text-[10px] border ${badgeClass}">${statusText}</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 text-slate-600 pt-1">
-                            <p><strong>Name:</strong> ${escapeHtml(order.customerName)}</p>
-                            <p><strong>Budget:</strong> <span class="text-emerald-600 font-bold">${escapeHtml(order.budget)}</span></p>
-                            <p><strong>Date:</strong> ${escapeHtml(order.date)} (${escapeHtml(order.time)})</p>
-                            <p><strong>Area:</strong> ${escapeHtml(order.area)}</p>
+                        <div class="grid grid-cols-2 gap-1.5 text-slate-600">
+                            <p><strong>आयडी:</strong> <span class="font-mono">#${orderId.slice(-6).toUpperCase()}</span></p>
+                            <p><strong>बजेट:</strong> <span class="font-bold text-emerald-600">${escapeHtml(order.budget || '-')}</span></p>
+                            <p><strong>तारीख:</strong> ${escapeHtml(order.date || '-')}</p>
+                            <p><strong>परिसर:</strong> ${escapeHtml(order.area || '-')}</p>
                         </div>
-                        <p class="text-slate-500 truncate"><strong>Address:</strong> ${escapeHtml(order.address)}</p>
-                        <div class="text-right pt-1 flex items-center justify-end gap-2">
-                            ${rateButtonHtml}
-                            <button onclick="trackSelectedOrder('${orderId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-lg text-[11px] transition">
-                                <i class="fa-solid fa-eye"></i> Track Live Status
+                        <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-200">
+                            ${isCompleted && !order.isRated ? `
+                                <button onclick="openOrderRating('${orderId}')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-1 px-3 rounded-lg text-[11px] transition flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid fa-star text-[10px]"></i> Rate Worker
+                                </button>
+                            ` : ''}
+                            <button onclick="trackSelectedOrder('${orderId}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-1 px-3 rounded-lg text-[11px] transition">
+                                सविस्तर पहा
                             </button>
                         </div>
                     `;
                     container.appendChild(card);
                 });
-            }, (error) => {
-                console.error("Fetch Error:", error);
-                container.innerHTML = '<p class="text-xs text-red-500 text-center py-6">डेटा आणताना एरर आली.</p>';
-            });
+            }
         }
 
         function trackSelectedOrder(orderId) {
             closeMyOrdersModal();
             trackLiveStatus(orderId);
+            setTimeout(() => {
+                const target = document.getElementById('liveStatusContainer') || document.getElementById('stepsTrackerContainer');
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 300);
         }
+
+        // Bottom Nav bar handler
+        function customerNavTo(target) {
+            document.querySelectorAll('.bottom-nav-item').forEach(btn => btn.classList.remove('active'));
+            if (target === 'home') {
+                document.getElementById('cNavHome')?.classList.add('active');
+                closeMyOrdersModal();
+                if (typeof closeProfileModal === 'function') closeProfileModal();
+                if (typeof closeCustomerSupportModal === 'function') closeCustomerSupportModal();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (target === 'orders') {
+                document.getElementById('cNavOrders')?.classList.add('active');
+                openMyOrdersModal();
+            } else if (target === 'profile') {
+                document.getElementById('cNavProfile')?.classList.add('active');
+                if (typeof openProfileModal === 'function') openProfileModal();
+            } else if (target === 'help') {
+                document.getElementById('cNavHelp')?.classList.add('active');
+                if (typeof openCustomerSupportModal === 'function') openCustomerSupportModal();
+            }
+        }
+
+        window.openMyOrdersModal = openMyOrdersModal;
+        window.closeMyOrdersModal = closeMyOrdersModal;
+        window.fetchCustomerOrders = fetchCustomerOrders;
+        window.trackSelectedOrder = trackSelectedOrder;
+        window.customerNavTo = customerNavTo;
+
+
+// =========================================================
+// Society Maintenance Pass (Society Bulk Pass / AMC) Modal
+// =========================================================
+function openSocietyPassModal() {
+    const modal = document.getElementById('societyPassModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeSocietyPassModal() {
+    const modal = document.getElementById('societyPassModal');
+    if (modal) {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+}
+
+function selectSocietyPassPlan(planType) {
+    const planSelect = document.getElementById('socSelectedPlan');
+    if (!planSelect) return;
+    if (planType === 'Silver') {
+        planSelect.value = "Silver Pass (20-50 Flats) - ₹4,999/mo";
+    } else if (planType === 'Gold') {
+        planSelect.value = "Gold Pass (50-120 Flats) - ₹8,999/mo";
+    } else if (planType === 'Platinum') {
+        planSelect.value = "Platinum Custom AMC (120+ Flats)";
+    }
+    planSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function handleSocietyPassSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('socSubmitBtn');
+    const msgEl = document.getElementById('socStatusMsg');
+    const socName = (document.getElementById('socName')?.value || '').trim();
+    const socArea = document.getElementById('socArea')?.value || '';
+    const socFlats = parseInt(document.getElementById('socFlats')?.value || '0', 10);
+    const socContactName = (document.getElementById('socContactName')?.value || '').trim();
+    const socContactMobile = (document.getElementById('socContactMobile')?.value || '').trim();
+    const socSelectedPlan = document.getElementById('socSelectedPlan')?.value || '';
+
+    if (!socName || !socContactName || !socContactMobile || socContactMobile.length !== 10) {
+        alert("कृपया सर्व माहिती अचूक भरा (१० अंकी मोबाईल नंबर आवश्यक).");
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> अर्ज सादर होत आहे...';
+    }
+
+    try {
+        const newRef = database.ref('societyPassEnquiries').push();
+        const payload = {
+            societyName: socName,
+            area: socArea,
+            flats: socFlats,
+            contactName: socContactName,
+            contactMobile: socContactMobile,
+            plan: socSelectedPlan,
+            status: 'New',
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        };
+        await newRef.set(payload);
+
+        if (msgEl) {
+            msgEl.className = "text-xs font-semibold p-3 rounded-xl text-center bg-emerald-50 text-emerald-800 border border-emerald-200";
+            msgEl.innerHTML = "🎉 अभिनंदन! आपला सोसायटी पास अर्ज यशस्वीरीत्या नोंदवला गेला आहे. आमची टीम लवकरच आपल्याशी संपर्क करेल.";
+            msgEl.classList.remove('hidden');
+        }
+
+        const waAdminMsg = "नमस्कार घरमित्र! आम्ही आमच्या सोसायटीसाठी सोसायटी मेंटेनन्स पास (Society Bulk Pass) मध्ये स्वारस्य दाखवत आहोत.\n\n🏢 *सोसायटी:* " + encodeURIComponent(socName) + "\n📍 *परिसर:* " + encodeURIComponent(socArea) + "\n🏘️ *एकूण फ्लॅट्स:* " + socFlats + "\n👤 *संपर्क व्यक्ती:* " + encodeURIComponent(socContactName) + " (" + socContactMobile + ")\n📋 *प्लॅन:* " + encodeURIComponent(socSelectedPlan) + "\n\nकृपया पुढील प्रक्रियेसाठी संपर्क साधावा.";
+        
+        setTimeout(() => {
+            if (confirm("आपला अर्ज सेव्ह झाला आहे! त्वरित घरमित्र टीमशी व्हॉट्सॲपवर बोलण्यासाठी 'OK' दाबा.")) {
+                window.open("https://wa.me/917875160724?text=" + waAdminMsg, '_blank');
+            }
+            closeSocietyPassModal();
+            document.getElementById('societyPassForm')?.reset();
+            if (msgEl) msgEl.classList.add('hidden');
+        }, 1200);
+
+    } catch (err) {
+        console.error("Society Pass Error:", err);
+        if (msgEl) {
+            msgEl.className = "text-xs font-semibold p-3 rounded-xl text-center bg-red-50 text-red-700 border border-red-200";
+            msgEl.innerText = "अर्ज पाठवताना त्रुटी आली: " + err.message;
+            msgEl.classList.remove('hidden');
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> सोसायटी पाससाठी अर्ज करा (Submit Application)';
+        }
+    }
+}
+
+window.openSocietyPassModal = openSocietyPassModal;
+window.closeSocietyPassModal = closeSocietyPassModal;
+window.selectSocietyPassPlan = selectSocietyPassPlan;
+window.handleSocietyPassSubmit = handleSocietyPassSubmit;

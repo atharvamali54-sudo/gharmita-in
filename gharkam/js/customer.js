@@ -668,6 +668,265 @@ populateBookingProfile();
             });
         }
 
+        // ==========================================
+        // VOICE NOTE RECORDING & PREVIEW LOGIC
+        // ==========================================
+        let voiceMediaRecorder = null;
+        let voiceAudioChunks = [];
+        let voiceStream = null;
+        let voiceRecordTimer = null;
+        let voiceRecordSeconds = 0;
+        const MAX_VOICE_RECORD_SECONDS = 30;
+        let currentVoiceNoteBlob = null;
+        let currentVoiceNoteDataUrl = "";
+        let isVoicePlaying = false;
+
+        function triggerHapticFeedback(duration = 60) {
+            if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+                try {
+                    navigator.vibrate(duration);
+                } catch (e) {
+                    console.debug('Haptic feedback error:', e);
+                }
+            }
+        }
+
+        async function startVoiceRecording() {
+            triggerHapticFeedback(60);
+
+            const promptEl = document.getElementById('voiceRecordPrompt');
+            const activeEl = document.getElementById('voiceRecordingActive');
+            const previewEl = document.getElementById('voiceAudioPreviewCard');
+            const badgeEl = document.getElementById('voiceNoteBadge');
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("तुमच्या ब्राउझरमध्ये व्हॉइस रेकॉर्डिंग सपोर्ट नाही / Voice recording is not supported in this browser.");
+                return;
+            }
+
+            try {
+                voiceAudioChunks = [];
+                voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                let mimeType = 'audio/webm;codecs=opus';
+                if (typeof MediaRecorder !== 'undefined' && typeof MediaRecorder.isTypeSupported === 'function') {
+                    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                        mimeType = 'audio/webm;codecs=opus';
+                    } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                        mimeType = 'audio/mp4';
+                    } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+                        mimeType = 'audio/ogg';
+                    } else {
+                        mimeType = '';
+                    }
+                }
+
+                voiceMediaRecorder = mimeType ? new MediaRecorder(voiceStream, { mimeType }) : new MediaRecorder(voiceStream);
+
+                voiceMediaRecorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        voiceAudioChunks.push(event.data);
+                    }
+                };
+
+                voiceMediaRecorder.onstop = () => {
+                    if (voiceStream) {
+                        voiceStream.getTracks().forEach(track => track.stop());
+                        voiceStream = null;
+                    }
+                    if (voiceRecordTimer) {
+                        clearInterval(voiceRecordTimer);
+                        voiceRecordTimer = null;
+                    }
+
+                    if (voiceAudioChunks.length > 0) {
+                        const recordedBlob = new Blob(voiceAudioChunks, { type: voiceMediaRecorder.mimeType || 'audio/webm' });
+                        currentVoiceNoteBlob = recordedBlob;
+
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            currentVoiceNoteDataUrl = reader.result;
+                            setupVoicePreviewPlayer(currentVoiceNoteDataUrl);
+                        };
+                        reader.readAsDataURL(recordedBlob);
+                    }
+                };
+
+                voiceMediaRecorder.start(200);
+                voiceRecordSeconds = 0;
+                updateVoiceTimerDisplay();
+
+                if (promptEl) promptEl.classList.add('hidden');
+                if (previewEl) previewEl.classList.add('hidden');
+                if (badgeEl) badgeEl.classList.add('hidden');
+                if (activeEl) {
+                    activeEl.classList.remove('hidden');
+                    activeEl.classList.add('flex');
+                }
+
+                voiceRecordTimer = setInterval(() => {
+                    voiceRecordSeconds++;
+                    updateVoiceTimerDisplay();
+                    if (voiceRecordSeconds >= MAX_VOICE_RECORD_SECONDS) {
+                        stopVoiceRecording();
+                    }
+                }, 1000);
+
+            } catch (err) {
+                console.error("Microphone access error:", err);
+                alert("मायक्रोफोन परवानगी नाकारली किंवा त्रुटी आली / Microphone permission denied or error: " + err.message);
+            }
+        }
+
+        function stopVoiceRecording() {
+            triggerHapticFeedback(60);
+
+            if (voiceMediaRecorder && voiceMediaRecorder.state !== 'inactive') {
+                try {
+                    voiceMediaRecorder.stop();
+                } catch (e) {
+                    console.error("Error stopping voice recorder:", e);
+                }
+            }
+            if (voiceRecordTimer) {
+                clearInterval(voiceRecordTimer);
+                voiceRecordTimer = null;
+            }
+        }
+
+        function updateVoiceTimerDisplay() {
+            const timerDisplay = document.getElementById('voiceRecordTimer');
+            if (!timerDisplay) return;
+            const mins = String(Math.floor(voiceRecordSeconds / 60)).padStart(2, '0');
+            const secs = String(voiceRecordSeconds % 60).padStart(2, '0');
+            timerDisplay.innerText = `${mins}:${secs} / 00:30`;
+        }
+
+        function setupVoicePreviewPlayer(audioSrc) {
+            const promptEl = document.getElementById('voiceRecordPrompt');
+            const activeEl = document.getElementById('voiceRecordingActive');
+            const previewEl = document.getElementById('voiceAudioPreviewCard');
+            const badgeEl = document.getElementById('voiceNoteBadge');
+            const audioEl = document.getElementById('voiceAudioElement');
+            const progressBar = document.getElementById('voiceProgressBar');
+            const currentTimeEl = document.getElementById('voiceCurrentTime');
+            const totalTimeEl = document.getElementById('voiceTotalTime');
+            const durationBadge = document.getElementById('voiceAudioDurationBadge');
+
+            if (activeEl) {
+                activeEl.classList.add('hidden');
+                activeEl.classList.remove('flex');
+            }
+            if (promptEl) promptEl.classList.add('hidden');
+            if (badgeEl) {
+                badgeEl.classList.remove('hidden');
+                badgeEl.classList.add('inline-flex');
+            }
+            if (previewEl) previewEl.classList.remove('hidden');
+
+            if (audioEl) {
+                audioEl.src = audioSrc;
+                audioEl.load();
+
+                audioEl.onloadedmetadata = () => {
+                    const dur = Math.round(audioEl.duration) || voiceRecordSeconds || 0;
+                    const durStr = `00:${String(dur).padStart(2, '0')}`;
+                    if (totalTimeEl) totalTimeEl.innerText = durStr;
+                    if (durationBadge) durationBadge.innerText = `${dur}s`;
+                };
+
+                audioEl.ontimeupdate = () => {
+                    if (audioEl.duration) {
+                        const percent = (audioEl.currentTime / audioEl.duration) * 100;
+                        if (progressBar) progressBar.style.width = percent + '%';
+                        const curSec = Math.floor(audioEl.currentTime);
+                        if (currentTimeEl) currentTimeEl.innerText = `00:${String(curSec).padStart(2, '0')}`;
+                    }
+                };
+
+                audioEl.onended = () => {
+                    isVoicePlaying = false;
+                    const playIcon = document.getElementById('voicePlayIcon');
+                    if (playIcon) playIcon.className = 'fa-solid fa-play text-white text-xs ml-0.5';
+                    if (progressBar) progressBar.style.width = '0%';
+                    if (currentTimeEl) currentTimeEl.innerText = '00:00';
+                };
+            }
+        }
+
+        function togglePlayVoicePreview() {
+            triggerHapticFeedback(60);
+            const audioEl = document.getElementById('voiceAudioElement');
+            const playIcon = document.getElementById('voicePlayIcon');
+            if (!audioEl) return;
+
+            if (isVoicePlaying) {
+                audioEl.pause();
+                isVoicePlaying = false;
+                if (playIcon) playIcon.className = 'fa-solid fa-play text-white text-xs ml-0.5';
+            } else {
+                audioEl.play().then(() => {
+                    isVoicePlaying = true;
+                    if (playIcon) playIcon.className = 'fa-solid fa-pause text-white text-xs';
+                }).catch(err => {
+                    console.error("Audio playback error:", err);
+                });
+            }
+        }
+
+        function seekVoicePreview(event) {
+            const audioEl = document.getElementById('voiceAudioElement');
+            const track = document.getElementById('voiceProgressTrack');
+            if (!audioEl || !track || !audioEl.duration) return;
+
+            const rect = track.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const fraction = Math.max(0, Math.min(1, clickX / rect.width));
+            audioEl.currentTime = fraction * audioEl.duration;
+        }
+
+        function deleteVoiceNote() {
+            triggerHapticFeedback(60);
+
+            const audioEl = document.getElementById('voiceAudioElement');
+            if (audioEl) {
+                audioEl.pause();
+                audioEl.src = "";
+            }
+            isVoicePlaying = false;
+            currentVoiceNoteBlob = null;
+            currentVoiceNoteDataUrl = "";
+            voiceAudioChunks = [];
+            voiceRecordSeconds = 0;
+
+            const promptEl = document.getElementById('voiceRecordPrompt');
+            const activeEl = document.getElementById('voiceRecordingActive');
+            const previewEl = document.getElementById('voiceAudioPreviewCard');
+            const badgeEl = document.getElementById('voiceNoteBadge');
+            const playIcon = document.getElementById('voicePlayIcon');
+            const progressBar = document.getElementById('voiceProgressBar');
+            const currentTimeEl = document.getElementById('voiceCurrentTime');
+
+            if (playIcon) playIcon.className = 'fa-solid fa-play text-white text-xs ml-0.5';
+            if (progressBar) progressBar.style.width = '0%';
+            if (currentTimeEl) currentTimeEl.innerText = '00:00';
+
+            if (previewEl) previewEl.classList.add('hidden');
+            if (activeEl) {
+                activeEl.classList.add('hidden');
+                activeEl.classList.remove('flex');
+            }
+            if (badgeEl) badgeEl.classList.add('hidden');
+            if (promptEl) promptEl.classList.remove('hidden');
+        }
+
+        window.startVoiceRecording = startVoiceRecording;
+        window.stopVoiceRecording = stopVoiceRecording;
+        window.togglePlayVoicePreview = togglePlayVoicePreview;
+        window.seekVoicePreview = seekVoicePreview;
+        window.deleteVoiceNote = deleteVoiceNote;
+        window.triggerHapticFeedback = triggerHapticFeedback;
+
         async function handleFormSubmit(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('submitBtn');
@@ -738,6 +997,8 @@ populateBookingProfile();
                     date: date,
                     time: time,
                     photoUrl: photoUrl,
+                    voiceNoteUrl: currentVoiceNoteDataUrl || "",
+                    hasVoiceNote: !!currentVoiceNoteDataUrl,
                     status: "Pending",
                     whatsappOptIn: whatsappOptIn,
                     startOtp: String(Math.floor(1000 + Math.random() * 9000)),
@@ -746,6 +1007,7 @@ populateBookingProfile();
                 };
 
                 await newOrderRef.set(payload);
+                deleteVoiceNote();
                 alert("तुमची अपॉइंटमेंट यशस्वीरीत्या बुक झाली आहे!");
                 trackLiveStatus(currentOrderId);
 
@@ -758,6 +1020,53 @@ populateBookingProfile();
             }
         }
 
+        // ==========================================
+        // FAMILY SAFETY SHARE CARD LOGIC
+        // ==========================================
+        let currentTrackedOrderData = null;
+
+        function shareFamilySafetyOnWhatsApp() {
+            triggerHapticFeedback(60);
+
+            const orderId = currentOrderId || '';
+            const orderData = currentTrackedOrderData || {};
+
+            const shortOrderId = orderId ? orderId.slice(-6).toUpperCase() : 'N/A';
+            const workerName = orderData.workerName || 'Verified Professional';
+            const workerMobile = orderData.workerMobile || 'Masked / Protected';
+            const serviceName = orderData.service || 'Home Service';
+            const address = orderData.address || 'Pune';
+            const workerRating = document.getElementById('safetyWorkerRating') ? document.getElementById('safetyWorkerRating').innerText : '4.9 Verified';
+
+            const originUrl = (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null')
+                ? window.location.origin
+                : 'https://gharmitra.online';
+            const liveTrackLink = orderId ? `${originUrl}/gharkam/customer.html?track=${encodeURIComponent(orderId)}` : originUrl;
+
+            const message = 
+`🛡️ *GHARMITRA FAMILY SAFETY DETAILS*
+━━━━━━━━━━━━━━━━━━━━
+Dear Family, here are the verified details of the home service technician visiting our home:
+
+👤 *Worker Name:* ${workerName}
+📞 *Mobile:* ${workerMobile}
+⭐ *Rating:* ${workerRating}
+🛠️ *Service:* ${serviceName}
+📍 *Address:* ${address}
+🆔 *Order ID:* #${shortOrderId}
+🔒 *Verification Status:* Identity & Police Verified (Aadhaar Verified)
+
+🗺️ *Live Tracking & Safety:*
+${liveTrackLink}
+
+_Sent securely via Gharmitra Family Safety Shield._`;
+
+            const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        window.shareFamilySafetyOnWhatsApp = shareFamilySafetyOnWhatsApp;
+
         function trackLiveStatus(orderId) {
             currentOrderId = orderId;
 
@@ -769,6 +1078,8 @@ populateBookingProfile();
             database.ref("orders/" + orderId).on("value", (snapshot) => {
                 const data = snapshot.val();
                 if(!data) return;
+
+                currentTrackedOrderData = data;
 
                 document.getElementById('statusService').innerText = data.service || "-";
                 document.getElementById('statusBudget').innerText = data.budget ? data.budget.replace('₹', '') : "-";
@@ -833,6 +1144,33 @@ populateBookingProfile();
                     });
                 } else {
                     ratingDisplay.innerText = "Not assigned yet";
+                }
+
+                // Family Safety Share Card
+                const safetyCard = document.getElementById('familySafetyShareCard');
+                if (safetyCard) {
+                    const isWorkerAssigned = !!(data.workerName || data.workerMobile || ['Accepted', 'On The Way', 'In Progress', 'Completed'].includes(data.status));
+                    if (isWorkerAssigned && data.status !== 'Cancelled') {
+                        safetyCard.classList.remove('hidden');
+
+                        const safetyWorkerName = document.getElementById('safetyWorkerName');
+                        const safetyWorkerAvatar = document.getElementById('safetyWorkerAvatar');
+                        const safetyWorkerService = document.getElementById('safetyWorkerService');
+                        const safetyWorkerPhone = document.getElementById('safetyWorkerPhone');
+                        const safetyWorkerRating = document.getElementById('safetyWorkerRating');
+
+                        if (safetyWorkerName) safetyWorkerName.innerText = data.workerName || "Verified Partner";
+                        if (safetyWorkerAvatar) {
+                            safetyWorkerAvatar.src = data.workerPhoto || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=100&auto=format&fit=crop&q=80";
+                        }
+                        if (safetyWorkerService) safetyWorkerService.innerText = data.service || "Home Service";
+                        if (safetyWorkerPhone) safetyWorkerPhone.innerText = maskedWorkerNumber;
+                        if (safetyWorkerRating && ratingDisplay) {
+                            safetyWorkerRating.innerText = ratingDisplay.innerText || "4.9 Verified";
+                        }
+                    } else {
+                        safetyCard.classList.add('hidden');
+                    }
                 }
 
                 const canCommunicate = data.status === 'Accepted' || data.status === 'On The Way' || data.status === 'In Progress';

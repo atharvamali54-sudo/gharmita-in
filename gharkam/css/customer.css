@@ -278,3 +278,53 @@ body > div:first-of-type > div > div:last-child > div:last-child {
         transition-duration: .01ms !important;
     }
 }
+
+/* Voice Note Recording & Audio Preview */
+#voiceNoteSection {
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(91, 140, 255, 0.2);
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 4px 14px rgba(45, 78, 160, 0.05);
+    transition: all 0.25s ease;
+}
+
+#voiceRecordingActive {
+    background: linear-gradient(135deg, rgba(254, 242, 242, 0.95), rgba(255, 241, 242, 0.95));
+    border: 1px solid rgba(239, 68, 68, 0.28);
+    box-shadow: 0 4px 18px rgba(239, 68, 68, 0.12);
+    border-radius: 0.85rem;
+}
+
+#voiceProgressBar {
+    background: linear-gradient(90deg, #10b981, #059669);
+    border-radius: 999px;
+    transition: width 0.1s linear;
+}
+
+/* Family Safety Share Card */
+#familySafetyShareCard {
+    background: linear-gradient(145deg, #ffffff, #f8faff);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 1.25rem;
+    padding: 1.15rem;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#familySafetyShareCard:hover {
+    box-shadow: 0 14px 30px rgba(16, 185, 129, 0.12);
+}
+
+#shareSafetyWhatsappBtn {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    box-shadow: 0 6px 18px rgba(37, 211, 102, 0.28);
+    transition: all 0.2s ease;
+}
+
+#shareSafetyWhatsappBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(37, 211, 102, 0.38);
+    filter: brightness(1.04);
+}
+
