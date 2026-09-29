@@ -31,8 +31,8 @@
     <meta name="apple-mobile-web-app-title" content="Gharmitra">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
-    <link rel="stylesheet" href="css/common.css?v=40">
-    <link rel="stylesheet" href="css/worker.css?v=40">
+    <link rel="stylesheet" href="css/common.css?v=42">
+    <link rel="stylesheet" href="css/worker.css?v=42">
     <script>
         (function(){
             try {
@@ -322,36 +322,7 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
   </div>
 </div>
 
-<!-- Job Start OTP (4-Digit PIN) Verification Modal -->
-<div id="startOtpModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4 relative">
-        <button onclick="closeStartOtpModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">✕</button>
-        
-        <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 text-3xl flex items-center justify-center mx-auto shadow-sm">
-            <i class="fa-solid fa-key"></i>
-        </div>
-        
-        <div>
-            <h3 class="font-bold text-slate-800 text-base">ग्राहकाचा स्टार्ट पिन टाका (Job Start PIN)</h3>
-            <p class="text-xs text-slate-500 mt-1">ग्राहकाच्या दारावर आल्यावर त्यांच्या मोबाईल स्क्रीनवरील 4-अंकी स्टार्ट पिन विचारा व येथे भरा:</p>
-        </div>
 
-        <div id="startOtpStatusMsg" class="hidden text-xs font-bold p-2.5 rounded-xl text-center"></div>
-
-        <div>
-            <input type="text" id="workStartOtpInput" maxlength="4" inputmode="numeric" placeholder="••••" class="w-full text-center text-3xl font-black tracking-[0.4em] bg-slate-50 border-2 border-slate-300 focus:border-amber-500 rounded-2xl py-3 px-4 outline-none transition shadow-inner">
-        </div>
-
-        <div class="grid grid-cols-2 gap-2 pt-1">
-            <button type="button" onclick="closeStartOtpModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-xs transition">
-                रद्द करा (Cancel)
-            </button>
-            <button type="button" onclick="verifyAndStartWork()" id="verifyStartOtpBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-play"></i> काम सुरू करा
-            </button>
-        </div>
-    </div>
-</div>
 
 <!-- Work Completion OTP Verification Modal -->
 <div id="completionOtpModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -478,9 +449,9 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
 <input type="file" id="dashboardWorkerPhotoCamera" accept="image/*" capture="user" class="hidden" onchange="handleDashboardWorkerPhotoSelected(event)">
 <input type="file" id="dashboardWorkerPhotoGallery" accept="image/*" class="hidden" onchange="handleDashboardWorkerPhotoSelected(event)">
 
-<script src="js/firebase.js?v=40"></script>
-<script src="js/call-masking.js?v=40"></script>
-<script src="js/worker.js?v=40"></script>
-<script src="js/pwa.js?v=40"></script>
+<script src="js/firebase.js?v=42"></script>
+<script src="js/call-masking.js?v=42"></script>
+<script src="js/worker.js?v=42"></script>
+<script src="js/pwa.js?v=42"></script>
 </body>
 </html>

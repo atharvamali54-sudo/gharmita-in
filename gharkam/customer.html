@@ -21,8 +21,8 @@
     <meta name="apple-mobile-web-app-title" content="Gharmitra">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
-    <link rel="stylesheet" href="css/common.css?v=41">
-    <link rel="stylesheet" href="css/customer.css?v=41">
+    <link rel="stylesheet" href="css/common.css?v=42">
+    <link rel="stylesheet" href="css/customer.css?v=42">
     <script>
         (function(){
             try {
@@ -290,14 +290,7 @@
                         </div>
                     </div>
 
-                    <!-- WhatsApp Order Updates Opt-In -->
-                    <div class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-950 shadow-sm">
-                        <input type="checkbox" id="whatsappOptIn" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-slate-300 cursor-pointer">
-                        <label for="whatsappOptIn" class="cursor-pointer font-bold flex items-center gap-2 flex-1">
-                            <i class="fa-brands fa-whatsapp text-emerald-600 text-base"></i>
-                            <span>थेट व्हॉट्सॲपवर ऑर्डर अपडेट्स आणि ५ मिनिटांत आगमन अलर्ट मिळवा</span>
-                        </label>
-                    </div>
+                    
 
                     <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mt-4">
                         <i class="fa-solid fa-paper-plane"></i> Book Appointment Now
@@ -422,19 +415,7 @@
                             </div>
                         </div>
 
-                        <!-- Job Start Security PIN Display Card (सिक्युरिटी स्टार्ट पिन) -->
-                        <div id="customerStartOtpCard" class="hidden rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white p-4 shadow-lg border border-amber-300/40 space-y-2">
-                            <div class="flex items-center justify-between gap-3">
-                                <div>
-                                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-100 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-shield-halved text-white"></i> सुरक्षा स्टार्ट पिन (Job Start PIN)
-                                    </span>
-                                    <p class="text-xs text-white/95 mt-0.5">कारागीर दारावर आल्यावर हा ४-अंकी पिन सांगा:</p>
-                                </div>
-                                <div class="bg-white text-amber-800 font-black text-2xl tracking-[0.25em] px-4 py-2 rounded-xl shadow-inner text-center border-2 border-amber-200 shrink-0">
-                                    <span id="customerStartOtpCodeDisplay">----</span>
-                                </div>
-                            </div>
+                        
                             <div class="flex items-center justify-between text-[11px] text-amber-100 pt-1 border-t border-amber-400/50">
                                 <span><i class="fa-solid fa-lock mr-1"></i> पिन टाकल्याशिवाय काम सुरू होणार नाही</span>
                                 <span class="text-[10px] bg-amber-800/60 px-2 py-0.5 rounded-md text-amber-200 font-bold">100% Secure</span>
@@ -494,29 +475,7 @@
                             </div>
                         </div>
 
-                        <!-- WhatsApp Share & Track Card -->
-                        <div id="customerWhatsAppTrackArea" class="hidden rounded-2xl bg-emerald-50 border border-emerald-200 p-3 space-y-1.5 shadow-sm">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="font-bold text-emerald-900 flex items-center gap-1.5">
-                                    <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i> व्हॉट्सॲप ऑर्डर ट्रॅकिंग
-                                </span>
-                                <span class="text-[10px] bg-emerald-200/80 text-emerald-800 font-bold px-2 py-0.5 rounded-full">१-क्लिक सेव्ह</span>
-                            </div>
-                            <p class="text-[11px] text-emerald-800">ॲप बंद झाले तरी व्हॉट्सॲपवर ट्रॅकिंग लिंक व सुरक्षा स्टार्ट पिन सुरक्षित ठेवा:</p>
-                            <a id="customerTrackWhatsAppShareBtn" href="#" target="_blank" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-bold py-2 px-3 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-2">
-                                <i class="fa-brands fa-whatsapp text-base"></i>
-                                <span>व्हॉट्सॲपवर ट्रॅक लिंक व स्टार्ट पिन पाठवा</span>
-                            </a>
-                        </div>
-
-                        <div id="stepsTrackerContainer" class="space-y-4 pt-2">
-                            <div class="flex items-start gap-3">
-                                <div id="step1Dot" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
-                                <div>
-                                    <h5 class="text-xs font-bold text-slate-800">Order Requested</h5>
-                                    <p class="text-[11px] text-slate-400">Kamachi request successfully pathvali aahe.</p>
-                                </div>
-                            </div>
+                        
 
                             <div class="flex items-start gap-3">
                                 <div id="step2Dot" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
@@ -887,9 +846,9 @@
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="js/firebase.js?v=41"></script>
-    <script src="js/call-masking.js?v=41"></script>
-    <script src="js/customer.js?v=41"></script>
-    <script src="js/pwa.js?v=41"></script>
+    <script src="js/firebase.js?v=42"></script>
+    <script src="js/call-masking.js?v=42"></script>
+    <script src="js/customer.js?v=42"></script>
+    <script src="js/pwa.js?v=42"></script>
 </body>
-</html>
+</html>
