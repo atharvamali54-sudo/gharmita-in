@@ -999,90 +999,290 @@ populateBookingProfile();
             });
         }
 
+        // Helper to retrieve logged-in customer mobile number
+        function getLoggedInCustomerMobile() {
+            if (window.customerProfile && window.customerProfile.mobile) {
+                return String(window.customerProfile.mobile).replace(/\D/g, '').slice(-10);
+            }
+            if (typeof readCustomerSession === 'function') {
+                const s = readCustomerSession();
+                if (s && s.mobile) return String(s.mobile).replace(/\D/g, '').slice(-10);
+            }
+            const formMob = document.getElementById('customerMobile')?.value?.trim();
+            if (formMob && formMob.length >= 10) return formMob.replace(/\D/g, '').slice(-10);
+            const profMob = document.getElementById('profileMobile')?.value?.trim();
+            if (profMob && profMob.length >= 10) return profMob.replace(/\D/g, '').slice(-10);
+
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('gharmitra_user_customer_') || key.startsWith('gharmitra_user_') || key === 'current_user_session')) {
+                        const parsed = JSON.parse(localStorage.getItem(key));
+                        if (parsed && parsed.mobile) {
+                            return String(parsed.mobile).replace(/\D/g, '').slice(-10);
+                        }
+                    }
+                }
+            } catch(e) {}
+            return '';
+        }
+
         function openMyOrdersModal() {
-            document.getElementById('myOrdersModal').classList.remove('hidden');
-            document.getElementById('myOrdersModal').classList.add('flex');
-            const formMobile = document.getElementById('customerMobile').value;
-            if(formMobile) {
-                document.getElementById('searchMobileInput').value = formMobile;
-                fetchCustomerOrders();
+            const modal = document.getElementById('myOrdersModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            const signedInMobile = getLoggedInCustomerMobile();
+            const searchInput = document.getElementById('searchMobileInput');
+
+            if (searchInput) {
+                if (signedInMobile && signedInMobile.length === 10) {
+                    searchInput.value = signedInMobile;
+                    fetchCustomerOrders();
+                } else if (searchInput.value && searchInput.value.replace(/\D/g, '').length === 10) {
+                    fetchCustomerOrders();
+                } else {
+                    searchInput.focus();
+                }
             }
         }
 
         function closeMyOrdersModal() {
-            document.getElementById('myOrdersModal').classList.remove('flex');
-            document.getElementById('myOrdersModal').classList.add('hidden');
+            const modal = document.getElementById('myOrdersModal');
+            if (modal) {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }
         }
 
         function fetchCustomerOrders() {
-            const mobile = document.getElementById('searchMobileInput').value.trim();
+            const inputEl = document.getElementById('searchMobileInput');
             const container = document.getElementById('ordersListContainer');
+            const searchBtn = document.getElementById('searchOrdersBtn');
+            if (!container) return;
+
+            const rawMobile = inputEl ? inputEl.value.trim() : '';
+            const mobile = rawMobile.replace(/\D/g, '').slice(-10);
 
             if (!mobile || mobile.length !== 10) {
                 alert("कृपया अचूक १० अंकी मोबाईल नंबर प्रविष्ट करा!");
+                if (inputEl) inputEl.focus();
                 return;
             }
 
-            container.innerHTML = '<p class="text-xs text-slate-400 text-center py-6"><i class="fa-solid fa-spinner fa-spin"></i> Fetching orders...</p>';
+            if (searchBtn) {
+                searchBtn.disabled = true;
+                searchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Searching...</span>';
+            }
 
-            database.ref("orders").orderByChild("customerMobile").equalTo(mobile).once("value", (snapshot) => {
-                container.innerHTML = "";
-                const orders = snapshot.val();
+            container.innerHTML = '<p class="text-xs text-slate-400 text-center py-8"><i class="fa-solid fa-spinner fa-spin mr-1"></i> ऑर्डर्स शोधत आहोत...</p>';
 
-                if (!orders) {
-                    container.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">या मोबाईल नंबरवर कोणतीही ऑर्डर सापडली नाही.</p>';
-                    return;
+            // Load orders and match by mobile
+            database.ref("orders").once("value", (snapshot) => {
+                if (searchBtn) {
+                    searchBtn.disabled = false;
+                    searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> <span>Search</span>';
                 }
 
-                Object.keys(orders).reverse().forEach(orderId => {
-                    const order = orders[orderId];
-                    let badgeColor = "bg-amber-100 text-amber-700";
-                    if(order.status === 'Accepted') badgeColor = "bg-blue-100 text-blue-700";
-                    if(order.status === 'On The Way') badgeColor = "bg-indigo-100 text-indigo-700";
-                    if(order.status === 'In Progress') badgeColor = "bg-amber-100 text-amber-800";
-                    if(order.status === 'Completed') badgeColor = "bg-emerald-100 text-emerald-700";
-                    if(order.status === 'Cancelled') badgeColor = "bg-red-100 text-red-700";
+                const all = snapshot.val() || {};
+                const matchedOrders = {};
 
-                    const isCompleted = order.status === 'Completed';
-                    const rateButtonHtml = isCompleted && !order.isRated ? `
-                        <button onclick="openOrderRating('${orderId}')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-1.5 px-3 rounded-lg text-[11px] transition flex items-center gap-1">
-                            <i class="fa-solid fa-star text-[10px]"></i> Rate Worker
+                Object.keys(all).forEach(key => {
+                    const ord = all[key];
+                    if (!ord) return;
+                    const ordMob = String(ord.customerMobile || '').replace(/\D/g, '').slice(-10);
+                    if (ordMob === mobile) {
+                        matchedOrders[key] = ord;
+                    }
+                });
+
+                renderCustomerOrdersList(matchedOrders, mobile);
+
+            }).catch(error => {
+                console.error("Fetch Orders Error:", error);
+                if (searchBtn) {
+                    searchBtn.disabled = false;
+                    searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> <span>Search</span>';
+                }
+                container.innerHTML = '<p class="text-xs text-red-500 text-center py-8">ऑर्डर्स लोड करताना अडचण आली: ' + escapeHtml(error.message) + '</p>';
+            });
+        }
+
+        function renderCustomerOrdersList(orders, searchedMobile) {
+            const container = document.getElementById('ordersListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const keys = Object.keys(orders || {});
+            if (keys.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 px-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl">
+                            <i class="fa-solid fa-box-open"></i>
+                        </div>
+                        <p class="text-xs font-bold text-slate-700">मोबाईल नंबर ${escapeHtml(searchedMobile)} वर कोणतीही ऑर्डर सापडली नाही.</p>
+                        <p class="text-[11px] text-slate-500">तुम्ही नवीन अपॉइंटमेंट बुक करू शकता.</p>
+                        <button type="button" onclick="closeMyOrdersModal()" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-xl transition">
+                            नवीन अपॉइंटमेंट बुक करा
                         </button>
-                    ` : '';
+                    </div>
+                `;
+                return;
+            }
+
+            // Separate active and past orders
+            const activeOrders = [];
+            const pastOrders = [];
+
+            // Sort newest first
+            keys.sort((a, b) => (orders[b].timestamp || 0) - (orders[a].timestamp || 0)).forEach(orderId => {
+                const order = orders[orderId];
+                if (['Pending', 'Accepted', 'On The Way', 'In Progress'].includes(order.status)) {
+                    activeOrders.push({ id: orderId, data: order });
+                } else {
+                    pastOrders.push({ id: orderId, data: order });
+                }
+            });
+
+            // 1. Render Active Orders (if any)
+            if (activeOrders.length > 0) {
+                const activeHeader = document.createElement('div');
+                activeHeader.className = "flex items-center gap-2 pt-1 pb-1";
+                activeHeader.innerHTML = `
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">चालू ऑर्डर्स (Active & Live Orders - ${activeOrders.length})</h4>
+                `;
+                container.appendChild(activeHeader);
+
+                activeOrders.forEach(({ id: orderId, data: order }) => {
+                    let badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+                    let statusLabel = "ऑर्डर प्राप्त (Pending)";
+                    if (order.status === 'Accepted') {
+                        badgeClass = "bg-blue-100 text-blue-800 border-blue-300";
+                        statusLabel = "कारागिराने स्वीकारली (Accepted)";
+                    } else if (order.status === 'On The Way') {
+                        badgeClass = "bg-indigo-100 text-indigo-800 border-indigo-300";
+                        statusLabel = "मार्गस्थ आहे (On The Way)";
+                    } else if (order.status === 'In Progress') {
+                        badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+                        statusLabel = "काम चालू आहे (In Progress)";
+                    }
 
                     const card = document.createElement('div');
-                    card.className = "bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3 text-xs hover:border-blue-400 transition cursor-pointer";
+                    card.className = "bg-gradient-to-br from-white to-blue-50/40 border-2 border-blue-300 p-4 rounded-2xl space-y-3 text-xs shadow-sm hover:shadow-md transition";
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between border-b pb-2 border-blue-100">
+                            <span class="font-black text-slate-900 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-wrench text-blue-600"></i> ${escapeHtml(order.service || 'सर्व्हिस')}
+                            </span>
+                            <span class="px-2.5 py-1 rounded-full font-bold text-[10px] border ${badgeClass}">
+                                ${statusLabel}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-slate-600">
+                            <p><strong>ऑर्डर आयडी:</strong> <span class="font-mono font-bold text-slate-800">#${orderId.slice(-6).toUpperCase()}</span></p>
+                            <p><strong>बजेट:</strong> <span class="text-emerald-700 font-extrabold">${escapeHtml(order.budget || '-')}</span></p>
+                            <p><strong>तारीख:</strong> ${escapeHtml(order.date || '-')} (${escapeHtml(order.time || '-')})</p>
+                            <p><strong>परिसर:</strong> ${escapeHtml(order.area || '-')}</p>
+                            ${order.workerName ? `<p class="col-span-2 text-indigo-700 font-bold"><i class="fa-solid fa-helmet-safety mr-1"></i> कारागीर: ${escapeHtml(order.workerName)}</p>` : ''}
+                        </div>
+                        ${order.startOtp && order.status !== 'In Progress' ? `
+                            <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-amber-900"><i class="fa-solid fa-shield-halved text-amber-600 mr-1"></i> सुरक्षा स्टार्ट पिन:</span>
+                                <span class="font-mono font-black text-sm tracking-widest bg-white px-2.5 py-1 rounded-lg border border-amber-300 text-amber-900">${order.startOtp}</span>
+                            </div>
+                        ` : ''}
+                        <button onclick="trackSelectedOrder('${orderId}')" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-location-crosshairs text-amber-300"></i>
+                            <span>थेट ट्रॅक करा (Live Tracking Status)</span>
+                        </button>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            // 2. Render Past Orders (if any)
+            if (pastOrders.length > 0) {
+                const pastHeader = document.createElement('div');
+                pastHeader.className = "flex items-center gap-2 pt-3 pb-1";
+                pastHeader.innerHTML = `
+                    <i class="fa-solid fa-history text-slate-400"></i>
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider">मागील ऑर्डर्स (Past Orders - ${pastOrders.length})</h4>
+                `;
+                container.appendChild(pastHeader);
+
+                pastOrders.forEach(({ id: orderId, data: order }) => {
+                    const isCompleted = order.status === 'Completed';
+                    const badgeClass = isCompleted ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200";
+                    const statusText = isCompleted ? "पूर्ण झाले (Completed)" : "रद्द केले (Cancelled)";
+
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-50 border border-slate-200 p-3.5 rounded-2xl space-y-2 text-xs hover:border-slate-300 transition";
                     card.innerHTML = `
                         <div class="flex items-center justify-between border-b pb-2 border-slate-200">
-                            <span class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-wrench text-blue-600"></i> ${escapeHtml(order.service)}</span>
-                            <span class="px-2.5 py-1 rounded-full font-bold text-[10px] ${badgeColor}">${order.status}</span>
+                            <span class="font-bold text-slate-800"><i class="fa-solid fa-wrench text-slate-500"></i> ${escapeHtml(order.service || 'सर्व्हिस')}</span>
+                            <span class="px-2 py-0.5 rounded-full font-bold text-[10px] border ${badgeClass}">${statusText}</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 text-slate-600 pt-1">
-                            <p><strong>Name:</strong> ${escapeHtml(order.customerName)}</p>
-                            <p><strong>Budget:</strong> <span class="text-emerald-600 font-bold">${escapeHtml(order.budget)}</span></p>
-                            <p><strong>Date:</strong> ${escapeHtml(order.date)} (${escapeHtml(order.time)})</p>
-                            <p><strong>Area:</strong> ${escapeHtml(order.area)}</p>
+                        <div class="grid grid-cols-2 gap-1.5 text-slate-600">
+                            <p><strong>आयडी:</strong> <span class="font-mono">#${orderId.slice(-6).toUpperCase()}</span></p>
+                            <p><strong>बजेट:</strong> <span class="font-bold text-emerald-600">${escapeHtml(order.budget || '-')}</span></p>
+                            <p><strong>तारीख:</strong> ${escapeHtml(order.date || '-')}</p>
+                            <p><strong>परिसर:</strong> ${escapeHtml(order.area || '-')}</p>
                         </div>
-                        <p class="text-slate-500 truncate"><strong>Address:</strong> ${escapeHtml(order.address)}</p>
-                        <div class="text-right pt-1 flex items-center justify-end gap-2">
-                            ${rateButtonHtml}
-                            <button onclick="trackSelectedOrder('${orderId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-lg text-[11px] transition">
-                                <i class="fa-solid fa-eye"></i> Track Live Status
+                        <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-200">
+                            ${isCompleted && !order.isRated ? `
+                                <button onclick="openOrderRating('${orderId}')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-1 px-3 rounded-lg text-[11px] transition flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid fa-star text-[10px]"></i> Rate Worker
+                                </button>
+                            ` : ''}
+                            <button onclick="trackSelectedOrder('${orderId}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-1 px-3 rounded-lg text-[11px] transition">
+                                सविस्तर पहा
                             </button>
                         </div>
                     `;
                     container.appendChild(card);
                 });
-            }, (error) => {
-                console.error("Fetch Error:", error);
-                container.innerHTML = '<p class="text-xs text-red-500 text-center py-6">डेटा आणताना एरर आली.</p>';
-            });
+            }
         }
 
         function trackSelectedOrder(orderId) {
             closeMyOrdersModal();
             trackLiveStatus(orderId);
+            setTimeout(() => {
+                const target = document.getElementById('liveStatusContainer') || document.getElementById('stepsTrackerContainer');
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 300);
         }
+
+        // Bottom Nav bar handler
+        function customerNavTo(target) {
+            document.querySelectorAll('.bottom-nav-item').forEach(btn => btn.classList.remove('active'));
+            if (target === 'home') {
+                document.getElementById('cNavHome')?.classList.add('active');
+                closeMyOrdersModal();
+                if (typeof closeProfileModal === 'function') closeProfileModal();
+                if (typeof closeCustomerSupportModal === 'function') closeCustomerSupportModal();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (target === 'orders') {
+                document.getElementById('cNavOrders')?.classList.add('active');
+                openMyOrdersModal();
+            } else if (target === 'profile') {
+                document.getElementById('cNavProfile')?.classList.add('active');
+                if (typeof openProfileModal === 'function') openProfileModal();
+            } else if (target === 'help') {
+                document.getElementById('cNavHelp')?.classList.add('active');
+                if (typeof openCustomerSupportModal === 'function') openCustomerSupportModal();
+            }
+        }
+
+        window.openMyOrdersModal = openMyOrdersModal;
+        window.closeMyOrdersModal = closeMyOrdersModal;
+        window.fetchCustomerOrders = fetchCustomerOrders;
+        window.trackSelectedOrder = trackSelectedOrder;
+        window.customerNavTo = customerNavTo;
 
 
 // =========================================================

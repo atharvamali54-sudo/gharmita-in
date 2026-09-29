@@ -21,8 +21,8 @@
     <meta name="apple-mobile-web-app-title" content="Gharmitra">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
-    <link rel="stylesheet" href="css/common.css?v=40">
-    <link rel="stylesheet" href="css/customer.css?v=40">
+    <link rel="stylesheet" href="css/common.css?v=41">
+    <link rel="stylesheet" href="css/customer.css?v=41">
     <script>
         (function(){
             try {
@@ -547,30 +547,39 @@
         </div>
     </div>
 
-    <!-- Past Orders Modal -->
+    <!-- Past & Active Orders Modal -->
     <div id="myOrdersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Your Past & Active Orders
-                </h3>
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Your Past & Active Orders
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">तुमच्या चालू आणि मागील सर्व ऑर्डर्सची माहिती व थेट ट्रॅकिंग</p>
+                </div>
                 <button onclick="closeMyOrdersModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <div class="py-4 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Enter Your Mobile Number to View Orders</label>
-                    <div class="flex gap-2">
-                        <input type="tel" id="searchMobileInput" pattern="[0-9]{10}" placeholder="Enter 10-digit mobile number" class="w-full bg-slate-50 border border-slate-200 text-slate-800 font-medium py-2.5 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
-                        <button onclick="fetchCustomerOrders()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl transition text-xs shrink-0">
-                            Search
-                        </button>
-                    </div>
+            <div class="py-4 space-y-3 shrink-0">
+                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    <i class="fa-solid fa-mobile-screen mr-1 text-blue-600"></i> मोबाईल नंबर (Mobile Number)
+                </label>
+                <div class="flex gap-2">
+                    <input type="tel" id="searchMobileInput" pattern="[0-9]{10}" placeholder="१० अंकी मोबाईल नंबर टाका" onkeydown="if(event.key==='Enter') fetchCustomerOrders()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 font-medium py-2.5 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
+                    <button type="button" onclick="fetchCustomerOrders()" id="searchOrdersBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl transition text-xs shrink-0 flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>Search</span>
+                    </button>
                 </div>
             </div>
 
+            <!-- Orders List Container (Scrollable) -->
+            <div id="ordersListContainer" class="flex-1 overflow-y-auto space-y-3 pr-1 min-h-[160px] pb-2">
+                <p class="text-xs text-slate-400 text-center py-8">
+                    <i class="fa-solid fa-spinner fa-spin mr-1"></i> ऑर्डर्स शोधत आहोत...
+                </p>
             </div>
         </div>
     </div>
@@ -741,9 +750,9 @@
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="js/firebase.js?v=40"></script>
-    <script src="js/call-masking.js?v=40"></script>
-    <script src="js/customer.js?v=40"></script>
-    <script src="js/pwa.js?v=40"></script>
+    <script src="js/firebase.js?v=41"></script>
+    <script src="js/call-masking.js?v=41"></script>
+    <script src="js/customer.js?v=41"></script>
+    <script src="js/pwa.js?v=41"></script>
 </body>
 </html>
