@@ -21,8 +21,8 @@
     <meta name="apple-mobile-web-app-title" content="Gharmitra">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
-    <link rel="stylesheet" href="css/common.css?v=42">
-    <link rel="stylesheet" href="css/customer.css?v=42">
+    <link rel="stylesheet" href="css/common.css?v=43">
+    <link rel="stylesheet" href="css/customer.css?v=43">
     <script>
         (function(){
             try {
@@ -50,7 +50,7 @@
 </head>
 <body class="bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-900 min-h-screen p-2 sm:p-4 md:p-8 flex items-center justify-center font-sans">
 
-    <div class="w-full max-w-6xl bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+    <div class="w-full max-w-6xl mx-auto bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-white/20">
         
         <header class="bg-blue-600 px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 shadow-md">
             <div class="w-full md:w-auto flex items-center justify-between gap-2">
@@ -415,13 +415,6 @@
                             </div>
                         </div>
 
-                        
-                            <div class="flex items-center justify-between text-[11px] text-amber-100 pt-1 border-t border-amber-400/50">
-                                <span><i class="fa-solid fa-lock mr-1"></i> पिन टाकल्याशिवाय काम सुरू होणार नाही</span>
-                                <span class="text-[10px] bg-amber-800/60 px-2 py-0.5 rounded-md text-amber-200 font-bold">100% Secure</span>
-                            </div>
-                        </div>
-
                         <!-- Work Completion OTP Display Card -->
                         <div id="customerCompletionOtpCard" class="hidden rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-4 shadow-lg border border-emerald-400/40 space-y-2">
                             <div class="flex items-center justify-between gap-3">
@@ -458,7 +451,7 @@
                                 </a>
                             </div>
 
-                            <!-- Chat with Worker -->
+                                                        <!-- Chat with Worker -->
                             <div id="customerChatAction" class="border border-blue-100 bg-blue-50/70 rounded-2xl p-3 flex items-center justify-between gap-3">
                                 <div>
                                     <p class="text-xs font-black text-slate-800 flex items-center gap-1.5">
@@ -475,7 +468,15 @@
                             </div>
                         </div>
 
-                        
+                        <!-- 4-Step Order Tracker -->
+                        <div id="stepsTrackerContainer" class="space-y-4 pt-2">
+                            <div class="flex items-start gap-3">
+                                <div id="step1Dot" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
+                                <div>
+                                    <h5 class="text-xs font-bold text-slate-800">Order Requested</h5>
+                                    <p class="text-[11px] text-slate-400">Kamachi request successfully pathvali aahe.</p>
+                                </div>
+                            </div>
 
                             <div class="flex items-start gap-3">
                                 <div id="step2Dot" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
@@ -495,14 +496,6 @@
 
                             <div class="flex items-start gap-3">
                                 <div id="step4Dot" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</div>
-                                <div>
-                                    <h5 class="text-xs font-bold text-slate-800">Work In Progress (काम सुरू आहे)</h5>
-                                    <p class="text-[11px] text-slate-400">Worker arrived &amp; start PIN verified.</p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-start gap-3">
-                                <div id="step5Dot" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">5</div>
                                 <div>
                                     <h5 class="text-xs font-bold text-slate-800">Work Completed</h5>
                                     <p class="text-[11px] text-slate-400">Work has been successfully completed.</p>
@@ -846,9 +839,9 @@
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="js/firebase.js?v=42"></script>
-    <script src="js/call-masking.js?v=42"></script>
-    <script src="js/customer.js?v=42"></script>
-    <script src="js/pwa.js?v=42"></script>
+    <script src="js/firebase.js?v=43"></script>
+    <script src="js/call-masking.js?v=43"></script>
+    <script src="js/customer.js?v=43"></script>
+    <script src="js/pwa.js?v=43"></script>
 </body>
 </html>

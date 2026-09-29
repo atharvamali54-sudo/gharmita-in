@@ -12,6 +12,10 @@ body {
     isolation: isolate;
     overflow-x: hidden;
     color: var(--ink);
+    min-height: 100vh;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     background:
         radial-gradient(circle at 9% 8%, rgba(89, 226, 255, .35), transparent 25%),
         radial-gradient(circle at 92% 84%, rgba(164, 124, 255, .36), transparent 27%),
@@ -56,6 +60,9 @@ body::after {
 }
 
 body > div:first-of-type {
+    margin: 1.5rem auto !important;
+    width: 100% !important;
+    max-width: 72rem !important;
     background: linear-gradient(145deg, rgba(255,255,255,.84), rgba(255,255,255,.55)) !important;
     backdrop-filter: blur(28px) saturate(155%);
     -webkit-backdrop-filter: blur(28px) saturate(155%);
