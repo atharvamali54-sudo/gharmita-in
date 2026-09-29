@@ -36,26 +36,24 @@ body {
    In App / WebView: Hide Share and Install App buttons
    In Normal Browser: Keep them visible and functional
    ========================================================= */
+/* Hide Share buttons everywhere across project (Install App only) */
+.gharmitra-share-btn,
+#pwaFloatingShareBtn,
+[onclick*="shareGharmitraApp"] {
+    display: none !important;
+}
+
 @media all and (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
-    .gharmitra-share-btn,
     .pwa-install-btn,
-    [onclick*="shareGharmitraApp"],
-    [onclick*="showPwaInstallModal"],
-    #pwaFloatingShareBtn {
+    [onclick*="showPwaInstallModal"] {
         display: none !important;
     }
 }
 
-html.is-app-env .gharmitra-share-btn,
 html.is-app-env .pwa-install-btn,
-html.is-app-env [onclick*="shareGharmitraApp"],
 html.is-app-env [onclick*="showPwaInstallModal"],
-html.is-app-env #pwaFloatingShareBtn,
-body.is-app-env .gharmitra-share-btn,
 body.is-app-env .pwa-install-btn,
-body.is-app-env [onclick*="shareGharmitraApp"],
-body.is-app-env [onclick*="showPwaInstallModal"],
-body.is-app-env #pwaFloatingShareBtn {
+body.is-app-env [onclick*="showPwaInstallModal"] {
     display: none !important;
 }
 
@@ -390,10 +388,6 @@ html.is-mobile-app .app-bottom-nav {
 
 html.is-mobile-app body {
     padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
-}
-
-html.is-mobile-app #pwaFloatingShareBtn {
-    bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 html.is-mobile-app #customerLiveStatusColumn {

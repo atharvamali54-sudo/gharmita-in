@@ -176,9 +176,6 @@ function ensurePwaModalHtml() {
                 <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/Gharmitra-Secure.apk" target="_blank" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-brands fa-android text-emerald-400 text-base"></i> <span>Download Android APK</span>
                 </a>
-                <button onclick="shareGharmitraApp()" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-2.5 px-4 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-brands fa-whatsapp text-base"></i> 📤 Share App with Friends
-                </button>
                 <button onclick="dismissPwaModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-4 rounded-xl transition text-xs cursor-pointer">
                     Maybe Later
                 </button>
@@ -254,12 +251,7 @@ function hideInstallButtons() {
 }
 
 function showShareButtons() {
-    if (isAppAlreadyInstalled()) return;
-    document.querySelectorAll('.gharmitra-share-btn, [onclick*="shareGharmitraApp"]').forEach(btn => {
-        btn.classList.remove('hidden');
-        btn.style.display = '';
-        btn.removeAttribute('aria-hidden');
-    });
+    hideShareButtons();
 }
 
 function hideShareButtons() {
@@ -268,6 +260,8 @@ function hideShareButtons() {
         btn.style.setProperty('display', 'none', 'important');
         btn.setAttribute('aria-hidden', 'true');
     });
+    const floatingShare = document.getElementById('pwaFloatingShareBtn');
+    if (floatingShare) floatingShare.remove();
 }
 
 function applyAppOrBrowserVisibility() {
@@ -277,14 +271,11 @@ function applyAppOrBrowserVisibility() {
         if (document.body) document.body.classList.add('is-app-env');
         hideInstallButtons();
         hideShareButtons();
-        const floatingShare = document.getElementById('pwaFloatingShareBtn');
-        if (floatingShare) floatingShare.remove();
     } else {
         if (document.documentElement) document.documentElement.classList.remove('is-app-env');
         if (document.body) document.body.classList.remove('is-app-env');
         showInstallButtons();
-        showShareButtons();
-        ensureFloatingShareButton();
+        hideShareButtons();
     }
 }
 
@@ -454,20 +445,10 @@ function fallbackCopy(text) {
     document.body.removeChild(ta);
 }
 
-// --- 8. Floating WhatsApp Share Button (Available everywhere on Mobile in Browser) ---
+// --- 8. Floating Share Button (Removed as requested) ---
 function ensureFloatingShareButton() {
-    if (isAppAlreadyInstalled()) return; // Hidden completely in App
-    if (document.getElementById('pwaFloatingShareBtn')) return;
-
-    const btn = document.createElement('div');
-    btn.id = 'pwaFloatingShareBtn';
-    btn.className = 'gharmitra-share-btn fixed bottom-5 right-4 z-40 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs py-2.5 px-3.5 rounded-full shadow-2xl flex items-center gap-2 cursor-pointer border-2 border-white transition transform active:scale-95 select-none';
-    btn.onclick = () => shareGharmitraApp();
-    btn.innerHTML = `
-        <i class="fa-brands fa-whatsapp text-lg"></i>
-        <span>Share App</span>
-    `;
-    document.body.appendChild(btn);
+    const btn = document.getElementById('pwaFloatingShareBtn');
+    if (btn) btn.remove();
 }
 
 function showPwaToast(msg) {
@@ -499,8 +480,10 @@ function initPwaAndAppState() {
     ensurePwaModalHtml();
     ensureShareModalHtml();
 
+    const floatingShare = document.getElementById('pwaFloatingShareBtn');
+    if (floatingShare) floatingShare.remove();
+
     if (!isAppAlreadyInstalled()) {
-        ensureFloatingShareButton();
         if (isIosSafari()) {
             const dismissedTime = localStorage.getItem(PWA_DISMISSED_KEY);
             const now = Date.now();
@@ -508,9 +491,6 @@ function initPwaAndAppState() {
                 setTimeout(() => showPwaInstallModal(), 2500);
             }
         }
-    } else {
-        const floatingShare = document.getElementById('pwaFloatingShareBtn');
-        if (floatingShare) floatingShare.remove();
     }
 
     // Auto-open share modal if launched via Android shortcut (?action=share) and not in app
