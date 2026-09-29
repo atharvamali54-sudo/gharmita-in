@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="mr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,8 +17,8 @@
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=32">
-  <link rel="stylesheet" href="css/index.css?v=32">
+  <link rel="stylesheet" href="css/common.css?v=33">
+  <link rel="stylesheet" href="css/index.css?v=33">
   <script>
       (function(){
           try {
@@ -56,15 +56,15 @@
                 </div>
             </div>
             <!-- Mobile-only WhatsApp button on top row -->
-            <button type="button" onclick="shareGharmitraApp()" title="Gharmitra ॲप व्हॉट्सॲपवर शेअर करा" class="gharmitra-share-btn sm:hidden bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-[11px] py-1.5 px-2.5 rounded-xl shadow-md transition flex items-center gap-1 cursor-pointer border border-white/30 shrink-0">
-                <i class="fa-brands fa-whatsapp text-xs"></i> <span>शेअर करा</span>
+            <button type="button" onclick="shareGharmitraApp()" title="Share Gharmitra App on WhatsApp" class="gharmitra-share-btn sm:hidden bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-[11px] py-1.5 px-2.5 rounded-xl shadow-md transition flex items-center gap-1 cursor-pointer border border-white/30 shrink-0">
+                <i class="fa-brands fa-whatsapp text-xs"></i> <span>Share App</span>
             </button>
         </div>
 
         <div class="w-full sm:w-auto flex flex-wrap items-center justify-center sm:justify-end gap-1.5 sm:gap-2">
             <!-- Desktop WhatsApp button -->
-            <button type="button" onclick="shareGharmitraApp()" title="Gharmitra ॲप व्हॉट्सॲपवर शेअर करा" class="gharmitra-share-btn hidden sm:inline-flex bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-xs py-1.5 px-3 rounded-xl shadow-md transition items-center gap-1.5 cursor-pointer border border-white/30 shrink-0">
-                <i class="fa-brands fa-whatsapp text-sm"></i> <span>शेअर करा</span>
+            <button type="button" onclick="shareGharmitraApp()" title="Share Gharmitra App on WhatsApp" class="gharmitra-share-btn hidden sm:inline-flex bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-xs py-1.5 px-3 rounded-xl shadow-md transition items-center gap-1.5 cursor-pointer border border-white/30 shrink-0">
+                <i class="fa-brands fa-whatsapp text-sm"></i> <span>Share App</span>
             </button>
             <button onclick="showPwaInstallModal()" class="pwa-install-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] sm:text-xs py-1.5 px-2.5 sm:px-3 rounded-xl shadow transition flex items-center gap-1 sm:gap-1.5 cursor-pointer shrink-0">
                 <i class="fa-solid fa-download text-xs"></i> <span>Install App</span>
@@ -131,24 +131,24 @@
                     <div class="flex items-center justify-between mb-1.5">
                         <label class="block text-xs font-bold text-amber-950 flex items-center gap-1.5">
                             <i class="fa-solid fa-camera text-amber-600 text-sm"></i> 
-                            <span>कामगाराचा फोटो / थेट सेल्फी (Worker Photo / Selfie) <span class="text-rose-600 font-bold">*</span></span>
+                            <span>Worker Photo / Live Selfie <span class="text-rose-600 font-bold">*</span></span>
                         </label>
                         <span id="workerPhotoStatusBadge" class="hidden text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-300">
-                            <i class="fa-solid fa-check"></i> सेल्फी जोडली
+                            <i class="fa-solid fa-check"></i> Selfie Added
                         </span>
                     </div>
                     <p id="workerPhotoSubtext" class="text-[11px] text-amber-900/80 mb-3 leading-tight">
-                        नवीन अकाउंट तयार करताना थेट सेल्फी काढा किंवा फोटो अपलोड करा. हीच सेल्फी तुमच्या वर्कर पॅनेलमध्ये दिसेल.
+                        Take a live selfie or upload a photo to create your account. This photo will be displayed on your Worker Dashboard.
                     </p>
 
                     <div class="flex items-center gap-3">
                         <!-- Photo Preview Box -->
                         <div class="relative shrink-0">
-                            <div id="workerPhotoPreviewBox" onclick="triggerWorkerCamera()" class="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-amber-300 flex flex-col items-center justify-center text-amber-500 cursor-pointer overflow-hidden shadow-inner hover:border-amber-500 transition group" title="फोटो घेण्यासाठी क्लिक करा">
+                            <div id="workerPhotoPreviewBox" onclick="triggerWorkerCamera()" class="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-amber-300 flex flex-col items-center justify-center text-amber-500 cursor-pointer overflow-hidden shadow-inner hover:border-amber-500 transition group" title="Click to take live selfie">
                                 <i id="workerPhotoPlaceholderIcon" class="fa-solid fa-user-circle text-3xl text-amber-400 group-hover:scale-110 transition"></i>
                                 <img id="workerPhotoPreviewImg" src="" alt="Worker Photo" class="hidden w-full h-full object-cover">
                             </div>
-                            <button type="button" id="removeWorkerPhotoBtn" onclick="clearWorkerPhoto(event)" class="hidden absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow hover:bg-rose-600 transition" title="फोटो काढा">
+                            <button type="button" id="removeWorkerPhotoBtn" onclick="clearWorkerPhoto(event)" class="hidden absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow hover:bg-rose-600 transition" title="Remove photo">
                                 ✕
                             </button>
                         </div>
@@ -158,15 +158,15 @@
                             <div class="flex gap-2">
                                 <button type="button" onclick="triggerWorkerCamera()" class="flex-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-900 font-bold text-xs py-2 px-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 border border-amber-400/50 cursor-pointer">
                                     <i class="fa-solid fa-camera text-slate-900"></i>
-                                    <span>सेल्फी काढा</span>
+                                    <span>Take Selfie</span>
                                 </button>
                                 <button type="button" onclick="triggerWorkerGallery()" class="bg-white hover:bg-amber-100/60 active:scale-95 text-amber-900 font-semibold text-xs py-2 px-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1 border border-amber-200 cursor-pointer">
                                     <i class="fa-solid fa-image text-amber-600"></i>
-                                    <span>गॅलरी</span>
+                                    <span>Gallery</span>
                                 </button>
                             </div>
                             <p id="workerPhotoHint" class="text-[10px] text-gray-500">
-                                कॅमेराने सेल्फी घ्या किंवा गॅलरीतून फोटो निवडा.
+                                Take a live selfie using camera or choose a photo from gallery.
                             </p>
                         </div>
                     </div>
@@ -244,9 +244,85 @@
         </div>
     </main>
 
+    <!-- Live WebRTC Camera Selfie Modal -->
+    <div id="liveCameraModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-sm sm:max-w-md overflow-hidden shadow-2xl flex flex-col items-center p-4 sm:p-5 text-white relative">
+            <!-- Modal Header -->
+            <div class="w-full flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-camera"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm sm:text-base text-white">Take Live Selfie</h3>
+                        <p class="text-[11px] text-slate-400">Position your face inside the frame</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeLiveCameraModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-sm transition" title="Close Camera">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Camera Viewport Box -->
+            <div class="relative w-full aspect-square max-w-[320px] rounded-2xl overflow-hidden bg-black flex items-center justify-center border-2 border-amber-400/50 shadow-inner">
+                <video id="liveCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                
+                <!-- Oval Face Guide Frame -->
+                <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                    <div class="w-48 h-60 border-2 border-dashed border-amber-400/80 rounded-[50%] flex items-end justify-center pb-2">
+                        <span class="bg-black/60 backdrop-blur-sm text-amber-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                            Face Guide
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="cameraLoadingSpinner" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center gap-2 text-slate-300">
+                    <div class="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-xs font-semibold">Starting camera...</span>
+                </div>
+
+                <!-- Camera Error Box -->
+                <div id="cameraErrorBox" class="hidden absolute inset-0 bg-slate-900/95 p-4 flex flex-col items-center justify-center text-center gap-3">
+                    <i class="fa-solid fa-triangle-exclamation text-3xl text-amber-400"></i>
+                    <div>
+                        <h4 class="text-sm font-bold text-white mb-1">Camera Not Accessible</h4>
+                        <p id="cameraErrorMessage" class="text-xs text-slate-300">Please grant camera permission or use the file upload option.</p>
+                    </div>
+                    <button type="button" onclick="fallbackFromCameraToGallery()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs py-2 px-4 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-image"></i> Select Photo from Device
+                    </button>
+                </div>
+
+                <!-- Flip / Switch Camera Button -->
+                <button type="button" id="switchCameraBtn" onclick="switchCameraFacingMode()" class="absolute top-2.5 right-2.5 bg-black/60 hover:bg-black/80 text-white w-9 h-9 rounded-full flex items-center justify-center text-xs backdrop-blur-sm border border-white/20 transition cursor-pointer shadow-md" title="Switch Camera">
+                    <i class="fa-solid fa-camera-rotate text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Hidden canvas for capturing video snapshot -->
+            <canvas id="liveCameraCanvas" class="hidden"></canvas>
+
+            <!-- Controls -->
+            <div class="w-full flex items-center gap-2 pt-4 mt-1">
+                <button type="button" onclick="fallbackFromCameraToGallery()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs py-3 px-3 rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-700 cursor-pointer" title="Upload from Device / Gallery">
+                    <i class="fa-solid fa-image text-amber-400"></i>
+                    <span class="hidden sm:inline">Gallery</span>
+                </button>
+                <button type="button" id="captureSelfieBtn" onclick="captureLiveSelfie()" class="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-slate-950 font-black text-sm py-3 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer border border-amber-300/40">
+                    <i class="fa-solid fa-circle-dot text-base text-rose-600 animate-pulse"></i>
+                    <span>Capture Photo</span>
+                </button>
+                <button type="button" onclick="closeLiveCameraModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs py-3 px-3.5 rounded-xl transition cursor-pointer border border-slate-700">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <footer class="text-center py-5 text-blue-100 text-xs bg-slate-900/80 backdrop-blur-md border-t border-white/10 space-y-2 px-4">
         <div class="flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-blue-200">
-            <a href="../index.html" class="hover:text-white transition font-bold text-yellow-300">🏠 मुख्य पृष्ठ (Home)</a>
+            <a href="../index.html" class="hover:text-white transition font-bold text-yellow-300">🏠 Home</a>
             <span>•</span>
             <a href="about.html" class="hover:text-white transition underline">About Us</a>
             <span>•</span>
@@ -268,8 +344,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="js/firebase.js?v=32"></script>
-    <script src="js/index.js?v=32"></script>
-    <script src="js/pwa.js?v=32"></script>
+    <script src="js/firebase.js?v=33"></script>
+    <script src="js/index.js?v=33"></script>
+    <script src="js/pwa.js?v=33"></script>
 </body>
 </html>

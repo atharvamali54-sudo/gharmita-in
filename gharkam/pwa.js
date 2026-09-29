@@ -120,7 +120,7 @@ window.addEventListener('appinstalled', () => {
     deferredInstallPrompt = null;
     hidePwaInstallModal();
     hideInstallButtons();
-    showPwaToast("🎉 अभिनंदन! Gharmitra ॲप आपल्या होम स्क्रीनवर इन्स्टॉल झाले आहे.");
+    showPwaToast("🎉 Great! Gharmitra App has been installed on your home screen.");
 });
 
 // --- 6. PWA Install Modal / Banner ---
@@ -147,11 +147,11 @@ function ensurePwaModalHtml() {
 
             <div>
                 <span class="bg-blue-50 text-blue-700 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-1.5 border border-blue-200">
-                    ⚡ Play Store शिवाय थेट ॲप
+                    ⚡ Instant Web App (No Store Needed)
                 </span>
                 <h3 class="font-black text-slate-900 text-xl">Install Gharmitra App</h3>
                 <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                    एका क्लिकवर मोबाईलच्या होम स्क्रीनवर सेव्ह करा. ॲपप्रमाणे वेगवान आणि सोपे चालेल!
+                    Save to your phone home screen with 1 click. Runs fast, smooth, and lightweight just like a mobile app!
                 </p>
             </div>
 
@@ -159,28 +159,28 @@ function ensurePwaModalHtml() {
             <div class="bg-slate-50 rounded-2xl p-3 text-left space-y-2 text-xs border border-slate-100 text-slate-700">
                 <div class="flex items-center gap-2.5">
                     <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 text-[11px] font-bold">⚡</span>
-                    <span><strong>सुपर फास्ट स्पीड:</strong> 1-क्लिकमध्ये थेट उघडा</span>
+                    <span><strong>Superfast Speed:</strong> 1-click instant launch</span>
                 </div>
                 <div class="flex items-center gap-2.5">
                     <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 text-[11px] font-bold">🔔</span>
-                    <span><strong>लाईव्ह अलर्ट्स:</strong> ऑर्डर्स आणि लोकेशन ट्रॅकिंग</span>
+                    <span><strong>Live Alerts:</strong> Real-time order & location tracking</span>
                 </div>
                 <div class="flex items-center gap-2.5">
                     <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 text-[11px] font-bold">💾</span>
-                    <span><strong>कमी जागा:</strong> फोनची मेमरी किंवा रॅम भरत नाही</span>
+                    <span><strong>Lightweight:</strong> Uses minimal phone memory and storage</span>
                 </div>
             </div>
 
             <!-- Action buttons -->
             <div class="space-y-2 pt-1">
                 <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/Gharmitra-Secure.apk" target="_blank" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-brands fa-android text-emerald-400 text-base"></i> <span>Android APK डाउनलोड करा</span>
+                    <i class="fa-brands fa-android text-emerald-400 text-base"></i> <span>Download Android APK</span>
                 </a>
                 <button onclick="shareGharmitraApp()" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-2.5 px-4 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-brands fa-whatsapp text-base"></i> 📤 मित्रांना ॲप शेअर करा (Share)
+                    <i class="fa-brands fa-whatsapp text-base"></i> 📤 Share App with Friends
                 </button>
                 <button onclick="dismissPwaModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-4 rounded-xl transition text-xs cursor-pointer">
-                    नंतर करा (Maybe Later)
+                    Maybe Later
                 </button>
             </div>
         </div>
@@ -219,7 +219,7 @@ function triggerPwaInstall() {
         deferredInstallPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
                 console.log('[Gharmitra PWA] User accepted install prompt');
-                showPwaToast("🎉 ॲप इन्स्टॉल होत आहे...");
+                showPwaToast("🎉 App is installing...");
             }
             deferredInstallPrompt = null;
         });
@@ -227,13 +227,13 @@ function triggerPwaInstall() {
         hidePwaInstallModal();
         showIosInstructions();
     } else {
-        alert("ॲप इन्स्टॉल करण्यासाठी ब्राऊझरच्या मेनू (⋮ तीन ठिपके) वर क्लिक करा आणि 'Install app' किंवा 'Add to Home screen' निवडा.");
+        alert("To install the app, tap your browser's menu (⋮ 3 dots) and select 'Install app' or 'Add to Home screen'.");
         hidePwaInstallModal();
     }
 }
 
 function showIosInstructions() {
-    alert("📱 iPhone वर Gharmitra ॲप सेव्ह करण्यासाठी:\n\n1. खालील 'Share' (शेअर 📤) आयकॉनवर टॅप करा.\n2. खाली स्क्रोल करून 'Add to Home Screen' (होम स्क्रीनवर जोडा) निवडा.\n3. वर उजवीकडे 'Add' वर क्लिक करा.");
+    alert("📱 To install Gharmitra App on iPhone:\n\n1. Tap the 'Share' (📤) button at the bottom of Safari.\n2. Scroll down and tap 'Add to Home Screen'.\n3. Tap 'Add' in the top-right corner.");
 }
 
 function showInstallButtons() {
@@ -307,7 +307,7 @@ function getGharmitraShareUrl() {
 
 function getGharmitraShareMessage() {
     const appUrl = getGharmitraShareUrl();
-    return `🏠 *घरमित्र (Gharmitra) - पुणे शहराची विश्वासू घरकाम सेवा!*\n\n⚡ क्लिनिंग, प्लंबिंग, इलेक्ट्रिशियन, पेंटिंग आणि घरगुती कामे आता एका मिनिटात बुक करा!\n\n✅ थेट लाईव्ह लोकेशन ट्रॅकिंग\n✅ पडताळणी झालेले व्यावसायिक कामगार\n✅ Play Store शिवाय थेट मोबाईलमध्ये ॲपसारखे चालवा!\n\n📲 *आत्ताच लिंक उघडा आणि होम स्क्रीनवर सेव्ह करा:*\n${appUrl}`;
+    return `🏠 *Gharmitra - Pune City's Trusted Home & Repair Services!*\n\n⚡ Book Cleaning, Plumbing, Electrician, Painting and Home Services in 1 minute!\n\n✅ Live order tracking\n✅ Verified professional local workers\n✅ Instant Web App - runs directly on your phone!\n\n📲 *Open link and save to your home screen now:*\n${appUrl}`;
 }
 
 // Main share trigger - opens the comprehensive share modal
@@ -333,37 +333,37 @@ function ensureShareModalHtml() {
             </div>
 
             <div>
-                <h3 class="font-black text-slate-900 text-xl">Gharmitra ॲप शेअर करा</h3>
-                <p class="text-xs text-slate-500 mt-1">मित्रांना व नातेवाईकांना ॲप पाठवा (पुणे शहर)</p>
+                <h3 class="font-black text-slate-900 text-xl">Share Gharmitra App</h3>
+                <p class="text-xs text-slate-500 mt-1">Share with friends and family (Pune City)</p>
             </div>
 
             <!-- Share Buttons -->
             <div class="space-y-2.5 pt-2">
                 <!-- 1. Primary WhatsApp Share -->
                 <button type="button" onclick="shareViaWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-black py-3.5 px-4 rounded-2xl shadow-lg transition text-sm flex items-center justify-center gap-2.5 cursor-pointer">
-                    <i class="fa-brands fa-whatsapp text-xl"></i> व्हॉट्सॲपवर पाठवा (WhatsApp)
+                    <i class="fa-brands fa-whatsapp text-xl"></i> Share on WhatsApp
                 </button>
 
                 <!-- 2. Native Mobile Share (Other Apps) -->
                 <button type="button" onclick="triggerNativeShare()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-share-nodes text-sm"></i> इतर ॲप्सवर शेअर करा (Share to Apps)
+                    <i class="fa-solid fa-share-nodes text-sm"></i> Share via other Apps
                 </button>
 
                 <!-- 3. Copy Link -->
                 <button type="button" onclick="copyAppShareLink()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 border border-slate-200 cursor-pointer">
-                    <i class="fa-solid fa-link text-slate-500"></i> लिंक कॉपी करा (Copy Link)
+                    <i class="fa-solid fa-link text-slate-500"></i> Copy App Link
                 </button>
 
                 <!-- 4. SMS Share -->
                 <button type="button" onclick="shareViaSms()" class="w-full bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold py-2 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 border border-slate-200 cursor-pointer">
-                    <i class="fa-solid fa-message text-blue-500"></i> SMS द्वारे पाठवा
+                    <i class="fa-solid fa-message text-blue-500"></i> Send via SMS
                 </button>
             </div>
 
             <!-- App Link Display -->
             <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex items-center justify-between text-[11px] text-slate-600 text-left mt-2">
                 <span id="shareLinkDisplay" class="truncate pr-2 font-mono text-slate-500">${DEFAULT_FALLBACK_URL}</span>
-                <span class="text-blue-600 font-bold cursor-pointer shrink-0 hover:underline" onclick="copyAppShareLink()">कॉपी</span>
+                <span class="text-blue-600 font-bold cursor-pointer shrink-0 hover:underline" onclick="copyAppShareLink()">Copy</span>
             </div>
         </div>
     `;
@@ -401,11 +401,11 @@ function shareViaWhatsApp() {
 
 function triggerNativeShare() {
     const appUrl = getGharmitraShareUrl();
-    const shareText = `🏠 घरमित्र (Gharmitra) - पुणे शहराची विश्वासू घरकाम सेवा! Play Store शिवाय थेट मोबाईलमध्ये वापरा:\n${appUrl}`;
+    const shareText = `🏠 Gharmitra - Pune City's Trusted Home Services! Book cleaning, plumbing, repairs and more:\n${appUrl}`;
     
     if (navigator.share) {
         navigator.share({
-            title: 'Gharmitra - घरकाम व सेवा',
+            title: 'Gharmitra - Home Services & Repairs',
             text: shareText,
             url: appUrl
         }).then(() => {
@@ -429,7 +429,7 @@ function copyAppShareLink() {
     const appUrl = getGharmitraShareUrl();
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(appUrl).then(() => {
-            showPwaToast("✓ Gharmitra ॲपची लिंक क्लिपबोर्डवर कॉपी केली!");
+            showPwaToast("✓ Gharmitra app link copied to clipboard!");
             closeShareModal();
         }).catch(() => fallbackCopy(appUrl));
     } else {
@@ -446,10 +446,10 @@ function fallbackCopy(text) {
     ta.select();
     try {
         document.execCommand('copy');
-        showPwaToast("✓ लिंक यशस्वीरीत्या कॉपी केली!");
+        showPwaToast("✓ Link copied successfully!");
         closeShareModal();
     } catch(e) {
-        prompt("खालील लिंक कॉपी करा:", text);
+        prompt("Copy the link below:", text);
     }
     document.body.removeChild(ta);
 }
@@ -465,7 +465,7 @@ function ensureFloatingShareButton() {
     btn.onclick = () => shareGharmitraApp();
     btn.innerHTML = `
         <i class="fa-brands fa-whatsapp text-lg"></i>
-        <span>ॲप शेअर करा</span>
+        <span>Share App</span>
     `;
     document.body.appendChild(btn);
 }

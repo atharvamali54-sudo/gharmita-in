@@ -37,16 +37,175 @@ let currentRole = 'customer';
         const otpDigitInputs = Array.from(document.querySelectorAll('.otp-digit'));
 
         // =========================================================
-        // Worker Photo / Selfie Capture & Compression Helpers
+        // Worker Photo / Live Selfie Camera & Compression Engine
         // =========================================================
-        function triggerWorkerCamera() {
+        let liveCameraStream = null;
+        let currentFacingMode = 'user'; // 'user' (front selfie) or 'environment' (back)
+
+        function triggerWorkerCameraFallback() {
             const camInput = document.getElementById('workerPhotoCameraInput');
             if (camInput) camInput.click();
+        }
+
+        async function openLiveCameraModal() {
+            const modal = document.getElementById('liveCameraModal');
+            if (!modal) {
+                triggerWorkerCameraFallback();
+                return;
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            const spinner = document.getElementById('cameraLoadingSpinner');
+            const errBox = document.getElementById('cameraErrorBox');
+            if (spinner) spinner.classList.remove('hidden');
+            if (errBox) errBox.classList.add('hidden');
+            await startCameraStream(currentFacingMode);
+        }
+
+        async function startCameraStream(facingMode) {
+            stopCameraStream();
+            const spinner = document.getElementById('cameraLoadingSpinner');
+            const errBox = document.getElementById('cameraErrorBox');
+            const errMsg = document.getElementById('cameraErrorMessage');
+            const video = document.getElementById('liveCameraVideo');
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                if (spinner) spinner.classList.add('hidden');
+                if (errBox) errBox.classList.remove('hidden');
+                if (errMsg) errMsg.innerText = "Direct camera access is not supported by your browser. Please select a photo from your device.";
+                return;
+            }
+
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: { ideal: facingMode },
+                        width: { ideal: 720 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                };
+                liveCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                if (video) {
+                    video.srcObject = liveCameraStream;
+                    video.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+                    await video.play();
+                }
+                if (spinner) spinner.classList.add('hidden');
+            } catch (err) {
+                console.warn("Primary camera constraint failed, attempting basic video fallback:", err);
+                try {
+                    liveCameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    if (video) {
+                        video.srcObject = liveCameraStream;
+                        video.style.transform = 'scaleX(1)';
+                        await video.play();
+                    }
+                    if (spinner) spinner.classList.add('hidden');
+                } catch (fallbackErr) {
+                    console.error("Camera access error:", fallbackErr);
+                    if (spinner) spinner.classList.add('hidden');
+                    if (errBox) errBox.classList.remove('hidden');
+                    if (errMsg) {
+                        if (fallbackErr.name === 'NotAllowedError' || fallbackErr.name === 'PermissionDeniedError') {
+                            errMsg.innerText = "Camera permission was denied. Please allow camera access in browser settings or choose a photo from device.";
+                        } else if (fallbackErr.name === 'NotFoundError' || fallbackErr.name === 'DevicesNotFoundError') {
+                            errMsg.innerText = "No camera found on this device. Please upload a photo from your gallery.";
+                        } else {
+                            errMsg.innerText = "Unable to open camera. Please grant camera permission or select a photo from your gallery.";
+                        }
+                    }
+                }
+            }
+        }
+
+        function stopCameraStream() {
+            if (liveCameraStream) {
+                try {
+                    liveCameraStream.getTracks().forEach(track => track.stop());
+                } catch(e) {}
+                liveCameraStream = null;
+            }
+            const video = document.getElementById('liveCameraVideo');
+            if (video) {
+                try {
+                    video.srcObject = null;
+                } catch(e) {}
+            }
+        }
+
+        function closeLiveCameraModal() {
+            stopCameraStream();
+            const modal = document.getElementById('liveCameraModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function switchCameraFacingMode() {
+            currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+            const spinner = document.getElementById('cameraLoadingSpinner');
+            if (spinner) spinner.classList.remove('hidden');
+            startCameraStream(currentFacingMode);
+        }
+
+        function fallbackFromCameraToGallery() {
+            closeLiveCameraModal();
+            triggerWorkerGallery();
+        }
+
+        function triggerWorkerCamera() {
+            openLiveCameraModal();
         }
 
         function triggerWorkerGallery() {
             const galInput = document.getElementById('workerPhotoGalleryInput');
             if (galInput) galInput.click();
+        }
+
+        async function captureLiveSelfie() {
+            const video = document.getElementById('liveCameraVideo');
+            if (!video || !liveCameraStream) {
+                fallbackFromCameraToGallery();
+                return;
+            }
+
+            try {
+                const vWidth = video.videoWidth || 640;
+                const vHeight = video.videoHeight || 480;
+                const size = Math.min(vWidth, vHeight);
+                const startX = (vWidth - size) / 2;
+                const startY = (vHeight - size) / 2;
+                const targetSize = 360;
+
+                let canvas = document.getElementById('liveCameraCanvas');
+                if (!canvas) {
+                    canvas = document.createElement('canvas');
+                    canvas.id = 'liveCameraCanvas';
+                    canvas.className = 'hidden';
+                    document.body.appendChild(canvas);
+                }
+                canvas.width = targetSize;
+                canvas.height = targetSize;
+                const ctx = canvas.getContext('2d');
+
+                if (currentFacingMode === 'user') {
+                    ctx.translate(targetSize, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                ctx.drawImage(video, startX, startY, size, size, 0, 0, targetSize, targetSize);
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+                setWorkerPhotoPreview(compressedDataUrl, false);
+                closeLiveCameraModal();
+                showStatus("✅ Live selfie captured successfully!", "success");
+                setTimeout(() => showStatus("", "hidden"), 2500);
+            } catch(err) {
+                console.error("Live camera capture error:", err);
+                showStatus("❌ Failed to capture photo from camera. Please try again.", "error");
+            }
         }
 
         function clearWorkerPhoto(event) {
@@ -75,7 +234,7 @@ let currentRole = 'customer';
             if (placeholder) placeholder.classList.remove('hidden');
             if (removeBtn) removeBtn.classList.add('hidden');
             if (badge) badge.classList.add('hidden');
-            if (hint) hint.innerText = "कॅमेराने सेल्फी घ्या किंवा गॅलरीतून फोटो निवडा.";
+            if (hint) hint.innerText = "Take a live selfie using camera or choose a photo from gallery.";
         }
 
         function setWorkerPhotoPreview(dataUrl, isExisting = false) {
@@ -97,11 +256,11 @@ let currentRole = 'customer';
             if (placeholder) placeholder.classList.add('hidden');
             if (removeBtn) removeBtn.classList.remove('hidden');
             if (badge) {
-                badge.innerHTML = isExisting ? '<i class="fa-solid fa-check"></i> सेव्ह केलेला फोटो' : '<i class="fa-solid fa-check"></i> फोटो निवडला';
+                badge.innerHTML = isExisting ? '<i class="fa-solid fa-check"></i> Saved Photo' : '<i class="fa-solid fa-check"></i> Selfie Added';
                 badge.classList.remove('hidden');
             }
             if (hint) {
-                hint.innerText = isExisting ? "खात्यातील सेव्ह केलेला फोटो लोड झाला आहे. (बदलण्यासाठी सेल्फी घ्या)" : "फोटो यशस्वीरित्या निवडला गेला आहे!";
+                hint.innerText = isExisting ? "Saved photo loaded from account. (Click Take Selfie to change)" : "Photo selected successfully!";
             }
         }
 
@@ -147,15 +306,15 @@ let currentRole = 'customer';
             const file = event.target.files && event.target.files[0];
             if (!file) return;
 
-            showStatus("⏳ फोटो कॉम्प्रेस करत आहे...", "info");
+            showStatus("⏳ Compressing photo...", "info");
             try {
                 const compressedBase64 = await compressImageFile(file, 360, 360, 0.72);
                 setWorkerPhotoPreview(compressedBase64, false);
-                showStatus("✅ कामगाराचा फोटो निवडला गेला!", "success");
+                showStatus("✅ Worker photo selected successfully!", "success");
                 setTimeout(() => showStatus("", "hidden"), 2000);
             } catch (err) {
                 console.error("Photo compression error:", err);
-                showStatus("❌ फोटो लोड करण्यात अडचण आली. कृपया दुसरा फोटो निवडा.", "error");
+                showStatus("❌ Failed to load photo. Please choose another image.", "error");
             }
         }
 
@@ -577,8 +736,8 @@ let currentRole = 'customer';
                 if (workerPhotoContainer) workerPhotoContainer.classList.remove('hidden');
                 if (workerPhotoSubtext) {
                     workerPhotoSubtext.innerText = isSignupMode
-                        ? "नवीन अकाउंट तयार करताना थेट सेल्फी काढा किंवा फोटो अपलोड करा. हीच सेल्फी तुमच्या वर्कर पॅनेलमध्ये दिसेल."
-                        : "लॉगिन व ओळख पडताळणीसाठी कामगाराचा थेट सेल्फी किंवा फोटो आवश्यक आहे.";
+                        ? "Take a live selfie or upload a photo to create your account. This photo will be displayed on your Worker Dashboard."
+                        : "Live selfie or worker photo is required for worker login & verification.";
                 }
             } else {
                 if (workerPhotoContainer) workerPhotoContainer.classList.add('hidden');
@@ -630,14 +789,14 @@ let currentRole = 'customer';
         async function showForgotPasswordUI() {
             let mobile = document.getElementById('mobile').value.trim().replace(/\D/g, '').slice(-10);
             if (!mobile || mobile.length !== 10) {
-                showStatus("❌ आधी बरोबर १० अंकी Mobile Number टाका!", "error");
+                showStatus("❌ Please enter a valid 10-digit mobile number first!", "error");
                 return;
             }
 
-            showStatus("⏳ खाते शोधत आहे...", "info");
+            showStatus("⏳ Finding account...", "info");
             let savedUser = await getUserForRoleAsync(currentRole, mobile);
             if (!savedUser || !savedUser.email) {
-                showStatus("❌ हा मोबाईल नंबर रजिस्टर नाही! आधी Signup करा.", "error");
+                showStatus("❌ Mobile number not registered! Please sign up first.", "error");
                 return;
             }
 
@@ -676,12 +835,12 @@ let currentRole = 'customer';
 
             emailjs.send(serviceID, templateID, templateParams)
                 .then(() => {
-                    showStatus("📩 Reset OTP pathavla ahe! Krupaya check kara.", "success");
+                    showStatus("📩 Reset OTP sent! Please check your email.", "success");
                     showOtpPanel('reset');
                 })
                 .catch((err) => {
                     console.error("EmailJS Error:", err);
-                    showStatus("❌ Email send fails.", "error");
+                    showStatus("❌ Failed to send email. Please try again.", "error");
                 });
         }
 
@@ -691,14 +850,14 @@ let currentRole = 'customer';
             let userEnteredOTP = document.getElementById('otpInput').value.trim();
 
             if (userEnteredOTP === generatedOTP) {
-                showStatus("⏳ OTP verify hot ahe...", "info");
+                showStatus("⏳ Verifying OTP...", "info");
                 animateOtpVerification(() => {
                     showStatus("✅ OTP verified successfully! Now enter your new password.", "success");
                     document.getElementById('otpContainer').classList.add('hidden');
                     document.getElementById('newPasswordContainer').classList.remove('hidden');
                 });
             } else {
-                showOtpError("❌ चुकीचा OTP! Correct code taka.");
+                showOtpError("❌ Invalid OTP! Please enter correct code.");
             }
         }
 
@@ -707,16 +866,16 @@ let currentRole = 'customer';
             let confirmPass = document.getElementById('confirmNewPassword').value.trim();
 
             if (!newPass || newPass.length < 6) {
-                showStatus("❌ Password कमीत कमी ६ अक्षरी असावा.", "error");
+                showStatus("❌ Password must be at least 6 characters.", "error");
                 return;
             }
 
             if (newPass !== confirmPass) {
-                showStatus("❌ New Password आणि Confirm Password जुळत नाहीत!", "error");
+                showStatus("❌ New Password and Confirm Password do not match!", "error");
                 return;
             }
 
-            showStatus("⏳ पासवर्ड बदलत आहे...", "info");
+            showStatus("⏳ Updating password...", "info");
             let savedUser = await getUserForRoleAsync(resetPasswordRole, resetPasswordMobile);
             if (savedUser) {
                 const hashedNewPass = await hashPasswordWithSalt(newPass, resetPasswordMobile);
@@ -752,7 +911,7 @@ let currentRole = 'customer';
             let password = document.getElementById('password').value.trim();
 
             if (!mobile || mobile.length !== 10) {
-                showStatus("❌ कृपया बरोबर १० अंकी मोबाईल नंबर टाका!", "error");
+                showStatus("❌ Please enter a valid 10-digit mobile number!", "error");
                 return;
             }
 
@@ -761,27 +920,27 @@ let currentRole = 'customer';
                 let email = document.getElementById('email').value.trim().toLowerCase();
 
                 if (!fullName) {
-                    showStatus("कृपया पूर्ण नाव टाका!", "error");
+                    showStatus("Please enter your full name!", "error");
                     return;
                 }
 
                 if (!password || password.length < 6) {
-                    showStatus("पासवर्ड कमीत कमी ६ अक्षरी असावा.", "error");
+                    showStatus("Password must be at least 6 characters.", "error");
                     return;
                 }
 
                 // Worker Photo Verification during Signup
                 if (currentRole === 'worker' && !currentWorkerPhoto) {
-                    showStatus("❌ कामगाराचा फोटो (Selfie / Photo) आवश्यक आहे! कृपया सेल्फी काढा किंवा गॅलरीतून फोटो निवडा.", "error");
+                    showStatus("❌ Worker photo (Selfie / Photo) is required! Please take a selfie or select a photo from gallery.", "error");
                     highlightWorkerPhotoInput();
                     return;
                 }
 
-                showStatus("⏳ मोबाईल नंबर तपासत आहे...", "info");
+                showStatus("⏳ Checking mobile number...", "info");
                 const existingUser = await getUserForRoleAsync(currentRole, mobile);
 
                 if (existingUser && existingUser.password) {
-                    showStatus("हा मोबाईल नंबर आधीच रजिस्टर आहे! थेट Sign In करा.", "error");
+                    showStatus("This mobile number is already registered! Please sign in directly.", "error");
                     return;
                 }
 
@@ -803,21 +962,21 @@ let currentRole = 'customer';
                 // SIGN IN ACROSS ALL DEVICES / PHONES (Multi-Device Login)
                 // =====================================================
                 if (!password) {
-                    showStatus("कृपया पासवर्ड टाका.", "error");
+                    showStatus("Please enter your password.", "error");
                     return;
                 }
 
-                showStatus("⏳ खाते शोधत आहे...", "info");
+                showStatus("⏳ Finding account...", "info");
                 const savedUser = await getUserForRoleAsync(currentRole, mobile);
 
                 if (!savedUser) {
-                    showStatus("हे खाते सापडले नाही! कृपया आधी नवीन Signup करा.", "error");
+                    showStatus("Account not found! Please create a new account first.", "error");
                     return;
                 }
 
                 const isPasswordCorrect = await verifyPasswordMatch(password, savedUser.password, mobile);
                 if (!isPasswordCorrect) {
-                    showStatus("❌ चुकीचा Password! कृपया बरोबर पासवर्ड टाका.", "error");
+                    showStatus("❌ Incorrect Password! Please enter the correct password.", "error");
                     return;
                 }
 
@@ -829,7 +988,7 @@ let currentRole = 'customer';
                     }
 
                     if (!workerPhotoToUse) {
-                        showStatus("❌ कामगाराचा फोटो (Selfie / Photo) आवश्यक आहे! कृपया लॉगिन करण्यासाठी सेल्फी काढा किंवा फोटो निवडा.", "error");
+                        showStatus("❌ Worker photo (Selfie / Photo) is required! Please take a live selfie or select a photo to log in.", "error");
                         highlightWorkerPhotoInput();
                         return;
                     }
@@ -983,7 +1142,7 @@ let currentRole = 'customer';
                     }, 350);
                 });
             } else {
-                showOtpError("❌ चुकीचा OTP! Correct code taka.");
+                showOtpError("❌ Invalid OTP! Please enter the correct code.");
             }
         }
 
