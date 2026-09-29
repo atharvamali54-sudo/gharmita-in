@@ -21,8 +21,8 @@
     <meta name="apple-mobile-web-app-title" content="Gharmitra">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
-    <link rel="stylesheet" href="css/common.css?v=36">
-    <link rel="stylesheet" href="css/customer.css?v=36">
+    <link rel="stylesheet" href="css/common.css?v=37">
+    <link rel="stylesheet" href="css/customer.css?v=37">
     <script>
         (function(){
             try {
@@ -568,20 +568,20 @@
                 </button>
             </div>
 
-            <!-- Pulsing Mic Visual -->
+            <!-- Steady Glow Mic Visual (No jitter or bouncing) -->
             <div class="relative w-24 h-24 mx-auto flex items-center justify-center">
-                <div id="voiceMicPulseRing" class="absolute inset-0 rounded-full bg-rose-500/20 animate-ping"></div>
+                <div id="voiceMicPulseRing" class="absolute -inset-1 rounded-full bg-rose-500/20 animate-pulse"></div>
                 <button type="button" onclick="toggleListening()" class="relative z-10 w-20 h-20 rounded-full bg-gradient-to-tr from-rose-500 via-pink-600 to-indigo-600 text-white flex items-center justify-center shadow-xl shadow-rose-500/30 transition transform hover:scale-105 active:scale-95 cursor-pointer">
-                    <i id="voiceMicIcon" class="fa-solid fa-microphone text-white text-3xl animate-bounce"></i>
+                    <i id="voiceMicIcon" class="fa-solid fa-microphone text-white text-3xl"></i>
                 </button>
             </div>
 
-            <!-- Animated Soundwave visualizer bars -->
+            <!-- Gentle Soundwave visualizer bars (Stable, zero vertical jumping) -->
             <div id="voiceSoundwaveContainer" class="flex items-center justify-center gap-1.5 h-6 opacity-100 transition-opacity">
                 <span class="w-1.5 h-3 bg-rose-500 rounded-full animate-pulse"></span>
-                <span class="w-1.5 h-6 bg-pink-500 rounded-full animate-bounce"></span>
+                <span class="w-1.5 h-5 bg-pink-500 rounded-full animate-pulse"></span>
                 <span class="w-1.5 h-4 bg-indigo-500 rounded-full animate-pulse"></span>
-                <span class="w-1.5 h-5 bg-blue-500 rounded-full animate-bounce"></span>
+                <span class="w-1.5 h-5 bg-blue-500 rounded-full animate-pulse"></span>
                 <span class="w-1.5 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
             </div>
 
@@ -590,8 +590,8 @@
                 <p class="text-xs text-slate-500 mt-0.5">उदा. <em>"माझ्या घरातील बेसिनचा नळ गळतोय, कोथरूडला प्लंबर पाठवा"</em></p>
             </div>
 
-            <!-- Live Spoken Transcript Display -->
-            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-left text-xs text-slate-700 min-h-[48px] max-h-20 overflow-y-auto">
+            <!-- Live Spoken Transcript Display with fixed height to prevent resizing -->
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-left text-xs text-slate-700 h-16 max-h-16 overflow-y-auto">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">तुम्ही काय बोलत आहात:</span>
                 <p id="voiceTranscriptLive" class="font-medium italic text-slate-800">ऐकत आहे... बोला...</p>
             </div>
@@ -675,10 +675,10 @@
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="js/firebase.js?v=36"></script>
-    <script src="js/call-masking.js?v=36"></script>
-    <script src="js/customer.js?v=36"></script>
-    <script src="js/pwa.js?v=36"></script>
-    <script src="js/voice-booking.js?v=36"></script>
+    <script src="js/firebase.js?v=37"></script>
+    <script src="js/call-masking.js?v=37"></script>
+    <script src="js/customer.js?v=37"></script>
+    <script src="js/pwa.js?v=37"></script>
+    <script src="js/voice-booking.js?v=37"></script>
 </body>
 </html>

@@ -289,10 +289,10 @@
         if (serviceBadge) {
             if (detectedData.service) {
                 serviceBadge.innerHTML = `<span class="text-base">${detectedData.service.icon}</span> <span>${detectedData.service.nameMr}</span>`;
-                serviceBadge.className = 'inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-300 text-xs font-bold px-3 py-1.5 rounded-xl animate-bounce';
+                serviceBadge.className = 'inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-300 text-xs font-bold px-3 py-1.5 rounded-xl';
             } else {
                 serviceBadge.innerHTML = '<span>शोधत आहे...</span>';
-                serviceBadge.className = 'inline-flex items-center gap-1 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-medium px-2.5 py-1 rounded-xl';
+                serviceBadge.className = 'inline-flex items-center gap-1 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-medium px-3 py-1.5 rounded-xl';
             }
         }
 
@@ -302,7 +302,7 @@
                 areaBadge.className = 'inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-300 text-xs font-bold px-3 py-1.5 rounded-xl';
             } else {
                 areaBadge.innerHTML = '<span>पुण्यातील भाग सांगा...</span>';
-                areaBadge.className = 'inline-flex items-center gap-1 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-medium px-2.5 py-1 rounded-xl';
+                areaBadge.className = 'inline-flex items-center gap-1 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-medium px-3 py-1.5 rounded-xl';
             }
         }
 
@@ -312,7 +312,7 @@
                 budgetBadge.className = 'inline-flex items-center gap-1 bg-purple-50 text-purple-700 border border-purple-300 text-xs font-bold px-3 py-1.5 rounded-xl';
             } else {
                 budgetBadge.innerHTML = '<span>अंदाजे ₹...</span>';
-                budgetBadge.className = 'inline-flex items-center gap-1 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-medium px-2.5 py-1 rounded-xl';
+                budgetBadge.className = 'inline-flex items-center gap-1 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-medium px-3 py-1.5 rounded-xl';
             }
         }
 
@@ -417,7 +417,7 @@
             if (pulse) pulse.classList.remove('hidden');
             if (soundwave) soundwave.classList.remove('opacity-20');
             if (soundwave) soundwave.classList.add('opacity-100');
-            if (icon) icon.className = 'fa-solid fa-microphone text-white text-3xl animate-bounce';
+            if (icon) icon.className = 'fa-solid fa-microphone text-white text-3xl';
             if (statusText) statusText.innerText = "मी ऐकत आहे... (बोलत राहा)";
         } else {
             if (pulse) pulse.classList.add('hidden');
