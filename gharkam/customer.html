@@ -21,8 +21,8 @@
     <meta name="apple-mobile-web-app-title" content="Gharmitra">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
-    <link rel="stylesheet" href="css/common.css?v=37">
-    <link rel="stylesheet" href="css/customer.css?v=37">
+    <link rel="stylesheet" href="css/common.css?v=38">
+    <link rel="stylesheet" href="css/customer.css?v=38">
     <script>
         (function(){
             try {
@@ -76,34 +76,11 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
             
             <div class="lg:col-span-7 p-6 md:p-8 bg-white border-b lg:border-b-0 border-slate-200">
-                <div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-calendar-check text-blue-600"></i> Book Your Appointment
-                        </h2>
-                        <p class="text-xs text-slate-500 mt-1 font-medium">Fill out the form to get the services of trusted workers in Pune.</p>
-                    </div>
-                    <!-- Smart AI Voice Booking Button -->
-                    <button type="button" onclick="openVoiceBookingModal()" class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-600 hover:from-rose-600 hover:to-indigo-700 text-white font-black text-xs py-2.5 px-4 rounded-2xl shadow-lg shadow-rose-500/25 transition transform hover:scale-105 active:scale-95 cursor-pointer shrink-0 border border-white/30 animate-pulse">
-                        <i class="fa-solid fa-microphone-lines text-base"></i>
-                        <span>बोलून बुक करा (Voice AI)</span>
-                    </button>
-                </div>
-
-                <!-- Voice AI Quick Hint Banner -->
-                <div class="mb-5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-2xl p-3 flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 text-sm shadow-sm">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        </span>
-                        <div class="text-xs">
-                            <strong class="text-blue-900">नवीन: AI व्हॉइस बुकिंग!</strong>
-                            <p class="text-slate-600 text-[11px]">फक्त बोला: <em>"माझ्या घरातील बेसिनचा नळ गळतोय, कोथरूडला प्लंबर पाठवा"</em></p>
-                        </div>
-                    </div>
-                    <button type="button" onclick="openVoiceBookingModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] py-1.5 px-3 rounded-xl transition shadow shrink-0 cursor-pointer">
-                        सुरू करा 🎙️
-                    </button>
+                <div class="mb-6">
+                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-check text-blue-600"></i> Book Your Appointment
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1 font-medium">Fill out the form to get the services of trusted workers in Pune.</p>
                 </div>
 
                 <form id="bookingForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
@@ -547,113 +524,6 @@
         </div>
     </div>
 
-    <!-- =========================================================
-         Smart AI Voice Booking Modal (मराठी / हिंदी / English)
-         ========================================================= -->
-    <div id="voiceBookingModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md hidden items-center justify-center p-4 z-[99999]">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-white/30 text-center space-y-5 relative animate-in">
-            <!-- Close Button -->
-            <button type="button" onclick="closeVoiceBookingModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm transition cursor-pointer">✕</button>
-
-            <!-- Language Switcher Bar -->
-            <div class="flex items-center justify-center gap-2 pt-1">
-                <button type="button" data-lang="mr-IN" onclick="changeVoiceLanguage('mr-IN')" class="voice-lang-btn px-3.5 py-1.5 rounded-xl text-xs font-black bg-blue-600 text-white shadow-md transition cursor-pointer">
-                    मराठी (Default)
-                </button>
-                <button type="button" data-lang="hi-IN" onclick="changeVoiceLanguage('hi-IN')" class="voice-lang-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer">
-                    हिंदी
-                </button>
-                <button type="button" data-lang="en-IN" onclick="changeVoiceLanguage('en-IN')" class="voice-lang-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer">
-                    English
-                </button>
-            </div>
-
-            <!-- Steady Glow Mic Visual (No jitter or bouncing) -->
-            <div class="relative w-24 h-24 mx-auto flex items-center justify-center">
-                <div id="voiceMicPulseRing" class="absolute -inset-1 rounded-full bg-rose-500/20 animate-pulse"></div>
-                <button type="button" onclick="toggleListening()" class="relative z-10 w-20 h-20 rounded-full bg-gradient-to-tr from-rose-500 via-pink-600 to-indigo-600 text-white flex items-center justify-center shadow-xl shadow-rose-500/30 transition transform hover:scale-105 active:scale-95 cursor-pointer">
-                    <i id="voiceMicIcon" class="fa-solid fa-microphone text-white text-3xl"></i>
-                </button>
-            </div>
-
-            <!-- Gentle Soundwave visualizer bars (Stable, zero vertical jumping) -->
-            <div id="voiceSoundwaveContainer" class="flex items-center justify-center gap-1.5 h-6 opacity-100 transition-opacity">
-                <span class="w-1.5 h-3 bg-rose-500 rounded-full animate-pulse"></span>
-                <span class="w-1.5 h-5 bg-pink-500 rounded-full animate-pulse"></span>
-                <span class="w-1.5 h-4 bg-indigo-500 rounded-full animate-pulse"></span>
-                <span class="w-1.5 h-5 bg-blue-500 rounded-full animate-pulse"></span>
-                <span class="w-1.5 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-            </div>
-
-            <div>
-                <h3 id="voiceStatusText" class="font-black text-slate-900 text-base">मी ऐकत आहे... (बोलत राहा)</h3>
-                <p class="text-xs text-slate-500 mt-0.5">उदा. <em>"माझ्या घरातील बेसिनचा नळ गळतोय, कोथरूडला प्लंबर पाठवा"</em></p>
-            </div>
-
-            <!-- Live Spoken Transcript Display with fixed height to prevent resizing -->
-            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-left text-xs text-slate-700 h-16 max-h-16 overflow-y-auto">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">तुम्ही काय बोलत आहात:</span>
-                <p id="voiceTranscriptLive" class="font-medium italic text-slate-800">ऐकत आहे... बोला...</p>
-            </div>
-
-            <!-- Manual Text Input & Quick Samples -->
-            <div class="space-y-1.5 text-left">
-                <input type="text" id="voiceManualInput" oninput="setQuickVoiceSample(this.value)" placeholder="किंवा येथे लिहा: उदा. कोथरूड मध्ये प्लंबर हवा आहे..." class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs py-2 px-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition">
-                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] text-slate-600">
-                    <span class="shrink-0 text-[10px] font-bold text-slate-400">उदाहरणे:</span>
-                    <button type="button" onclick="setQuickVoiceSample('कोथरूडला प्लंबर पाठवा, नळ गळतोय')" class="shrink-0 bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 px-2 py-0.5 rounded-lg transition cursor-pointer text-[11px]">
-                        🪠 कोथरूड प्लंबर
-                    </button>
-                    <button type="button" onclick="setQuickVoiceSample('वाकड मध्ये फॅन रिपेअर करायचा आहे, इलेक्ट्रिशियन पाठवा')" class="shrink-0 bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 px-2 py-0.5 rounded-lg transition cursor-pointer text-[11px]">
-                        ⚡ वाकड फॅन
-                    </button>
-                    <button type="button" onclick="setQuickVoiceSample('बाणेर मध्ये घराची साफसफाई हवी आहे')" class="shrink-0 bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 px-2 py-0.5 rounded-lg transition cursor-pointer text-[11px]">
-                        🧹 बाणेर साफसफाई
-                    </button>
-                </div>
-            </div>
-
-            <!-- Live AI Detected Information Cards -->
-            <div class="bg-blue-50/70 border border-blue-100 rounded-2xl p-3 text-left space-y-2">
-                <div class="text-[11px] font-bold text-blue-900 uppercase tracking-wider flex items-center justify-between">
-                    <span>✨ AI ने ओळखलेली माहिती:</span>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <div>
-                        <span class="text-[10px] text-slate-500 block">सर्व्हिस:</span>
-                        <div id="voiceDetectedService" class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-medium px-2.5 py-1 rounded-xl">
-                            शोधत आहे...
-                        </div>
-                    </div>
-                    <div>
-                        <span class="text-[10px] text-slate-500 block">पुण्यातील भाग:</span>
-                        <div id="voiceDetectedArea" class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-medium px-2.5 py-1 rounded-xl">
-                            पुण्यातील भाग सांगा...
-                        </div>
-                    </div>
-                    <div>
-                        <span class="text-[10px] text-slate-500 block">अंदाजे बजेट:</span>
-                        <div id="voiceDetectedBudget" class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-medium px-2.5 py-1 rounded-xl">
-                            अंदाजे ₹...
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="voiceStatusMsg" class="hidden text-xs font-semibold p-2.5 rounded-xl text-center"></div>
-
-            <!-- Action Buttons -->
-            <div class="flex items-center gap-2 pt-1">
-                <button type="button" onclick="restartListening()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-3 rounded-xl transition text-xs flex items-center justify-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-rotate-left"></i> <span>पुन्हा बोला</span>
-                </button>
-                <button type="button" id="voiceApplyBtn" onclick="applyVoiceDataToForm()" class="flex-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition text-xs flex items-center justify-center gap-2 cursor-pointer opacity-50 pointer-events-none">
-                    <i class="fa-solid fa-check"></i> <span>फॉर्ममध्ये भरा (Apply)</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Mobile Bottom Navigation Bar (Customer - APK Only) -->
     <nav class="app-bottom-nav" id="customerBottomNav" aria-label="Customer Mobile Navigation">
         <button type="button" class="bottom-nav-item active" id="cNavHome" onclick="customerNavTo('home')">
@@ -675,10 +545,9 @@
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="js/firebase.js?v=37"></script>
-    <script src="js/call-masking.js?v=37"></script>
-    <script src="js/customer.js?v=37"></script>
-    <script src="js/pwa.js?v=37"></script>
-    <script src="js/voice-booking.js?v=37"></script>
+    <script src="js/firebase.js?v=38"></script>
+    <script src="js/call-masking.js?v=38"></script>
+    <script src="js/customer.js?v=38"></script>
+    <script src="js/pwa.js?v=38"></script>
 </body>
 </html>
