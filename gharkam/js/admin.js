@@ -938,6 +938,15 @@ function openAdminOrderModal(orderId) {
         ? `<div class="mt-2"><img src="${order.photoUrl || order.imageUrl}" class="w-full h-36 object-cover rounded-xl border"></div>`
         : '';
 
+    const voiceHtml = (order.voiceNoteUrl || order.hasVoiceNote)
+        ? `<div class="mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1.5">
+            <p class="text-xs font-bold text-emerald-900 flex items-center gap-1.5"><i class="fa-solid fa-microphone text-emerald-600"></i> ग्राहक व्हॉइस मेसेज (Customer Voice Note):</p>
+            <audio controls controlsList="nodownload" preload="metadata" class="w-full h-8 rounded-lg bg-white border border-emerald-200" src="${order.voiceNoteUrl}">
+                ऑडिओ उपलब्ध नाही.
+            </audio>
+           </div>`
+        : '';
+
     container.innerHTML = `
         <div class="grid grid-cols-2 gap-2 pb-2 border-b">
             <p><strong>ग्राहक नाव:</strong> ${order.customerName || '-'}</p>
@@ -953,6 +962,7 @@ function openAdminOrderModal(orderId) {
             <p><strong>नेमलेला कामगार:</strong> ${order.workerMobile || order.workerUid || 'अजून नेमला नाही'}</p>
             ${order.completionOtp ? `<p><strong>Work OTP:</strong> <strong class="text-emerald-600 font-black text-sm">${order.completionOtp}</strong></p>` : ''}
         </div>
+        ${voiceHtml}
         ${photoHtml}
         <div class="pt-2 flex flex-wrap gap-2">
             <a href="https://maps.google.com/?q=${encodeURIComponent(order.address || order.area || 'Pune')}" target="_blank" class="bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-blue-200 inline-flex items-center gap-1">

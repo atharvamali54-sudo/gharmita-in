@@ -197,7 +197,8 @@ function startOrderAlert(orderId, orderDetails) {
     if (alertModal) {
         if (alertSub && orderDetails) {
             const budgetVal = (orderDetails.budget || '₹500').replace('₹', '');
-            alertSub.innerText = `${orderDetails.service || 'नवीन काम'} • ₹${budgetVal} • ${orderDetails.area || 'Pune'}`;
+            const hasVoice = (orderDetails.voiceNoteUrl || orderDetails.hasVoiceNote) ? ' • 🎙️ व्हॉइस मेसेज' : '';
+            alertSub.innerText = `${orderDetails.service || 'नवीन काम'} • ₹${budgetVal} • ${orderDetails.area || 'Pune'}${hasVoice}`;
         }
         alertModal.classList.remove('hidden');
     }
@@ -440,7 +441,8 @@ function updateDeadlineLabels() {
         if (alertSub && currentAlertOrderId && allOrdersData?.[currentAlertOrderId]) {
             const currentItem = allOrdersData[currentAlertOrderId];
             const budgetVal = (currentItem.budget || '₹500').replace('₹', '');
-            alertSub.innerText = `${currentItem.service || 'काम'} • ₹${budgetVal} • ${secLeft} सेकंदात स्वीकारा`;
+            const hasVoice = (currentItem.voiceNoteUrl || currentItem.hasVoiceNote) ? ' • 🎙️ व्हॉइस मेसेज' : '';
+            alertSub.innerText = `${currentItem.service || 'काम'} • ₹${budgetVal} • ${secLeft} सेकंदात स्वीकारा${hasVoice}`;
         }
     });
     document.querySelectorAll('[data-on-the-way-deadline]').forEach(el => {
@@ -1719,11 +1721,34 @@ function renderJobs() {
     keys.forEach(key => {
         const item = allOrdersData[key];
         const imgUrl = item.photoUrl || item.imageUrl || item.photo || item.image || null;
+        const voiceUrl = item.voiceNoteUrl || item.voiceNote || item.audioUrl || null;
         const isAreaMatch = (item.area === selectedArea || !item.area);
 
         const jobService = (item.service || "").replace(/^\/+/, '').trim().toLowerCase();
         const workerService = (currentWorkerService || "").replace(/^\/+/, '').trim().toLowerCase();
         const isServiceMatch = (jobService === workerService);
+
+        const photoHtml = imgUrl ? `<div class="my-2"><div class="relative cursor-pointer group rounded-xl overflow-hidden border border-slate-200" onclick="openImagePreview('${imgUrl}')"><img src="${imgUrl}" class="w-full h-44 object-cover"></div></div>` : '';
+        const voiceHtml = voiceUrl ? `
+            <div class="my-2.5 p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/90 shadow-2xs space-y-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xs shadow-xs shrink-0">
+                            <i class="fa-solid fa-microphone"></i>
+                        </span>
+                        <div>
+                            <h5 class="text-xs font-black text-slate-800">ग्राहकाचा व्हॉइस मेसेज (Customer Voice Note)</h5>
+                            <p class="text-[10px] text-slate-500">कामाचे सविस्तर वर्णन ऐकण्यासाठी प्ले करा</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs shrink-0">
+                        <i class="fa-solid fa-volume-high text-emerald-600"></i> ऑडिओ उपलब्ध
+                    </span>
+                </div>
+                <audio controls controlsList="nodownload" preload="metadata" class="w-full h-9 rounded-xl border border-emerald-200 bg-white" src="${voiceUrl}">
+                    तुमच्या ब्राउझरमध्ये ऑडिओ प्लेअर सपोर्ट नाही.
+                </audio>
+            </div>` : '';
 
         // An assigned worker must finish the active order before seeing any
         // other pending order.  A pending job is visible only during this
@@ -1736,7 +1761,6 @@ function renderJobs() {
             foundExclusiveOfferItem = item;
             const jobCard = document.createElement('div');
             jobCard.className = "bg-white border-2 border-blue-500 p-4 rounded-2xl shadow-lg space-y-3 relative overflow-hidden";
-            const photoHtml = imgUrl ? `<div class="my-2"><div class="relative cursor-pointer group rounded-xl overflow-hidden border border-slate-200" onclick="openImagePreview('${imgUrl}')"><img src="${imgUrl}" class="w-full h-44 object-cover"></div></div>` : '';
 
             jobCard.innerHTML = `
             <div class="flex justify-between items-start">
@@ -1749,6 +1773,7 @@ function renderJobs() {
             <p><i class="fa-regular fa-clock text-blue-500 mr-1.5"></i><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
             <p class="text-slate-400"><i class="fa-solid fa-shield-halved text-emerald-500 mr-1.5"></i>कॉलिंग सुविधा (Masked Call) On The Way केल्यानंतर सुरू होईल.</p>
             </div>
+            ${voiceHtml}
             ${photoHtml}
             <div class="flex items-center justify-between text-xs font-bold text-amber-800 bg-amber-50 border border-amber-300 px-3 py-2 rounded-xl">
                 <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> नवीन काम स्वीकारा</span>
@@ -1798,6 +1823,8 @@ function renderJobs() {
                    </div>`
                 : `<p class="text-slate-500"><i class="fa-solid fa-lock mr-1"></i>कॉलिंग सुविधा On The Way केल्यानंतर सुरू होईल.</p>`}
             </div>
+            ${voiceHtml}
+            ${photoHtml}
             ${item.status === 'Accepted' ? `<div class="flex items-center justify-between text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg"><span>Mark On The Way within 15 minutes</span><span data-on-the-way-deadline="${item.onTheWayDeadline || orderNow()}">15:00 left to start</span></div>` : ''}
              <div class="worker-live-card">
                  <div class="flex items-center justify-between gap-3 mb-3">
