@@ -5,8 +5,10 @@
 (function () {
     let recognition = null;
     let isListening = false;
+    let shouldBeListening = false;
     let currentLanguage = 'mr-IN'; // Default to Marathi
     let finalTranscript = '';
+    let restartTimer = null;
     let detectedData = {
         service: null,
         area: null,
@@ -248,14 +250,12 @@
         }
 
         // 3. Detect Budget
-        // Check Marathi number words
         for (const [word, val] of Object.entries(MARATHI_NUMBERS)) {
             if (text.includes(word)) {
                 matchedBudget = val;
                 break;
             }
         }
-        // Check numeric digits (e.g., 300, 500, ₹400, 350 rs)
         if (!matchedBudget) {
             const digitMatch = text.match(/(?:₹|rs|रु|रुपये)?\s*([1-9][0-9]{2,4})\s*(?:₹|rs|रु|रुपये)?/i);
             if (digitMatch && digitMatch[1]) {
@@ -265,7 +265,6 @@
                 }
             }
         }
-        // Fallback to service default budget if service matched but budget not spoken
         if (!matchedBudget && matchedService) {
             matchedBudget = matchedService.defaultBudget;
         }
@@ -328,7 +327,7 @@
         }
     }
 
-    // --- Web Speech Recognition Core ---
+    // --- Web Speech Recognition Core with Robust Auto-KeepAlive ---
     function initSpeechRecognition() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
@@ -343,6 +342,8 @@
         r.onstart = () => {
             isListening = true;
             updateMicState(true);
+            const statusMsg = document.getElementById('voiceStatusMsg');
+            if (statusMsg) statusMsg.classList.add('hidden');
         };
 
         r.onresult = (event) => {
@@ -358,8 +359,8 @@
 
             const currentSpoken = (finalTranscript + ' ' + interimTranscript).trim();
             const transcriptBox = document.getElementById('voiceTranscriptLive');
-            if (transcriptBox) {
-                transcriptBox.innerText = currentSpoken || 'ऐकत आहे... बोला...';
+            if (transcriptBox && currentSpoken) {
+                transcriptBox.innerText = currentSpoken;
             }
 
             parseVoiceIntent(currentSpoken);
@@ -367,15 +368,40 @@
 
         r.onerror = (event) => {
             console.warn('[Gharmitra Voice] Recognition error:', event.error);
-            if (event.error === 'not-allowed') {
-                showVoiceStatus("मायक्रोफोन परवानगी (Microphone Permission) नाकारली आहे. कृपया ब्राउझरमध्ये मायक्रोफोन सुरू करा.", true);
+            // Ignore brief pauses/silences - do not stop!
+            if (event.error === 'no-speech' || event.error === 'aborted') {
+                return;
             }
-            updateMicState(false);
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                shouldBeListening = false;
+                isListening = false;
+                updateMicState(false);
+                showVoiceStatus("मायक्रोफोन परवानगी (Allow Microphone) नाकारली आहे. कृपया ब्राउझरमध्ये मायक्रोफोन सुरू करा किंवा खाली उदाहरणावर क्लिक करा.", true);
+                return;
+            }
+            if (event.error === 'network') {
+                showVoiceStatus("इंटरनेट कनेक्शन तपासा किंवा खालील उदाहरणावर टॅप करा.", true);
+            }
         };
 
         r.onend = () => {
             isListening = false;
-            updateMicState(false);
+            // CRITICAL FIX: If user is in modal and hasn't clicked stop, auto-restart seamlessly!
+            if (shouldBeListening) {
+                clearTimeout(restartTimer);
+                restartTimer = setTimeout(() => {
+                    if (shouldBeListening && !isListening) {
+                        try {
+                            r.lang = currentLanguage;
+                            r.start();
+                        } catch (e) {
+                            console.log('[Gharmitra Voice] KeepAlive restart retry:', e);
+                        }
+                    }
+                }, 150);
+            } else {
+                updateMicState(false);
+            }
         };
 
         return r;
@@ -398,7 +424,7 @@
             if (soundwave) soundwave.classList.add('opacity-20');
             if (soundwave) soundwave.classList.remove('opacity-100');
             if (icon) icon.className = 'fa-solid fa-microphone-slash text-slate-400 text-3xl';
-            if (statusText) statusText.innerText = "थांबले आहे. बोलण्यासाठी माइकवर टॅप करा.";
+            if (statusText) statusText.innerText = "माइक थांबला आहे. पुन्हा बोलण्यासाठी माइकवर टॅप करा.";
         }
     }
 
@@ -410,14 +436,34 @@
         el.classList.remove('hidden');
     }
 
-    // --- Start / Stop / Restart ---
+    // --- Start / Stop / Restart with Explicit Permission Prime ---
     function startListening() {
+        shouldBeListening = true;
+        
+        // Explicitly request user microphone permission via Web Audio to show native prompt
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then((stream) => {
+                    // Stop tracks immediately as SpeechRecognition will handle the microphone
+                    stream.getTracks().forEach(track => track.stop());
+                    executeStartRecognition();
+                })
+                .catch((err) => {
+                    console.warn('[Gharmitra Voice] getUserMedia error/fallback:', err);
+                    executeStartRecognition();
+                });
+        } else {
+            executeStartRecognition();
+        }
+    }
+
+    function executeStartRecognition() {
         if (!recognition) {
             recognition = initSpeechRecognition();
         }
 
         if (!recognition) {
-            alert("तुमच्या ब्राउझरमध्ये व्हॉइस रेकॉर्डिंग सपोर्ट उपलब्ध नाही. कृपया Google Chrome किंवा Android ॲप वापरा.");
+            showVoiceStatus("तुमच्या ब्राउझरमध्ये व्हॉइस सपोर्ट नाही. कृपया खाली उदाहरणावर टॅप करा किंवा लिहा.", true);
             return;
         }
 
@@ -425,20 +471,25 @@
             recognition.lang = currentLanguage;
             recognition.start();
         } catch (e) {
-            console.log('[Gharmitra Voice] Start catch:', e);
+            // If already started, ignore error
+            console.log('[Gharmitra Voice] Recognition start:', e);
         }
     }
 
     function stopListening() {
-        if (recognition && isListening) {
-            recognition.stop();
+        shouldBeListening = false;
+        clearTimeout(restartTimer);
+        if (recognition) {
+            try {
+                recognition.stop();
+            } catch(e) {}
         }
         isListening = false;
         updateMicState(false);
     }
 
     function toggleListening() {
-        if (isListening) {
+        if (isListening || shouldBeListening) {
             stopListening();
         } else {
             startListening();
@@ -450,9 +501,11 @@
         finalTranscript = '';
         detectedData = { service: null, area: null, budget: null, issue: '' };
         const transcriptBox = document.getElementById('voiceTranscriptLive');
-        if (transcriptBox) transcriptBox.innerText = 'माइक सुरू होत आहे...';
+        if (transcriptBox) transcriptBox.innerText = 'माइक सुरू होत आहे... बोला...';
+        const manualInput = document.getElementById('voiceManualInput');
+        if (manualInput) manualInput.value = '';
         updateVoicePreviewUI();
-        setTimeout(startListening, 300);
+        setTimeout(startListening, 200);
     }
 
     function changeVoiceLanguage(lang) {
@@ -464,9 +517,19 @@
                 b.className = 'voice-lang-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 transition';
             }
         });
-        if (isListening) {
+        if (shouldBeListening) {
             restartListening();
         }
+    }
+
+    // --- 1-Tap Quick Sample Query / Manual Type Handler ---
+    function setQuickVoiceSample(sampleText) {
+        finalTranscript = sampleText;
+        const transcriptBox = document.getElementById('voiceTranscriptLive');
+        if (transcriptBox) transcriptBox.innerText = sampleText;
+        const manualInput = document.getElementById('voiceManualInput');
+        if (manualInput) manualInput.value = sampleText;
+        parseVoiceIntent(sampleText);
     }
 
     // --- Fill Booking Form with Magic Animation ---
@@ -474,14 +537,11 @@
         stopListening();
         closeVoiceBookingModal();
 
-        let filledItems = [];
-
         // 1. Service Select
         const serviceSelect = document.getElementById('serviceSelect');
         if (serviceSelect && detectedData.service) {
             serviceSelect.value = detectedData.service.service;
             highlightField(serviceSelect);
-            filledItems.push(detectedData.service.nameMr);
         }
 
         // 2. Area Select
@@ -489,18 +549,16 @@
         if (areaSelect && detectedData.area) {
             areaSelect.value = detectedData.area;
             highlightField(areaSelect);
-            filledItems.push(detectedData.area);
         }
 
         // 3. Address / Problem details
         const addressInput = document.getElementById('customerAddress');
-        if (addressInput && finalTranscript.trim()) {
-            const cleanSpoken = finalTranscript.trim();
-            // Prepend issue to address if address is empty, or add note
+        const textToFill = finalTranscript.trim() || detectedData.issue;
+        if (addressInput && textToFill) {
             if (!addressInput.value.trim()) {
-                addressInput.value = `[व्हॉइस नोट]: ${cleanSpoken} • पत्ता: `;
+                addressInput.value = `[व्हॉइस नोट]: ${textToFill} • पत्ता: `;
             } else {
-                addressInput.value += `\n[तक्रार]: ${cleanSpoken}`;
+                addressInput.value += `\n[तक्रार]: ${textToFill}`;
             }
             highlightField(addressInput);
             addressInput.focus();
@@ -551,11 +609,13 @@
     // --- Audio Feedback (Speech Synthesis) ---
     function speakVoiceConfirmation(serviceName, areaName) {
         if ('speechSynthesis' in window) {
-            const textToSpeak = `तुमची विनंती समजली! ${serviceName} साठी ${areaName} मध्ये फॉर्म भरला आहे. कृपया मोबाईल नंबर तपासून सबमिट करा.`;
-            const utterance = new SpeechSynthesisUtterance(textToSpeak);
-            utterance.lang = currentLanguage;
-            utterance.rate = 1.0;
-            window.speechSynthesis.speak(utterance);
+            try {
+                const textToSpeak = `तुमची विनंती समजली! ${serviceName} साठी ${areaName} मध्ये फॉर्म भरला आहे. कृपया मोबाईल नंबर तपासून सबमिट करा.`;
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = currentLanguage;
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+            } catch (e) {}
         }
     }
 
@@ -585,5 +645,6 @@
     window.restartListening = restartListening;
     window.changeVoiceLanguage = changeVoiceLanguage;
     window.applyVoiceDataToForm = applyVoiceDataToForm;
+    window.setQuickVoiceSample = setQuickVoiceSample;
 
 })();
