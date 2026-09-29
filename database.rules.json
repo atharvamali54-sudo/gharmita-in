@@ -114,6 +114,14 @@
     "notificationEvents": {
       ".read": false,
       ".write": "auth != null"
+    },
+
+    "societyPassEnquiries": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$enquiryId": {
+        ".validate": "newData.hasChildren(['societyName', 'contactMobile', 'plan', 'timestamp'])"
+      }
     }
   }
 }

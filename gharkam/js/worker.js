@@ -1848,6 +1848,11 @@ function renderJobs() {
                     <span><i class="fa-solid fa-motorcycle mr-1"></i> तुम्ही मार्गस्थ आहात (On The Way)</span>
                     <span class="text-[10px] bg-indigo-200/60 px-2 py-0.5 rounded-md">Live GPS On</span>
                 </div>
+                ${item.customerMobile ? `
+                <a href="https://wa.me/91${String(item.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (item.customerName || 'ग्राहक') + ' जी! घरमित्र सर्व्हिसेसकडून मी ' + (item.workerName || 'आपला कारागीर') + ' (' + (item.service || 'सर्व्हिस') + ') ५ ते १० मिनिटांत आपल्या घरी पोहोचत आहे.\n\n🔐 कृपया आपला सुरक्षा स्टार्ट पिन (Job Start PIN) तयार ठेवा.\n📍 थेट ट्रॅक करा: https://gharmitra.online/gharkam/customer.html?track=' + encodeURIComponent(key))}" target="_blank" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-2 px-3 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> 📲 ५ मिनिटांत पोहोचत असल्याचा व्हॉट्सॲप अलर्ट पाठवा
+                </a>
+                ` : ''}
                 <button onclick="openJobStartOtpModal('${key}')" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-black py-2.5 px-4 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
                     <i class="fa-solid fa-play"></i> 🔐 काम सुरू करा (दारावर आल्यावर स्टार्ट पिन टाका)
                 </button>
@@ -2302,6 +2307,19 @@ function updateStatus(orderId, newStatus) {
                 workerMobile: getCurrentWorkerMobile(),
                 customerMobile: activeOrder.order.customerMobile || ''
             });
+            if (activeOrder.order.customerMobile) {
+                const cleanMob = String(activeOrder.order.customerMobile).replace(/[^0-9]/g, '').slice(-10);
+                if (cleanMob.length === 10) {
+                    const originUrl = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://gharmitra.online';
+                    const trackLink = `${originUrl}/gharkam/customer.html?track=${encodeURIComponent(orderId)}`;
+                    const arrivalMsg = `नमस्कार ${activeOrder.order.customerName || 'ग्राहक'} जी! घरमित्र सर्व्हिसेसकडून मी ${activeOrder.order.workerName || 'आपला कारागीर'} (${activeOrder.order.service || 'सर्व्हिस'}) ५ ते १० मिनिटांत आपल्या घरी पोहोचत आहे.\n\n🔐 कृपया आपला सुरक्षा स्टार्ट पिन तयार ठेवा.\n📍 थेट ट्रॅक करा: ${trackLink}`;
+                    setTimeout(() => {
+                        if (confirm("📲 ग्राहकाला व्हॉट्सॲपवर ५ मिनिटांत पोहोचत असल्याचा थेट मेसेज पाठवायचा आहे का?")) {
+                            window.open(`https://wa.me/91${cleanMob}?text=${encodeURIComponent(arrivalMsg)}`, '_blank');
+                        }
+                    }, 400);
+                }
+            }
         }
         alert("स्टेटस अपडेट केले: " + newStatus);
     }).catch(error => {

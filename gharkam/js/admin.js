@@ -337,6 +337,7 @@ function switchTab(tabId) {
     let activeBtnId = 'tabBtnOrders';
     if (tabId === 'workersTab') activeBtnId = 'tabBtnWorkers';
     if (tabId === 'reviewsTab') activeBtnId = 'tabBtnReviews';
+    if (tabId === 'societyTab') activeBtnId = 'tabBtnSociety';
     if (tabId === 'settingsTab') activeBtnId = 'tabBtnSettings';
 
     const activeBtn = document.getElementById(activeBtnId);
@@ -369,6 +370,12 @@ function initDashboard() {
     database.ref('users').on('value', (snap) => {
         allUsers = snap.val() || {};
         calculateKpisAndRender();
+    });
+
+    // 4. Listen to Society Pass Enquiries
+    database.ref('societyPassEnquiries').on('value', (snap) => {
+        allSocietyPassEnquiries = snap.val() || {};
+        renderSocietyPassEnquiries();
     });
 }
 

@@ -21,8 +21,8 @@
     <meta name="apple-mobile-web-app-title" content="Gharmitra">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
-    <link rel="stylesheet" href="css/common.css?v=39">
-    <link rel="stylesheet" href="css/customer.css?v=39">
+    <link rel="stylesheet" href="css/common.css?v=40">
+    <link rel="stylesheet" href="css/customer.css?v=40">
     <script>
         (function(){
             try {
@@ -76,11 +76,37 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
             
             <div class="lg:col-span-7 p-6 md:p-8 bg-white border-b lg:border-b-0 border-slate-200">
-                <div class="mb-6">
-                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-calendar-check text-blue-600"></i> Book Your Appointment
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-1 font-medium">Fill out the form to get the services of trusted workers in Pune.</p>
+                <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-check text-blue-600"></i> Book Your Appointment
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1 font-medium">पुण्यातील विश्वासू कारागीरांसाठी फॉर्म भरा किंवा सोसायटी पास निवडा.</p>
+                    </div>
+                    <button type="button" onclick="openSocietyPassModal()" class="shrink-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white font-extrabold text-xs py-2 px-3.5 rounded-xl shadow-md transition transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-building text-amber-300"></i>
+                        <span>🏢 सोसायटी पास (Bulk Pass)</span>
+                    </button>
+                </div>
+
+                <!-- Society Bulk Pass Highlight Banner -->
+                <div class="mb-5 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white p-3.5 sm:p-4 shadow-lg border border-indigo-400/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-indigo-500/25 border border-indigo-400/30 text-amber-300 flex items-center justify-center text-xl shrink-0 shadow-inner">
+                            🏢
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-black text-xs sm:text-sm text-white">पुण्यातील सोसायट्यांसाठी मासिक मेंटेनन्स पास</h4>
+                                <span class="bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider">२०% सूट</span>
+                            </div>
+                            <p class="text-[11px] text-indigo-200 mt-0.5">बाणेर, वाकड, कोथरूड, खराडी इ. सोसायट्यांसाठी नियमित प्लंबिंग, इलेक्ट्रिशियन व फिक्स कारागीर.</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openSocietyPassModal()" class="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs py-2 px-4 rounded-xl shadow transition shrink-0 flex items-center justify-center gap-1.5 cursor-pointer">
+                        <span>प्लॅन्स पहा</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </button>
                 </div>
 
                 <form id="bookingForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
@@ -177,6 +203,15 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">PHOTO (OPTIONAL)</label>
                         <input type="file" id="jobPhoto" accept="image/*" class="w-full text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
+                    </div>
+
+                    <!-- WhatsApp Order Updates Opt-In -->
+                    <div class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-950 shadow-sm">
+                        <input type="checkbox" id="whatsappOptIn" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-slate-300 cursor-pointer">
+                        <label for="whatsappOptIn" class="cursor-pointer font-bold flex items-center gap-2 flex-1">
+                            <i class="fa-brands fa-whatsapp text-emerald-600 text-base"></i>
+                            <span>थेट व्हॉट्सॲपवर ऑर्डर अपडेट्स आणि ५ मिनिटांत आगमन अलर्ट मिळवा</span>
+                        </label>
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mt-4">
@@ -320,6 +355,21 @@
                                     </button>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- WhatsApp Share & Track Card -->
+                        <div id="customerWhatsAppTrackArea" class="hidden rounded-2xl bg-emerald-50 border border-emerald-200 p-3 space-y-1.5 shadow-sm">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-bold text-emerald-900 flex items-center gap-1.5">
+                                    <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i> व्हॉट्सॲप ऑर्डर ट्रॅकिंग
+                                </span>
+                                <span class="text-[10px] bg-emerald-200/80 text-emerald-800 font-bold px-2 py-0.5 rounded-full">१-क्लिक सेव्ह</span>
+                            </div>
+                            <p class="text-[11px] text-emerald-800">ॲप बंद झाले तरी व्हॉट्सॲपवर ट्रॅकिंग लिंक व सुरक्षा स्टार्ट पिन सुरक्षित ठेवा:</p>
+                            <a id="customerTrackWhatsAppShareBtn" href="#" target="_blank" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-bold py-2 px-3 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-base"></i>
+                                <span>व्हॉट्सॲपवर ट्रॅक लिंक व स्टार्ट पिन पाठवा</span>
+                            </a>
                         </div>
 
                         <div id="stepsTrackerContainer" class="space-y-4 pt-2">
@@ -551,6 +601,125 @@
         </div>
     </div>
 
+    <!-- =========================================================
+         Society Maintenance Bulk Pass Modal (पुण्यातील सोसायट्यांसाठी खास)
+         ========================================================= -->
+    <div id="societyPassModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md hidden overflow-y-auto z-50 p-4 text-center">
+        <div class="min-h-full flex items-center justify-center py-6">
+            <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-slate-100 text-left space-y-5 relative my-auto">
+                <button type="button" onclick="closeSocietyPassModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm transition cursor-pointer">✕</button>
+
+                <div class="text-center space-y-1">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        🏢 Gharmitra Society AMC Portal
+                    </span>
+                    <h3 class="font-black text-slate-900 text-xl sm:text-2xl">सोसायटी मेंटेनन्स पार्टनरशिप पास</h3>
+                    <p class="text-xs text-slate-500">बाणेर, खराडी, वाकड, कोथरूड, हिंजवडी इ. सोसायट्यांसाठी नियमित मेंटेनन्स योजना.</p>
+                </div>
+
+                <!-- 3 Society Plans Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Silver Pass -->
+                    <div class="rounded-2xl p-3.5 border border-slate-200 bg-slate-50/70 space-y-2 text-center hover:border-blue-400 transition cursor-pointer" onclick="selectSocietyPassPlan('Silver')">
+                        <span class="text-xs font-black text-slate-700 block">सिल्व्हर पास</span>
+                        <p class="text-[10px] text-slate-500">२० ते ५० फ्लॅट्स</p>
+                        <div class="text-lg font-black text-blue-600">₹४,९९९<span class="text-[10px] font-normal text-slate-500">/महिना</span></div>
+                        <ul class="text-[11px] text-slate-600 space-y-1 text-left pt-1">
+                            <li>✓ महिना १ मोफत तपासणी</li>
+                            <li>✓ १५ मिनिटांत इमर्जन्सी मदत</li>
+                            <li>✓ सभासदांना २०% सूट</li>
+                        </ul>
+                    </div>
+
+                    <!-- Gold Pass (Popular) -->
+                    <div class="rounded-2xl p-3.5 border-2 border-indigo-600 bg-indigo-50/50 space-y-2 text-center relative shadow-sm cursor-pointer" onclick="selectSocietyPassPlan('Gold')">
+                        <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">सर्वात लोकप्रिय</span>
+                        <span class="text-xs font-black text-indigo-950 block">गोल्ड पास</span>
+                        <p class="text-[10px] text-indigo-600">५० ते १२० फ्लॅट्स</p>
+                        <div class="text-lg font-black text-indigo-700">₹८,९९९<span class="text-[10px] font-normal text-slate-500">/महिना</span></div>
+                        <ul class="text-[11px] text-slate-700 space-y-1 text-left pt-1">
+                            <li>✓ दर आठवड्याला १ व्हिजिट</li>
+                            <li>✓ प्लंबिंग, लाईट, मोटर चेक</li>
+                            <li>✓ सभासदांना २५% सूट</li>
+                        </ul>
+                    </div>
+
+                    <!-- Platinum Pass -->
+                    <div class="rounded-2xl p-3.5 border border-slate-200 bg-slate-50/70 space-y-2 text-center hover:border-purple-400 transition cursor-pointer" onclick="selectSocietyPassPlan('Platinum')">
+                        <span class="text-xs font-black text-slate-700 block">प्लॅटिनम पास</span>
+                        <p class="text-[10px] text-slate-500">१२०+ फ्लॅट्स / टाउनशिप</p>
+                        <div class="text-lg font-black text-purple-700">कस्टम दर<span class="text-[10px] font-normal text-slate-500"> (AMC)</span></div>
+                        <ul class="text-[11px] text-slate-600 space-y-1 text-left pt-1">
+                            <li>✓ ऑन-साइट परमनंट कारागीर</li>
+                            <li>✓ फुल सोसायटी मेंटेनन्स</li>
+                            <li>✓ प्रायोरिटी सपोर्ट</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Registration Form -->
+                <form id="societyPassForm" onsubmit="handleSocietyPassSubmit(event)" class="space-y-3 pt-2 border-t border-slate-100">
+                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pen text-indigo-600"></i> सोसायटी माहिती व अर्ज
+                    </h4>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">सोसायटीचे नाव *</label>
+                            <input type="text" id="socName" placeholder="उदा. रोहन कृतिका, कोथरूड" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">पुण्यातील परिसर *</label>
+                            <select id="socArea" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="Kothrud">कोथरूड (Kothrud)</option>
+                                <option value="Baner">बाणेर (Baner)</option>
+                                <option value="Wakad">वाकड (Wakad)</option>
+                                <option value="Kharadi">खराडी (Kharadi)</option>
+                                <option value="Hinjawadi">हिंजवडी (Hinjawadi)</option>
+                                <option value="Hadapsar">हडपसर (Hadapsar)</option>
+                                <option value="Aundh">औंध (Aundh)</option>
+                                <option value="Viman Nagar">विमान नगर (Viman Nagar)</option>
+                                <option value="Pimpri Chinchwad">पिंपरी चिंचवड (PCMC)</option>
+                                <option value="Other Pune">इतर पुणे</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">एकूण फ्लॅट्स संख्या *</label>
+                            <input type="number" id="socFlats" placeholder="उदा. 48" required min="10" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">चेअरमन / सेक्रेटरी नाव *</label>
+                            <input type="text" id="socContactName" placeholder="उदा. श्री. सचिन पाटील" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">मोबाईल नंबर *</label>
+                            <input type="tel" id="socContactMobile" placeholder="10-digit mobile" pattern="[0-9]{10}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">निवडलेला प्लॅन</label>
+                        <select id="socSelectedPlan" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="Gold Pass (50-120 Flats) - ₹8,999/mo">गोल्ड पास (५० ते १२० फ्लॅट्स - ₹८,९९९/महिना) [शिफारस]</option>
+                            <option value="Silver Pass (20-50 Flats) - ₹4,999/mo">सिल्व्हर पास (२० ते ५० फ्लॅट्स - ₹४,९९९/महिना)</option>
+                            <option value="Platinum Custom AMC (120+ Flats)">प्लॅटिनम कस्टम पास (१२०+ फ्लॅट्स / टाउनशिप)</option>
+                        </select>
+                    </div>
+
+                    <div id="socStatusMsg" class="hidden text-xs font-semibold p-2.5 rounded-xl text-center"></div>
+
+                    <button type="submit" id="socSubmitBtn" class="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>सोसायटी पाससाठी अर्ज करा (Submit Application)</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Mobile Bottom Navigation Bar (Customer - APK Only) -->
     <nav class="app-bottom-nav" id="customerBottomNav" aria-label="Customer Mobile Navigation">
         <button type="button" class="bottom-nav-item active" id="cNavHome" onclick="customerNavTo('home')">
@@ -572,9 +741,9 @@
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="js/firebase.js?v=39"></script>
-    <script src="js/call-masking.js?v=39"></script>
-    <script src="js/customer.js?v=39"></script>
-    <script src="js/pwa.js?v=39"></script>
+    <script src="js/firebase.js?v=40"></script>
+    <script src="js/call-masking.js?v=40"></script>
+    <script src="js/customer.js?v=40"></script>
+    <script src="js/pwa.js?v=40"></script>
 </body>
 </html>

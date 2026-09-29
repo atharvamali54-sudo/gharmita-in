@@ -726,6 +726,7 @@ populateBookingProfile();
                     }
                 }
 
+                const whatsappOptIn = document.getElementById('whatsappOptIn') ? document.getElementById('whatsappOptIn').checked : true;
                 const payload = {
                     service: service,
                     customerName: name,
@@ -738,6 +739,7 @@ populateBookingProfile();
                     time: time,
                     photoUrl: photoUrl,
                     status: "Pending",
+                    whatsappOptIn: whatsappOptIn,
                     startOtp: String(Math.floor(1000 + Math.random() * 9000)),
                     completionOtp: String(Math.floor(1000 + Math.random() * 9000)),
                     timestamp: firebase.database.ServerValue.TIMESTAMP
@@ -861,17 +863,45 @@ populateBookingProfile();
                     stopWorkerLocationTracking();
                 }
 
+                // Security Start PIN Card (Active when Accepted or On The Way)
+                const startOtpCard = document.getElementById('customerStartOtpCard');
+                const startOtpDisplay = document.getElementById('customerStartOtpCodeDisplay');
+                if (data.startOtp && (data.status === 'Accepted' || data.status === 'On The Way')) {
+                    if (startOtpCard) startOtpCard.classList.remove('hidden');
+                    if (startOtpDisplay) startOtpDisplay.innerText = data.startOtp;
+                } else {
+                    if (startOtpCard) startOtpCard.classList.add('hidden');
+                }
+
+                // Completion OTP Card (Active when In Progress)
                 const otpCard = document.getElementById('customerCompletionOtpCard');
                 const otpDisplay = document.getElementById('customerOtpCodeDisplay');
-                if (data.completionOtp && data.status !== 'Completed' && data.status !== 'Cancelled') {
+                if (data.completionOtp && data.status === 'In Progress') {
                     if (otpCard) otpCard.classList.remove('hidden');
                     if (otpDisplay) otpDisplay.innerText = data.completionOtp;
                 } else {
                     if (otpCard) otpCard.classList.add('hidden');
                 }
 
+                // WhatsApp Track & PIN Quick Share Box
+                const waTrackArea = document.getElementById('customerWhatsAppTrackArea');
+                const waShareBtn = document.getElementById('customerTrackWhatsAppShareBtn');
+                if (waTrackArea && waShareBtn) {
+                    if (data.status !== 'Completed' && data.status !== 'Cancelled') {
+                        waTrackArea.classList.remove('hidden');
+                        const originUrl = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://gharmitra.online';
+                        const liveTrackLink = `${originUrl}/gharkam/customer.html?track=${encodeURIComponent(orderId)}`;
+                        const shareTxt = `नमस्कार! माझी घरमित्र ऑर्डर तपशील:\n📌 ऑर्डर आयडी: #${orderId.slice(-6).toUpperCase()}\n🛠️ सेवा: ${data.service || ''}\n🔐 सुरक्षा स्टार्ट पिन: ${data.startOtp || 'N/A'}\n📍 थेट ट्रॅकिंग लिंक: ${liveTrackLink}`;
+                        waShareBtn.href = `https://wa.me/?text=${encodeURIComponent(shareTxt)}`;
+                    } else {
+                        waTrackArea.classList.add('hidden');
+                    }
+                }
+
                 if (data.status === 'Completed' || data.status === 'Cancelled') {
+                    if (startOtpCard) startOtpCard.classList.add('hidden');
                     if (otpCard) otpCard.classList.add('hidden');
+                    if (waTrackArea) waTrackArea.classList.add('hidden');
                     stepsContainer.classList.add('hidden');
                     cancelContainer.classList.add('hidden');
                     completedMsgBox.classList.remove('hidden');
@@ -906,6 +936,8 @@ populateBookingProfile();
                     document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     document.getElementById('step4Dot').className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                    const step5Dot = document.getElementById('step5Dot');
+                    if (step5Dot) step5Dot.className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
 
                     if (data.status === 'Pending') {
                         badgeEl.className = "bg-amber-100 text-amber-700 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
@@ -927,6 +959,15 @@ populateBookingProfile();
                         document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                    }
+                    else if (data.status === 'In Progress') {
+                        badgeEl.className = "bg-amber-100 text-amber-800 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
+                        badgeTextEl.innerText = "Work In Progress";
+                        workerMobileEl.innerHTML = workerInfo;
+                        document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step4Dot').className = "w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     }
                 }
             });
@@ -1042,3 +1083,108 @@ populateBookingProfile();
             closeMyOrdersModal();
             trackLiveStatus(orderId);
         }
+
+
+// =========================================================
+// Society Maintenance Pass (Society Bulk Pass / AMC) Modal
+// =========================================================
+function openSocietyPassModal() {
+    const modal = document.getElementById('societyPassModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeSocietyPassModal() {
+    const modal = document.getElementById('societyPassModal');
+    if (modal) {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+}
+
+function selectSocietyPassPlan(planType) {
+    const planSelect = document.getElementById('socSelectedPlan');
+    if (!planSelect) return;
+    if (planType === 'Silver') {
+        planSelect.value = "Silver Pass (20-50 Flats) - ₹4,999/mo";
+    } else if (planType === 'Gold') {
+        planSelect.value = "Gold Pass (50-120 Flats) - ₹8,999/mo";
+    } else if (planType === 'Platinum') {
+        planSelect.value = "Platinum Custom AMC (120+ Flats)";
+    }
+    planSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function handleSocietyPassSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('socSubmitBtn');
+    const msgEl = document.getElementById('socStatusMsg');
+    const socName = (document.getElementById('socName')?.value || '').trim();
+    const socArea = document.getElementById('socArea')?.value || '';
+    const socFlats = parseInt(document.getElementById('socFlats')?.value || '0', 10);
+    const socContactName = (document.getElementById('socContactName')?.value || '').trim();
+    const socContactMobile = (document.getElementById('socContactMobile')?.value || '').trim();
+    const socSelectedPlan = document.getElementById('socSelectedPlan')?.value || '';
+
+    if (!socName || !socContactName || !socContactMobile || socContactMobile.length !== 10) {
+        alert("कृपया सर्व माहिती अचूक भरा (१० अंकी मोबाईल नंबर आवश्यक).");
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> अर्ज सादर होत आहे...';
+    }
+
+    try {
+        const newRef = database.ref('societyPassEnquiries').push();
+        const payload = {
+            societyName: socName,
+            area: socArea,
+            flats: socFlats,
+            contactName: socContactName,
+            contactMobile: socContactMobile,
+            plan: socSelectedPlan,
+            status: 'New',
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        };
+        await newRef.set(payload);
+
+        if (msgEl) {
+            msgEl.className = "text-xs font-semibold p-3 rounded-xl text-center bg-emerald-50 text-emerald-800 border border-emerald-200";
+            msgEl.innerHTML = "🎉 अभिनंदन! आपला सोसायटी पास अर्ज यशस्वीरीत्या नोंदवला गेला आहे. आमची टीम लवकरच आपल्याशी संपर्क करेल.";
+            msgEl.classList.remove('hidden');
+        }
+
+        const waAdminMsg = "नमस्कार घरमित्र! आम्ही आमच्या सोसायटीसाठी सोसायटी मेंटेनन्स पास (Society Bulk Pass) मध्ये स्वारस्य दाखवत आहोत.\n\n🏢 *सोसायटी:* " + encodeURIComponent(socName) + "\n📍 *परिसर:* " + encodeURIComponent(socArea) + "\n🏘️ *एकूण फ्लॅट्स:* " + socFlats + "\n👤 *संपर्क व्यक्ती:* " + encodeURIComponent(socContactName) + " (" + socContactMobile + ")\n📋 *प्लॅन:* " + encodeURIComponent(socSelectedPlan) + "\n\nकृपया पुढील प्रक्रियेसाठी संपर्क साधावा.";
+        
+        setTimeout(() => {
+            if (confirm("आपला अर्ज सेव्ह झाला आहे! त्वरित घरमित्र टीमशी व्हॉट्सॲपवर बोलण्यासाठी 'OK' दाबा.")) {
+                window.open("https://wa.me/917875160724?text=" + waAdminMsg, '_blank');
+            }
+            closeSocietyPassModal();
+            document.getElementById('societyPassForm')?.reset();
+            if (msgEl) msgEl.classList.add('hidden');
+        }, 1200);
+
+    } catch (err) {
+        console.error("Society Pass Error:", err);
+        if (msgEl) {
+            msgEl.className = "text-xs font-semibold p-3 rounded-xl text-center bg-red-50 text-red-700 border border-red-200";
+            msgEl.innerText = "अर्ज पाठवताना त्रुटी आली: " + err.message;
+            msgEl.classList.remove('hidden');
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> सोसायटी पाससाठी अर्ज करा (Submit Application)';
+        }
+    }
+}
+
+window.openSocietyPassModal = openSocietyPassModal;
+window.closeSocietyPassModal = closeSocietyPassModal;
+window.selectSocietyPassPlan = selectSocietyPassPlan;
+window.handleSocietyPassSubmit = handleSocietyPassSubmit;

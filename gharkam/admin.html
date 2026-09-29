@@ -251,6 +251,9 @@
             <button onclick="switchTab('reviewsTab')" id="tabBtnReviews" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm flex items-center gap-2 transition whitespace-nowrap">
                 <i class="fa-solid fa-comments"></i> ग्राहक रेटिंग्स व तक्रारी (<span id="tabBadgeReviews">0</span>)
             </button>
+            <button onclick="switchTab('societyTab')" id="tabBtnSociety" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm flex items-center gap-2 transition whitespace-nowrap">
+                <i class="fa-solid fa-building-user text-indigo-600"></i> सोसायटी पास अर्ज (<span id="tabBadgeSociety">0</span>)
+            </button>
             <button onclick="switchTab('settingsTab')" id="tabBtnSettings" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm flex items-center gap-2 transition whitespace-nowrap">
                 <i class="fa-solid fa-gear"></i> ॲडमिन सेटिंग्ज
             </button>
@@ -381,6 +384,49 @@
         </div>
 
         <!-- =====================================================
+             TAB 5: Society Bulk Pass Enquiries (सोसायटी मेंटेनन्स पास अर्ज)
+             ===================================================== -->
+        <div id="societyTab" class="tab-content hidden space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-building-user text-indigo-600"></i> सोसायटी मेंटेनन्स पास अर्ज (Society AMC Enquiries)
+                    </h3>
+                    <p class="text-xs text-slate-400">पुण्यातील सोसायट्यांनी पाठवलेले मासिक मेंटेनन्स पास व एएमसी चौकशी अर्ज</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="societyCountBadge" class="bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded-full text-xs border border-indigo-200">
+                        0 अर्ज
+                    </span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px]">
+                            <tr>
+                                <th class="p-3">तारीख / वेळ</th>
+                                <th class="p-3">सोसायटीचे नाव</th>
+                                <th class="p-3">परिसर (Area)</th>
+                                <th class="p-3">फ्लॅट्स संख्या</th>
+                                <th class="p-3">निवडलेला प्लॅन</th>
+                                <th class="p-3">चेअरमन / सेक्रेटरी</th>
+                                <th class="p-3">मोबाईल</th>
+                                <th class="p-3 text-right">कृती (Actions)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="societyPassList" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="8" class="p-6 text-center text-slate-400">सोसायटी पास अर्ज लोड होत आहेत...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
              TAB 4: Admin Settings
              ===================================================== -->
         <div id="settingsTab" class="tab-content hidden max-w-xl mx-auto space-y-4">
@@ -502,7 +548,7 @@
     </div>
 
     <script src="js/firebase.js"></script>
-    <script src="js/admin.js?v=2.7"></script>
+    <script src="js/admin.js?v=2.8"></script>
     <script src="js/pwa.js?v=9.3"></script>
 </body>
 </html>
