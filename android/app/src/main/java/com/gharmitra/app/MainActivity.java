@@ -94,6 +94,7 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 progressBar.setVisibility(View.GONE);
+                view.evaluateJavascript("try { document.documentElement.classList.add('is-mobile-app'); sessionStorage.setItem('gharmitra_mobile_app_mode', 'true'); } catch(e){}", null);
             }
         });
 
