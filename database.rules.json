@@ -92,6 +92,9 @@
         },
         "completionOtp": {
           ".validate": "newData.isString() && newData.val().length <= 64"
+        },
+        "startOtp": {
+          ".validate": "newData.isString() && newData.val().length <= 64"
         }
       }
     },

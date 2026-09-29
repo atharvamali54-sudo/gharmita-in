@@ -21,8 +21,8 @@
     <meta name="apple-mobile-web-app-title" content="Gharmitra">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
-    <link rel="stylesheet" href="css/common.css?v=38">
-    <link rel="stylesheet" href="css/customer.css?v=38">
+    <link rel="stylesheet" href="css/common.css?v=39">
+    <link rel="stylesheet" href="css/customer.css?v=39">
     <script>
         (function(){
             try {
@@ -250,21 +250,40 @@
                             </div>
                         </div>
 
+                        <!-- Job Start Security PIN Display Card (सिक्युरिटी स्टार्ट पिन) -->
+                        <div id="customerStartOtpCard" class="hidden rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white p-4 shadow-lg border border-amber-300/40 space-y-2">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-100 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-shield-halved text-white"></i> सुरक्षा स्टार्ट पिन (Job Start PIN)
+                                    </span>
+                                    <p class="text-xs text-white/95 mt-0.5">कारागीर दारावर आल्यावर हा ४-अंकी पिन सांगा:</p>
+                                </div>
+                                <div class="bg-white text-amber-800 font-black text-2xl tracking-[0.25em] px-4 py-2 rounded-xl shadow-inner text-center border-2 border-amber-200 shrink-0">
+                                    <span id="customerStartOtpCodeDisplay">----</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-amber-100 pt-1 border-t border-amber-400/50">
+                                <span><i class="fa-solid fa-lock mr-1"></i> पिन टाकल्याशिवाय काम सुरू होणार नाही</span>
+                                <span class="text-[10px] bg-amber-800/60 px-2 py-0.5 rounded-md text-amber-200 font-bold">100% Secure</span>
+                            </div>
+                        </div>
+
                         <!-- Work Completion OTP Display Card -->
                         <div id="customerCompletionOtpCard" class="hidden rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-4 shadow-lg border border-emerald-400/40 space-y-2">
                             <div class="flex items-center justify-between gap-3">
                                 <div>
                                     <span class="text-[10px] font-black uppercase tracking-wider text-emerald-200 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-key text-amber-300"></i> OTP to Complete Work
+                                        <i class="fa-solid fa-key text-amber-300"></i> काम पूर्ण करण्यासाठी OTP (Completion OTP)
                                     </span>
-                                    <p class="text-xs text-white/95 mt-0.5">Share this OTP with worker once service is completed:</p>
+                                    <p class="text-xs text-white/95 mt-0.5">काम पूर्ण झाल्यावरच हा OTP कारागिराला द्या:</p>
                                 </div>
                                 <div class="bg-white text-emerald-800 font-black text-2xl tracking-[0.25em] px-4 py-2 rounded-xl shadow-inner text-center border-2 border-emerald-300 shrink-0">
                                     <span id="customerOtpCodeDisplay">----</span>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between text-[11px] text-emerald-100 pt-1 border-t border-emerald-500/50">
-                                <span><i class="fa-solid fa-envelope mr-1"></i> This OTP was also sent to your email</span>
+                                <span><i class="fa-solid fa-envelope mr-1"></i> काम संपल्यावरच व्हेरिफाय करा</span>
                                 <span class="text-[10px] bg-emerald-800/60 px-2 py-0.5 rounded-md text-emerald-200">Secure Verification</span>
                             </div>
                         </div>
@@ -315,7 +334,7 @@
                             <div class="flex items-start gap-3">
                                 <div id="step2Dot" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
                                 <div>
-                                    <h5 class="text-xs font-bold text-slate-400">Worker Accepted</h5>
+                                    <h5 class="text-xs font-bold text-slate-800">Worker Accepted</h5>
                                     <p class="text-[11px] text-slate-400">The worker will accept the order.</p>
                                 </div>
                             </div>
@@ -323,7 +342,7 @@
                             <div class="flex items-start gap-3">
                                 <div id="step3Dot" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</div>
                                 <div>
-                                    <h5 class="text-xs font-bold text-slate-400">Worker On The Way</h5>
+                                    <h5 class="text-xs font-bold text-slate-800">Worker On The Way</h5>
                                     <p class="text-[11px] text-slate-400">Live moving location tracking is ready.</p>
                                 </div>
                             </div>
@@ -331,7 +350,15 @@
                             <div class="flex items-start gap-3">
                                 <div id="step4Dot" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</div>
                                 <div>
-                                    <h5 class="text-xs font-bold text-slate-400">Work Completed</h5>
+                                    <h5 class="text-xs font-bold text-slate-800">Work In Progress (काम सुरू आहे)</h5>
+                                    <p class="text-[11px] text-slate-400">Worker arrived &amp; start PIN verified.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div id="step5Dot" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">5</div>
+                                <div>
+                                    <h5 class="text-xs font-bold text-slate-800">Work Completed</h5>
                                     <p class="text-[11px] text-slate-400">Work has been successfully completed.</p>
                                 </div>
                             </div>
@@ -545,9 +572,9 @@
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="js/firebase.js?v=38"></script>
-    <script src="js/call-masking.js?v=38"></script>
-    <script src="js/customer.js?v=38"></script>
-    <script src="js/pwa.js?v=38"></script>
+    <script src="js/firebase.js?v=39"></script>
+    <script src="js/call-masking.js?v=39"></script>
+    <script src="js/customer.js?v=39"></script>
+    <script src="js/pwa.js?v=39"></script>
 </body>
 </html>

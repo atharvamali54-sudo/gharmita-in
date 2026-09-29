@@ -404,7 +404,7 @@ function calculateKpisAndRender() {
             if (order.status === 'Completed') {
                 todayCompletedCount++;
                 todayVolume += budgetNum;
-            } else if (order.status === 'Accepted' || order.status === 'On The Way') {
+            } else if (order.status === 'Accepted' || order.status === 'On The Way' || order.status === 'In Progress') {
                 todayActiveCount++;
             } else if (order.status === 'Pending') {
                 todayPendingCount++;
@@ -668,6 +668,7 @@ function renderOrdersTable() {
         if (item.status === 'Pending') statusBadgeClass = "bg-amber-100 text-amber-800 border border-amber-200";
         if (item.status === 'Accepted') statusBadgeClass = "bg-blue-100 text-blue-800 border border-blue-200";
         if (item.status === 'On The Way') statusBadgeClass = "bg-indigo-100 text-indigo-800 border border-indigo-200 animate-pulse";
+        if (item.status === 'In Progress') statusBadgeClass = "bg-amber-100 text-amber-800 border border-amber-300 font-bold";
         if (item.status === 'Completed') statusBadgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-200";
         if (item.status === 'Cancelled') statusBadgeClass = "bg-rose-100 text-rose-800 border border-rose-200";
 

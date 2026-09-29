@@ -609,7 +609,7 @@ populateBookingProfile();
 
             database.ref('orders/' + orderId).once('value').then(snapshot => {
                 const order = snapshot.val();
-                if (!order || !['Accepted', 'On The Way'].includes(order.status)) {
+                if (!order || !['Accepted', 'On The Way', 'In Progress'].includes(order.status)) {
                     alert("Worker ने order accept केल्यानंतरच chat सुरू करता येईल.");
                     return;
                 }
@@ -648,7 +648,7 @@ populateBookingProfile();
 
             database.ref('orders/' + activeCustomerChatOrderId).once('value').then(snapshot => {
                 const order = snapshot.val();
-                if (!order || !['Accepted', 'On The Way'].includes(order.status)) {
+                if (!order || !['Accepted', 'On The Way', 'In Progress'].includes(order.status)) {
                     closeCustomerChatModal();
                     alert("ही order पूर्ण झाली आहे. Chat बंद करण्यात आला आहे.");
                     return;
@@ -738,6 +738,8 @@ populateBookingProfile();
                     time: time,
                     photoUrl: photoUrl,
                     status: "Pending",
+                    startOtp: String(Math.floor(1000 + Math.random() * 9000)),
+                    completionOtp: String(Math.floor(1000 + Math.random() * 9000)),
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
 
@@ -831,7 +833,7 @@ populateBookingProfile();
                     ratingDisplay.innerText = "Not assigned yet";
                 }
 
-                const canCommunicate = data.status === 'Accepted' || data.status === 'On The Way';
+                const canCommunicate = data.status === 'Accepted' || data.status === 'On The Way' || data.status === 'In Progress';
                 if (customerCommActions) {
                     customerCommActions.classList.toggle('hidden', !canCommunicate);
                 } else if (customerChatAction) {
@@ -846,7 +848,7 @@ populateBookingProfile();
 
                 // Swiggy-style live moving location handling. The worker
                 // publishes GPS coordinates under this order in Firebase.
-                if (data.status === 'On The Way') {
+                if (data.status === 'On The Way' || data.status === 'In Progress') {
                     mapContainer.classList.remove('hidden');
                     currentTrackedOrder = data;
                     currentOrderCustomerCoords = getOrderCustomerCoords(data);
@@ -996,6 +998,7 @@ populateBookingProfile();
                     let badgeColor = "bg-amber-100 text-amber-700";
                     if(order.status === 'Accepted') badgeColor = "bg-blue-100 text-blue-700";
                     if(order.status === 'On The Way') badgeColor = "bg-indigo-100 text-indigo-700";
+                    if(order.status === 'In Progress') badgeColor = "bg-amber-100 text-amber-800";
                     if(order.status === 'Completed') badgeColor = "bg-emerald-100 text-emerald-700";
                     if(order.status === 'Cancelled') badgeColor = "bg-red-100 text-red-700";
 
