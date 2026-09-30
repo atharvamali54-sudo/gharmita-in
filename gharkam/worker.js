@@ -1869,29 +1869,10 @@ function renderJobs() {
                     🚗 On The Way (ग्राहकाकडे निघा)
                 </button>
             </div>
-            ` : item.status === 'On The Way' ? `
-            <div class="space-y-2 pt-1">
-                <div class="flex items-center justify-between bg-indigo-50 border border-indigo-200 text-indigo-700 px-3 py-1.5 rounded-xl text-[11px] font-bold">
-                    <span><i class="fa-solid fa-motorcycle mr-1"></i> तुम्ही मार्गस्थ आहात (On The Way)</span>
-                    <span class="text-[10px] bg-indigo-200/60 px-2 py-0.5 rounded-md">Live GPS On</span>
-                </div>
-                ${item.customerMobile ? `
-                <a href="https://wa.me/91${String(item.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (item.customerName || 'ग्राहक') + ' जी! घरमित्र सर्व्हिसेसकडून मी ' + (item.workerName || 'आपला कारागीर') + ' (' + (item.service || 'सर्व्हिस') + ') ५ ते १० मिनिटांत आपल्या घरी पोहोचत आहे.\n\n🔐 कृपया आपला सुरक्षा स्टार्ट पिन (Job Start PIN) तयार ठेवा.\n📍 थेट ट्रॅक करा: https://gharmitra.online/gharkam/customer.html?track=' + encodeURIComponent(key))}" target="_blank" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-2 px-3 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">
-                    <i class="fa-brands fa-whatsapp text-sm"></i> 📲 ५ मिनिटांत पोहोचत असल्याचा व्हॉट्सॲप अलर्ट पाठवा
-                </a>
-                ` : ''}
-                <button onclick="openJobStartOtpModal('${key}')" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-black py-2.5 px-4 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-play"></i> 🔐 काम सुरू करा (दारावर आल्यावर स्टार्ट पिन टाका)
-                </button>
-            </div>
             ` : `
-            <div class="space-y-2 pt-1">
-                <div class="flex items-center justify-between bg-amber-50 border border-amber-300 text-amber-800 px-3 py-1.5 rounded-xl text-[11px] font-bold">
-                    <span><i class="fa-solid fa-screwdriver-wrench mr-1"></i> काम चालू आहे (Work In Progress)</span>
-                    <span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-md">स्टार्ट पिन व्हेरिफाइड</span>
-                </div>
-                <button onclick="updateStatus('${key}', 'Completed')" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-2.5 px-4 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-check-double"></i> ✓ काम पूर्ण झाले (कम्प्लिशन OTP टाका)
+            <div class="pt-1">
+                <button onclick="updateStatus('${key}', 'Completed')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-2">
+                    ✓ Complete Work (काम पूर्ण झाले)
                 </button>
             </div>
             `}`;
@@ -2001,122 +1982,6 @@ function acceptOrder(orderId) {
 }
 
 
-// =========================================================
-// Job Start OTP (4-Digit Security PIN) Verification Functions
-// =========================================================
-let currentStartingOrderId = null;
-
-function openJobStartOtpModal(orderId) {
-    const activeOrder = getActiveOrderForCurrentWorker();
-    if (!activeOrder || activeOrder.orderId !== orderId) {
-        alert("ही order तुमची active order नाही.");
-        return;
-    }
-
-    currentStartingOrderId = orderId;
-    const orderData = activeOrder.order;
-    const modal = document.getElementById('startOtpModal');
-    const input = document.getElementById('workStartOtpInput');
-    const statusMsg = document.getElementById('startOtpStatusMsg');
-
-    if (input) input.value = '';
-    if (statusMsg) {
-        statusMsg.className = 'hidden';
-        statusMsg.innerText = '';
-    }
-
-    // Ensure 4-digit start PIN exists in Firebase
-    if (!orderData.startOtp) {
-        const pin = String(Math.floor(1000 + Math.random() * 9000));
-        database.ref("orders/" + orderId).update({
-            startOtp: pin,
-            startOtpGeneratedAt: firebase.database.ServerValue.TIMESTAMP
-        });
-    }
-
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
-    if (input) setTimeout(() => input.focus(), 150);
-}
-
-function closeStartOtpModal() {
-    const modal = document.getElementById('startOtpModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-    const input = document.getElementById('workStartOtpInput');
-    if (input) input.value = '';
-}
-
-function verifyAndStartWork() {
-    if (!currentStartingOrderId) return;
-    const input = document.getElementById('workStartOtpInput');
-    const enteredPin = (input ? input.value : '').trim();
-    const statusMsg = document.getElementById('startOtpStatusMsg');
-    const btn = document.getElementById('verifyStartOtpBtn');
-
-    if (enteredPin.length !== 4) {
-        if (statusMsg) {
-            statusMsg.className = 'text-xs font-bold p-2.5 rounded-xl text-center bg-red-50 text-red-600 border border-red-200 block';
-            statusMsg.innerText = 'कृपया ग्राहकाकडून ४-अंकी स्टार्ट पिन घेऊन येथे टाका.';
-        }
-        return;
-    }
-
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> तपासत आहे...';
-    }
-
-    database.ref("orders/" + currentStartingOrderId).once("value").then(snap => {
-        const orderData = snap.val();
-        if (!orderData) {
-            alert("ऑर्डर सापडली नाही.");
-            return;
-        }
-
-        const actualPin = String(orderData.startOtp || '').trim();
-        const isMatch = (actualPin && enteredPin === actualPin);
-
-        if (!isMatch) {
-            if (statusMsg) {
-                statusMsg.className = 'text-xs font-bold p-2.5 rounded-xl text-center bg-red-50 text-red-600 border border-red-200 block animate-shake';
-                statusMsg.innerText = '❌ चुकीचा स्टार्ट पिन! ग्राहकाच्या स्क्रीनवरील ४-अंकी पिन तपासा.';
-            }
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-play"></i> काम सुरू करा';
-            }
-            return;
-        }
-
-        // Start PIN verified successfully! Update order to 'In Progress'
-        database.ref("orders/" + currentStartingOrderId).update({
-            status: 'In Progress',
-            startOtpVerified: true,
-            workStartedAt: firebase.database.ServerValue.TIMESTAMP
-        }).then(() => {
-            stopLocationSharing(currentStartingOrderId, false);
-            closeStartOtpModal();
-            alert("🎉 स्टार्ट पिन यशस्वीरीत्या व्हेरिफाय झाला! काम सुरू झाले आहे.");
-            renderJobs();
-        }).catch(err => {
-            console.error("Start work error:", err);
-            alert("काम सुरू करताना अडचण आली: " + err.message);
-        });
-    }).catch(err => {
-        console.error("Firebase read error:", err);
-        alert("माहिती तपासताना अडचण आली: " + err.message);
-    }).finally(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-play"></i> काम सुरू करा';
-        }
-    });
-}
 
 // =========================================================
 // Work Completion OTP Verification Functions
@@ -2334,19 +2199,6 @@ function updateStatus(orderId, newStatus) {
                 workerMobile: getCurrentWorkerMobile(),
                 customerMobile: activeOrder.order.customerMobile || ''
             });
-            if (activeOrder.order.customerMobile) {
-                const cleanMob = String(activeOrder.order.customerMobile).replace(/[^0-9]/g, '').slice(-10);
-                if (cleanMob.length === 10) {
-                    const originUrl = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://gharmitra.online';
-                    const trackLink = `${originUrl}/gharkam/customer.html?track=${encodeURIComponent(orderId)}`;
-                    const arrivalMsg = `नमस्कार ${activeOrder.order.customerName || 'ग्राहक'} जी! घरमित्र सर्व्हिसेसकडून मी ${activeOrder.order.workerName || 'आपला कारागीर'} (${activeOrder.order.service || 'सर्व्हिस'}) ५ ते १० मिनिटांत आपल्या घरी पोहोचत आहे.\n\n🔐 कृपया आपला सुरक्षा स्टार्ट पिन तयार ठेवा.\n📍 थेट ट्रॅक करा: ${trackLink}`;
-                    setTimeout(() => {
-                        if (confirm("📲 ग्राहकाला व्हॉट्सॲपवर ५ मिनिटांत पोहोचत असल्याचा थेट मेसेज पाठवायचा आहे का?")) {
-                            window.open(`https://wa.me/91${cleanMob}?text=${encodeURIComponent(arrivalMsg)}`, '_blank');
-                        }
-                    }, 400);
-                }
-            }
         }
         alert("स्टेटस अपडेट केले: " + newStatus);
     }).catch(error => {

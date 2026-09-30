@@ -985,7 +985,6 @@ populateBookingProfile();
                     }
                 }
 
-                const whatsappOptIn = document.getElementById('whatsappOptIn') ? document.getElementById('whatsappOptIn').checked : true;
                 const payload = {
                     service: service,
                     customerName: name,
@@ -1000,8 +999,6 @@ populateBookingProfile();
                     voiceNoteUrl: currentVoiceNoteDataUrl || "",
                     hasVoiceNote: !!currentVoiceNoteDataUrl,
                     status: "Pending",
-                    whatsappOptIn: whatsappOptIn,
-                    startOtp: String(Math.floor(1000 + Math.random() * 9000)),
                     completionOtp: String(Math.floor(1000 + Math.random() * 9000)),
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
@@ -1267,45 +1264,17 @@ _Sent securely via Gharmitra Family Safety Shield._`;
                     stopWorkerLocationTracking();
                 }
 
-                // Security Start PIN Card (Active when Accepted or On The Way)
-                const startOtpCard = document.getElementById('customerStartOtpCard');
-                const startOtpDisplay = document.getElementById('customerStartOtpCodeDisplay');
-                if (data.startOtp && (data.status === 'Accepted' || data.status === 'On The Way')) {
-                    if (startOtpCard) startOtpCard.classList.remove('hidden');
-                    if (startOtpDisplay) startOtpDisplay.innerText = data.startOtp;
-                } else {
-                    if (startOtpCard) startOtpCard.classList.add('hidden');
-                }
-
-                // Completion OTP Card (Active when In Progress)
                 const otpCard = document.getElementById('customerCompletionOtpCard');
                 const otpDisplay = document.getElementById('customerOtpCodeDisplay');
-                if (data.completionOtp && data.status === 'In Progress') {
+                if (data.completionOtp && data.status !== 'Completed' && data.status !== 'Cancelled') {
                     if (otpCard) otpCard.classList.remove('hidden');
                     if (otpDisplay) otpDisplay.innerText = data.completionOtp;
                 } else {
                     if (otpCard) otpCard.classList.add('hidden');
                 }
 
-                // WhatsApp Track & PIN Quick Share Box
-                const waTrackArea = document.getElementById('customerWhatsAppTrackArea');
-                const waShareBtn = document.getElementById('customerTrackWhatsAppShareBtn');
-                if (waTrackArea && waShareBtn) {
-                    if (data.status !== 'Completed' && data.status !== 'Cancelled') {
-                        waTrackArea.classList.remove('hidden');
-                        const originUrl = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://gharmitra.online';
-                        const liveTrackLink = `${originUrl}/gharkam/customer.html?track=${encodeURIComponent(orderId)}`;
-                        const shareTxt = `नमस्कार! माझी घरमित्र ऑर्डर तपशील:\n📌 ऑर्डर आयडी: #${orderId.slice(-6).toUpperCase()}\n🛠️ सेवा: ${data.service || ''}\n🔐 सुरक्षा स्टार्ट पिन: ${data.startOtp || 'N/A'}\n📍 थेट ट्रॅकिंग लिंक: ${liveTrackLink}`;
-                        waShareBtn.href = `https://wa.me/?text=${encodeURIComponent(shareTxt)}`;
-                    } else {
-                        waTrackArea.classList.add('hidden');
-                    }
-                }
-
                 if (data.status === 'Completed' || data.status === 'Cancelled') {
-                    if (startOtpCard) startOtpCard.classList.add('hidden');
                     if (otpCard) otpCard.classList.add('hidden');
-                    if (waTrackArea) waTrackArea.classList.add('hidden');
                     stepsContainer.classList.add('hidden');
                     cancelContainer.classList.add('hidden');
                     completedMsgBox.classList.remove('hidden');
@@ -1340,8 +1309,6 @@ _Sent securely via Gharmitra Family Safety Shield._`;
                     document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     document.getElementById('step4Dot').className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
-                    const step5Dot = document.getElementById('step5Dot');
-                    if (step5Dot) step5Dot.className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
 
                     if (data.status === 'Pending') {
                         badgeEl.className = "bg-amber-100 text-amber-700 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
@@ -1363,15 +1330,6 @@ _Sent securely via Gharmitra Family Safety Shield._`;
                         document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
-                    }
-                    else if (data.status === 'In Progress') {
-                        badgeEl.className = "bg-amber-100 text-amber-800 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
-                        badgeTextEl.innerText = "Work In Progress";
-                        workerMobileEl.innerHTML = workerInfo;
-                        document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
-                        document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
-                        document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
-                        document.getElementById('step4Dot').className = "w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     }
                 }
             });
