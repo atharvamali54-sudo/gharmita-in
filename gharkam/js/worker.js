@@ -2101,11 +2101,17 @@ function renderJobs() {
             const activeNavDest = activeHasGps ? `${item.customerLat},${item.customerLng}` : encodeURIComponent(item.address);
             const activeGpsBadge = activeHasGps ? `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full ml-1"><i class="fa-solid fa-crosshairs text-emerald-600"></i> अचूक GPS</span>` : '';
 
+            const isSosDispatched = !!(item.assignedBy && (item.assignedBy.includes('Force Dispatch') || item.assignedBy.includes('SOS')));
             const activeCard = document.createElement('div');
-            activeCard.className = "bg-white p-5 rounded-2xl border border-emerald-200 shadow-md space-y-4";
+            activeCard.className = isSosDispatched
+                ? "bg-white p-5 rounded-2xl border-2 border-amber-500 shadow-xl space-y-4 ring-2 ring-amber-400/30"
+                : "bg-white p-5 rounded-2xl border border-emerald-200 shadow-md space-y-4";
             activeCard.innerHTML = `
-            <div class="flex justify-between items-center border-b pb-3 border-slate-100">
-            <span class="font-bold text-slate-800 text-xs">🛠️ Active Task In-Progress</span>
+            <div class="flex justify-between items-center border-b pb-3 border-slate-100 flex-wrap gap-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-bold text-slate-800 text-xs">🛠️ Active Task In-Progress</span>
+                ${isSosDispatched ? `<span class="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm"><i class="fa-solid fa-bolt text-amber-900 animate-pulse"></i> ⚡ ॲडमिन इमर्जन्सी डिस्पॅच</span>` : ''}
+            </div>
             <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${item.status === 'In Progress' ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-700'}">${item.status}</span>
             </div>
 

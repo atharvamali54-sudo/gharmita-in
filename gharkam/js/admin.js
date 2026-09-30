@@ -58,6 +58,7 @@ let selectedKycWorkerUid = null;
 let selectedKycWorkerMobile = null;
 let selectedKycAadharPhotoUrl = null;
 let cachedWorkerList = [];
+let selectedForceAssignOrderId = null;
 
 // Initialize EmailJS for dual browser-level mailer fallback
 if (window.emailjs) {
@@ -1180,6 +1181,16 @@ function renderOrdersTable() {
     // Sort descending by timestamp
     orderList.sort((a, b) => (Number(b.timestamp || 0)) - (Number(a.timestamp || 0)));
 
+    // ⚡ Calculate SOS Orders (Pending >= 2 minutes) & update banner
+    const now = Date.now();
+    const sosOrders = orderList.filter(item => {
+        if (item.status !== 'Pending') return false;
+        const oTime = Number(item.timestamp || item.createdAt || 0);
+        const elapsedMins = oTime > 0 ? (now - oTime) / 60000 : 0;
+        return elapsedMins >= 2;
+    });
+    updateSosAlertBanner(sosOrders);
+
     const filtered = orderList.filter(item => {
         if (statusFilter !== 'ALL' && item.status !== statusFilter) return false;
         if (areaFilter !== 'ALL' && item.area !== areaFilter) return false;
@@ -1204,6 +1215,10 @@ function renderOrdersTable() {
         if (item.status === 'In Progress') statusBadgeClass = "bg-amber-100 text-amber-800 border border-amber-300 font-bold";
         if (item.status === 'Completed') statusBadgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-200";
         if (item.status === 'Cancelled') statusBadgeClass = "bg-rose-100 text-rose-800 border border-rose-200";
+
+        const itemTime = Number(item.timestamp || item.createdAt || 0);
+        const elapsedMins = itemTime > 0 ? Math.floor((now - itemTime) / 60000) : 0;
+        const isSos = (item.status === 'Pending' && elapsedMins >= 2);
 
         const orderDateStr = item.timestamp
             ? new Date(Number(item.timestamp)).toLocaleString('mr-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -1237,11 +1252,19 @@ function renderOrdersTable() {
                 ${workerDisplay}
             </td>
             <td class="p-3.5">
-                <span class="admin-badge ${statusBadgeClass}">${escapeHtml(item.status || 'Pending')}</span>
+                <div class="flex items-center gap-1 flex-wrap">
+                    <span class="admin-badge ${statusBadgeClass}">${escapeHtml(item.status || 'Pending')}</span>
+                    ${isSos ? `<span class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm animate-pulse" title="गेल्या ${elapsedMins} मिनिटांपासून प्रलंबित (इमर्जन्सी डिस्पॅच आवश्यक)"><i class="fa-solid fa-triangle-exclamation"></i> SOS (${elapsedMins} मि.)</span>` : ''}
+                </div>
                 ${item.completionOtp ? `<span class="text-[10px] text-slate-400 block mt-0.5">OTP: <strong>${item.completionOtp}</strong></span>` : ''}
             </td>
             <td class="p-3.5 text-center">
-                <div class="flex items-center justify-center gap-1.5">
+                <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                    ${item.status === 'Pending' ? `
+                    <button onclick="openForceAssignModal('${item.id}')" title="कामगार थेट असाइन करा" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black py-1.5 px-2.5 rounded-lg text-xs transition border border-amber-400 inline-flex items-center gap-1 shadow-sm cursor-pointer whitespace-nowrap active:scale-95">
+                        <i class="fa-solid fa-bolt text-xs"></i> ⚡ Force Assign
+                    </button>
+                    ` : ''}
                     <button onclick="openAdminOrderModal('${item.id}')" title="सविस्तर माहिती पहा" class="bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-1.5 px-2.5 rounded-lg text-xs transition border border-blue-200">
                         माहिती
                     </button>
@@ -1254,6 +1277,7 @@ function renderOrdersTable() {
         `;
     }).join('');
 }
+
 
 // --- 7. Workers Table & Management ---
 
@@ -1794,6 +1818,15 @@ function openAdminOrderModal(orderId) {
         </div>
     `;
 
+    const forceBox = document.getElementById('modalForceAssignBtnBox');
+    if (forceBox) {
+        if (order.status === 'Completed' || order.status === 'Cancelled') {
+            forceBox.classList.add('hidden');
+        } else {
+            forceBox.classList.remove('hidden');
+        }
+    }
+
     document.getElementById('adminOrderModal')?.classList.remove('hidden');
     document.getElementById('adminOrderModal')?.classList.add('flex');
 }
@@ -2184,12 +2217,408 @@ function shareInvoiceOnWhatsApp() {
     window.open(waUrl, '_blank');
 }
 
+// =========================================================
+// ⚡ 1-Click Smart Auto-Assign & Emergency Dispatch (SOS)
+// =========================================================
+
+function updateSosAlertBanner(sosOrders) {
+    const banner = document.getElementById('adminSosAlertBanner');
+    if (!banner) return;
+    if (!sosOrders || sosOrders.length === 0) {
+        banner.classList.add('hidden');
+        banner.innerHTML = '';
+        return;
+    }
+
+    const firstSos = sosOrders[0];
+    const orderTitle = '#' + String(firstSos.id).slice(-6).toUpperCase();
+    const serviceName = escapeHtml(firstSos.service || 'सर्व्हिस');
+
+    banner.classList.remove('hidden');
+    banner.innerHTML = `
+        <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-xl text-yellow-300 shadow-inner shrink-0">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </span>
+            <div>
+                <h4 class="font-black text-sm sm:text-base flex items-center gap-2">
+                    ⚡ इमर्जन्सी डिस्पॅच अलर्ट: <span class="bg-white text-rose-700 text-xs px-2.5 py-0.5 rounded-full font-black shadow-sm">${sosOrders.length} प्रलंबित ऑर्डर(s)</span>
+                </h4>
+                <p class="text-xs text-rose-100">गेल्या २+ मिनिटांपासून कोणत्याही कामगाराने ही ऑर्डर स्वीकारलेली नाही. ग्राहकाचा वेळ वाचवण्यासाठी त्वरित १-क्लिक कामगार सोपवा.</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button type="button" onclick="openForceAssignModal('${firstSos.id}')" class="bg-yellow-300 hover:bg-yellow-400 active:scale-95 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-bolt"></i> ⚡ पहिली ऑर्डर त्वरित डिस्पॅच करा (${orderTitle} - ${serviceName})
+            </button>
+        </div>
+    `;
+}
+
+function normalizeAdminServiceName(s) {
+    if (!s) return '';
+    const str = String(s).toLowerCase();
+    if (str.includes('clean') || str.includes('सफाई') || str.includes('झाडू') || str.includes('भांडी') || str.includes('deep')) return 'cleaning';
+    if (str.includes('plumb') || str.includes('प्लंबर') || str.includes('नळ') || str.includes('पाईप')) return 'plumbing';
+    if (str.includes('elect') || str.includes('इलेक्ट्रिशियन') || str.includes('वायरिंग') || str.includes('लाइट')) return 'electrical';
+    if (str.includes('cook') || str.includes('स्वयंपाक') || str.includes('जेवण') || str.includes('आचारी')) return 'cooking';
+    if (str.includes('paint') || str.includes('रंगकाम') || str.includes('कलर')) return 'painting';
+    if (str.includes('carpen') || str.includes('सुतार') || str.includes('फर्निचर')) return 'carpentry';
+    return str.trim();
+}
+
+function getAvailableWorkerList() {
+    if (cachedWorkerList && cachedWorkerList.length > 0) {
+        return cachedWorkerList;
+    }
+    const workerMap = new Map();
+    if (allWorkers && allWorkers.accounts && allWorkers.accounts.workers) {
+        Object.entries(allWorkers.accounts.workers).forEach(([mob, acc]) => {
+            if (!acc || typeof acc !== 'object') return;
+            const uid = 'local_worker_' + mob;
+            workerMap.set(uid, {
+                uid,
+                name: acc.fullName || acc.name || 'Worker',
+                mobile: mob,
+                service: acc.workType || acc.service || 'Cleaning',
+                area: acc.area || 'Pune',
+                wallet: acc.balance !== undefined ? acc.balance : (acc.wallet !== undefined ? acc.wallet : 50),
+                isDutyOn: Boolean(acc.isDutyOn || acc.dutyStatus === 'ON'),
+                activeOrderId: acc.activeOrderId || null,
+                ratings: acc.ratings || {},
+                photo: acc.photo || acc.photoUrl || null,
+                verificationStatus: acc.verificationStatus || 'approved'
+            });
+        });
+    }
+    if (allWorkers) {
+        Object.entries(allWorkers).forEach(([uid, w]) => {
+            if (uid === 'accounts' || !w || typeof w !== 'object') return;
+            const u = allUsers[uid] || {};
+            const mob = w.mobile || u.mobile || (uid.startsWith('local_worker_') ? uid.replace('local_worker_', '') : '-');
+            const existing = workerMap.get(uid);
+            workerMap.set(uid, {
+                uid,
+                name: w.name || w.fullName || (existing && existing.name) || u.fullName || u.name || 'Worker',
+                mobile: mob,
+                service: w.service || w.workType || (existing && existing.service) || u.service || u.workType || 'Cleaning',
+                area: w.area || (existing && existing.area) || 'Pune',
+                wallet: w.wallet !== undefined ? w.wallet : (existing ? existing.wallet : 50),
+                isDutyOn: Boolean(w.isDutyOn || w.dutyStatus === 'ON' || (existing && existing.isDutyOn)),
+                activeOrderId: w.activeOrderId || (existing && existing.activeOrderId) || null,
+                ratings: w.ratings || (existing && existing.ratings) || {},
+                photo: w.photo || w.photoUrl || (existing && existing.photo) || u.photo || u.photoUrl || null,
+                verificationStatus: w.verificationStatus || (existing && existing.verificationStatus) || 'approved'
+            });
+        });
+    }
+    return Array.from(workerMap.values());
+}
+
+function scoreAndRankWorkersForOrder(order) {
+    const list = getAvailableWorkerList();
+    const orderNormService = normalizeAdminServiceName(order.service);
+    const orderArea = String(order.area || '').toLowerCase().trim();
+
+    return list.map(w => {
+        let score = 0;
+        const reasons = [];
+
+        // 1. Service Match (+100)
+        const workerNormService = normalizeAdminServiceName(w.service);
+        const directMatch = (orderNormService && workerNormService && orderNormService === workerNormService) ||
+            (w.service && order.service && (w.service.toLowerCase().includes(order.service.toLowerCase()) || order.service.toLowerCase().includes(w.service.toLowerCase())));
+        if (directMatch) {
+            score += 100;
+            reasons.push('सेवा जुळली (+100)');
+        }
+
+        // 2. Duty Status (+80)
+        if (w.isDutyOn) {
+            score += 80;
+            reasons.push('Duty ON (+80)');
+        }
+
+        // 3. Area Match (+60)
+        const workerArea = String(w.area || '').toLowerCase().trim();
+        if (orderArea && workerArea && (orderArea.includes(workerArea) || workerArea.includes(orderArea))) {
+            score += 60;
+            reasons.push('जवळचा परिसर (+60)');
+        }
+
+        // 4. KYC Status (+50)
+        const isKycApproved = (w.verificationStatus === 'approved');
+        if (isKycApproved) {
+            score += 50;
+            reasons.push('KYC व्हेरिफाइड (+50)');
+        }
+
+        // 5. Free Availability (+40) / Busy Penalty (-60)
+        if (!w.activeOrderId) {
+            score += 40;
+            reasons.push('मोकळा (+40)');
+        } else {
+            score -= 60;
+            reasons.push('सध्या व्यस्त (-60)');
+        }
+
+        // 6. Rating Contribution (up to +50)
+        let calcRating = 5.0;
+        if (w.ratings && typeof w.ratings === 'object') {
+            const rList = Object.values(w.ratings);
+            if (rList.length > 0) {
+                const sum = rList.reduce((acc, curr) => acc + (Number(curr.rating) || 5), 0);
+                calcRating = Number((sum / rList.length).toFixed(1));
+            }
+        }
+        const ratingBonus = Math.round(calcRating * 10);
+        score += ratingBonus;
+        reasons.push(`रेटिंग ${calcRating}★ (+${ratingBonus})`);
+
+        return {
+            ...w,
+            score,
+            ratingAvg: calcRating,
+            matchReasons: reasons,
+            isServiceMatch: directMatch,
+            isAreaMatch: Boolean(orderArea && workerArea && (orderArea.includes(workerArea) || workerArea.includes(orderArea)))
+        };
+    }).sort((a, b) => b.score - a.score);
+}
+
+function openForceAssignModal(orderId) {
+    selectedForceAssignOrderId = orderId;
+    const order = allOrders[orderId];
+    if (!order) {
+        alert("ऑर्डर सापडली नाही.");
+        return;
+    }
+
+    const orderTime = Number(order.timestamp || order.createdAt || 0);
+    const elapsedMinutes = orderTime > 0 ? Math.floor((Date.now() - orderTime) / 60000) : 0;
+
+    // Render Order Summary
+    const summaryEl = document.getElementById('forceAssignOrderSummary');
+    if (summaryEl) {
+        summaryEl.innerHTML = `
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200/60 pb-2.5 mb-2.5">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-black text-slate-900 bg-amber-200 px-2.5 py-0.5 rounded-lg">#${orderId.slice(-6).toUpperCase()}</span>
+                    <span class="font-black text-slate-800 text-sm">⚡ ${escapeHtml(order.service || 'सर्व्हिस')}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-lg border border-emerald-200">${escapeHtml(order.budget || '₹500')}</span>
+                    <span class="text-[11px] font-black text-rose-700 bg-rose-100 px-2.5 py-0.5 rounded-lg border border-rose-200 animate-pulse">
+                        <i class="fa-solid fa-clock"></i> ${elapsedMinutes} मिनिटांपासून प्रलंबित
+                    </span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
+                <p><strong>ग्राहक:</strong> ${escapeHtml(order.customerName || 'Customer')} (<a href="tel:${order.customerMobile}" class="text-blue-600 font-bold">${order.customerMobile || '-'}</a>)</p>
+                <p><strong>पत्ता / परिसर:</strong> 📍 ${escapeHtml(order.area || 'Pune')} - ${escapeHtml(order.address || '')}</p>
+                <p><strong>तारीख व वेळ:</strong> ${order.date || 'Today'} ${order.time || ''}</p>
+                <p><strong>सध्याचे स्टेटस:</strong> <span class="font-bold text-amber-600">${order.status || 'Pending'}</span></p>
+            </div>
+        `;
+    }
+
+    // Render Smart Auto-Assign Recommendation
+    const rankedWorkers = scoreAndRankWorkersForOrder(order);
+    const smartBanner = document.getElementById('forceAssignSmartBanner');
+    if (smartBanner) {
+        if (rankedWorkers.length > 0 && rankedWorkers[0].score > 0) {
+            const best = rankedWorkers[0];
+            smartBanner.classList.remove('hidden');
+            smartBanner.innerHTML = `
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles text-yellow-300"></i> AI सर्वोत्तम शिफारस (Smart Recommendation)
+                        </span>
+                        <h4 class="font-black text-base sm:text-lg flex items-center gap-2 text-white">
+                            ${escapeHtml(best.name)}
+                            <span class="text-xs font-bold bg-white/20 px-2 py-0.5 rounded-lg text-emerald-100">${escapeHtml(best.service)}</span>
+                            <span class="text-xs font-bold text-yellow-300">★ ${best.ratingAvg}</span>
+                        </h4>
+                        <p class="text-xs text-emerald-100 flex items-center gap-2 flex-wrap">
+                            <span>📍 ${escapeHtml(best.area)}</span>
+                            <span>•</span>
+                            <span class="${best.isDutyOn ? 'text-yellow-300 font-bold' : 'text-slate-200'}">🟢 ${best.isDutyOn ? 'Duty ON' : 'Duty OFF'}</span>
+                            <span>•</span>
+                            <span>स्कोअर: <strong class="text-yellow-300">${best.score} pts</strong></span>
+                            <span>•</span>
+                            <span class="text-[11px] opacity-90">${best.matchReasons.slice(0, 3).join(', ')}</span>
+                        </p>
+                    </div>
+                    <button type="button" onclick="executeForceAssignWorker('${orderId}', '${best.uid}')" class="w-full sm:w-auto bg-yellow-300 hover:bg-yellow-400 active:scale-95 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs shadow-lg transition flex items-center justify-center gap-2 cursor-pointer border border-yellow-200 shrink-0">
+                        <i class="fa-solid fa-bolt text-amber-800 text-sm"></i> ⚡ 1-क्लिक ऑटो-असाईन करा
+                    </button>
+                </div>
+            `;
+        } else {
+            smartBanner.classList.add('hidden');
+        }
+    }
+
+    renderForceAssignWorkersList();
+
+    const modal = document.getElementById('adminForceAssignModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeForceAssignModal() {
+    const modal = document.getElementById('adminForceAssignModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    selectedForceAssignOrderId = null;
+}
+
+function renderForceAssignWorkersList() {
+    if (!selectedForceAssignOrderId) return;
+    const order = allOrders[selectedForceAssignOrderId];
+    if (!order) return;
+
+    const container = document.getElementById('forceAssignWorkersList');
+    if (!container) return;
+
+    const filterVal = document.getElementById('forceAssignFilterSelect')?.value || 'MATCH';
+    let ranked = scoreAndRankWorkersForOrder(order);
+
+    if (filterVal === 'DUTY_ON') {
+        ranked = ranked.filter(w => w.isDutyOn);
+    } else if (filterVal === 'MATCH') {
+        ranked = ranked.filter(w => w.isDutyOn || w.isServiceMatch || w.isAreaMatch || w.score >= 100);
+    }
+
+    if (ranked.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-slate-400 text-xs">
+                <i class="fa-solid fa-user-slash text-2xl mb-1 text-slate-300 block"></i>
+                निवडलेल्या निकषांनुसार एकही कामगार उपलब्ध नाही.
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = ranked.map((w, idx) => {
+        const isBusy = !!w.activeOrderId;
+        const photoUrl = w.photo || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231e293b'/%3E%3Ccircle cx='32' cy='24' r='12' fill='%23f59e0b'/%3E%3Cpath d='M14 54c0-9.94 8.06-18 18-18s18 8.06 18 18' fill='%23f59e0b'/%3E%3C/svg%3E";
+
+        return `
+            <div class="bg-white p-3.5 rounded-2xl border ${idx === 0 && w.score > 0 ? 'border-amber-400 bg-amber-50/20' : 'border-slate-200'} shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-amber-300 transition">
+                <div class="flex items-center gap-3">
+                    <img src="${photoUrl}" class="w-11 h-11 rounded-2xl object-cover border border-slate-200 shadow-sm shrink-0" alt="Worker">
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h5 class="font-bold text-slate-900 text-sm">${escapeHtml(w.name)}</h5>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${w.isDutyOn ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-600'}">
+                                ${w.isDutyOn ? '🟢 Duty ON' : '⚪ Duty OFF'}
+                            </span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${w.verificationStatus === 'approved' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}">
+                                ${w.verificationStatus === 'approved' ? '✓ KYC' : '⏳ Unverified'}
+                            </span>
+                            ${isBusy ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">⚠️ व्यस्त (#${String(w.activeOrderId).slice(-6)})</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
+                            <span class="font-semibold text-slate-700">⚡ ${escapeHtml(w.service)}</span>
+                            <span>•</span>
+                            <span>📍 ${escapeHtml(w.area || 'Pune')}</span>
+                            <span>•</span>
+                            <a href="tel:${w.mobile}" class="text-blue-600 font-bold hover:underline"><i class="fa-solid fa-phone text-[10px]"></i> ${w.mobile}</a>
+                            <span>•</span>
+                            <span class="text-amber-500 font-bold">★ ${w.ratingAvg}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                            <span class="font-bold text-amber-700">मॅच स्कोअर: ${w.score} pts</span>
+                            <span>|</span>
+                            <span>${w.matchReasons.join(' • ')}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full sm:w-auto flex items-center justify-end shrink-0">
+                    <button type="button" onclick="executeForceAssignWorker('${selectedForceAssignOrderId}', '${w.uid}')" class="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-95 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer border border-amber-400">
+                        <i class="fa-solid fa-bolt text-xs"></i> ⚡ थेट सोपवा (Assign)
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function executeForceAssignWorker(orderId, workerUid) {
+    const order = allOrders[orderId];
+    if (!order) {
+        alert("ऑर्डर सापडली नाही.");
+        return;
+    }
+
+    const workerList = getAvailableWorkerList();
+    const worker = workerList.find(w => w.uid === workerUid);
+    if (!worker) {
+        alert("कामगार सापडला नाही.");
+        return;
+    }
+
+    const orderNum = '#' + String(orderId).slice(-6).toUpperCase();
+    const confirmMsg = `तुम्हाला खात्री आहे की ऑर्डर ${orderNum} (${order.service || 'काम'}) कामगार "${worker.name}" (${worker.mobile}) ला थेट सोपवायची आहे?\n\nही ऑर्डर कामगाराच्या ॲपमध्ये आपोआप Active होईल.`;
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        const nowMs = firebase.database.ServerValue.TIMESTAMP;
+
+        // 1. Update Order in Firebase
+        const orderUpdates = {
+            status: 'Accepted',
+            workerUid: worker.uid,
+            workerId: worker.uid,
+            workerName: worker.name,
+            workerMobile: worker.mobile,
+            workerService: worker.service || order.service || '',
+            workerPhoto: worker.photo || '',
+            assignedBy: 'Admin (Force Dispatch / SOS)',
+            acceptedAt: nowMs,
+            dispatchedAt: nowMs,
+            onTheWayDeadline: Date.now() + (15 * 60 * 1000)
+        };
+
+        await database.ref('orders/' + orderId).update(orderUpdates);
+
+        // 2. Lock activeOrderId on worker's record
+        await database.ref('workers/' + worker.uid).update({
+            activeOrderId: orderId
+        }).catch(() => {});
+
+        if (worker.mobile && worker.mobile !== '-') {
+            await database.ref('workers/accounts/workers/' + worker.mobile).update({
+                activeOrderId: orderId
+            }).catch(() => {});
+        }
+
+        // 3. Close modals and notify admin
+        closeForceAssignModal();
+        closeAdminOrderModal();
+
+        alert(`✅ ऑर्डर ${orderNum} यशस्वीरित्या कामगार "${worker.name}" ला सोपवली गेली!\n\nकामगाराच्या स्क्रीनवर ही ऑर्डर त्वरित Active होईल.`);
+
+        renderOrdersTable();
+    } catch(err) {
+        console.error("Force Assign Error:", err);
+        alert("ऑर्डर सोपवताना त्रुटी आली: " + (err.message || err));
+    }
+}
+
 // --- Initialize on Page Load ---
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminAuth();
 });
 
-// Global window bindings for Admin Auth, Route Guard & Invoices
+// Global window bindings for Admin Auth, Route Guard, Invoices & SOS Force Assign
 window.submitAdminCredentials = submitAdminCredentials;
 window.submitAdminOtp = submitAdminOtp;
 window.resendAdminOtp = resendAdminOtp;
@@ -2202,3 +2631,8 @@ window.downloadOrderInvoice = downloadOrderInvoice;
 window.closeAdminInvoiceModal = closeAdminInvoiceModal;
 window.printAdminInvoice = printAdminInvoice;
 window.shareInvoiceOnWhatsApp = shareInvoiceOnWhatsApp;
+window.openForceAssignModal = openForceAssignModal;
+window.closeForceAssignModal = closeForceAssignModal;
+window.renderForceAssignWorkersList = renderForceAssignWorkersList;
+window.executeForceAssignWorker = executeForceAssignWorker;
+window.updateSosAlertBanner = updateSosAlertBanner;
