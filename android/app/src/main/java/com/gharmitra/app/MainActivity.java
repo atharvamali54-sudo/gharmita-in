@@ -111,7 +111,15 @@ public class MainActivity extends Activity {
 
             @Override
             public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-                callback.invoke(origin, true, false);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissions(new String[]{
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                        }, PERMISSION_REQUEST_CODE);
+                    }
+                }
+                callback.invoke(origin, true, true);
             }
 
             @Override
@@ -235,6 +243,22 @@ public class MainActivity extends Activity {
             }
             if (need) {
                 requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            for (int i = 0; i < permissions.length; i++) {
+                if (Manifest.permission.ACCESS_FINE_LOCATION.equals(permissions[i]) &&
+                    grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                    if (webView != null) {
+                        webView.evaluateJavascript("if (typeof detectCustomerExactLocation === 'function') { detectCustomerExactLocation(); }", null);
+                    }
+                    break;
+                }
             }
         }
     }

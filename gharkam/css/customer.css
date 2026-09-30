@@ -335,3 +335,19 @@ body > div:first-of-type > div > div:last-child > div:last-child {
     filter: brightness(1.04);
 }
 
+/* Customer Interactive Pin-Picker Map */
+.customer-pin-icon {
+    background: transparent !important;
+    border: none !important;
+}
+
+#customerPinMap {
+    z-index: 10 !important;
+}
+
+#customerPinMap .leaflet-control-zoom {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
