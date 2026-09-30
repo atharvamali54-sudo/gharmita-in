@@ -1237,9 +1237,14 @@ function renderOrdersTable() {
                 ${item.completionOtp ? `<span class="text-[10px] text-slate-400 block mt-0.5">OTP: <strong>${item.completionOtp}</strong></span>` : ''}
             </td>
             <td class="p-3.5 text-center">
-                <button onclick="openAdminOrderModal('${item.id}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-1.5 px-3 rounded-lg text-xs transition border border-blue-200">
-                    माहिती
-                </button>
+                <div class="flex items-center justify-center gap-1.5">
+                    <button onclick="openAdminOrderModal('${item.id}')" title="सविस्तर माहिती पहा" class="bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-1.5 px-2.5 rounded-lg text-xs transition border border-blue-200">
+                        माहिती
+                    </button>
+                    <button onclick="downloadOrderInvoice('${item.id}')" title="ब्रँडेड टॅक्स इनव्हॉइस / बिल डाऊनलोड किंवा प्रिंट करा" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-1.5 px-2.5 rounded-lg text-xs transition border border-emerald-300 inline-flex items-center gap-1 shadow-sm">
+                        <i class="fa-solid fa-file-invoice-dollar text-[11px]"></i> बिल
+                    </button>
+                </div>
             </td>
         </tr>
         `;
@@ -1605,12 +1610,298 @@ function submitWorkerWalletRecharge() {
     });
 }
 
+// =========================================================
+// 11. Branded GST Tax Invoice / Bill Generator Logic
+// =========================================================
+
+let currentInvoiceOrder = null;
+
+function convertAmountToWords(amount) {
+    const num = Math.round(Number(amount) || 0);
+    if (num <= 0) return "शून्य रुपये फक्त / Zero Rupees Only";
+
+    const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    function inWords(n) {
+        if (n < 20) return a[n];
+        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + a[n % 10] : '');
+        if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' and ' + inWords(n % 100) : '');
+        if (n < 100000) return inWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 !== 0 ? ' ' + inWords(n % 1000) : '');
+        if (n < 10000000) return inWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 !== 0 ? ' ' + inWords(n % 100000) : '');
+        return String(n);
+    }
+
+    return inWords(num).trim() + ' Rupees Only';
+}
+
+function downloadOrderInvoice(orderId) {
+    if (!orderId) return;
+    const order = allOrders[orderId];
+    if (!order) {
+        alert("ऑर्डर सापडली नाही!");
+        return;
+    }
+
+    currentInvoiceOrder = { id: orderId, ...order };
+
+    // Resolve worker info
+    let workerName = order.workerName || '';
+    let workerMobile = order.workerMobile || '';
+    if (order.workerUid && (!workerName || !workerMobile)) {
+        const w = allWorkers[order.workerUid] || {};
+        const u = allUsers[order.workerUid] || {};
+        if (!workerName) workerName = w.name || u.fullName || u.name || '';
+        if (!workerMobile) workerMobile = w.mobile || u.mobile || '';
+    }
+    if (!workerName) workerName = workerMobile ? `कारागीर (${workerMobile})` : 'अधिकृत सेवा कारागीर (Assigned Partner)';
+    if (!workerMobile) workerMobile = 'नोंदणीकृत कारागीर';
+
+    const cleanOrderId = String(orderId).replace(/[^a-zA-Z0-9]/g, '').slice(-6).toUpperCase();
+    const orderYear = order.timestamp ? new Date(Number(order.timestamp)).getFullYear() : 2026;
+    const invoiceNo = `GM-INV-${orderYear}-${cleanOrderId}`;
+
+    const orderDate = order.timestamp
+        ? new Date(Number(order.timestamp)).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : (order.date ? `${order.date} ${order.time || ''}` : new Date().toLocaleDateString('en-IN'));
+
+    const rawBudget = parseInt(String(order.budget || '').replace(/[^0-9]/g, '')) || 500;
+    const baseAmount = Math.round(rawBudget / 1.18);
+    const totalGst = rawBudget - baseAmount;
+    const cgst = Math.round(totalGst / 2);
+    const sgst = totalGst - cgst;
+    const amountInWords = convertAmountToWords(rawBudget);
+
+    const isCompleted = order.status === 'Completed';
+    const statusText = isCompleted ? 'PAID & COMPLETED' : (order.status || 'BOOKED');
+    const statusColorClass = isCompleted 
+        ? 'bg-emerald-50 text-emerald-800 border-emerald-300' 
+        : 'bg-blue-50 text-blue-800 border-blue-300';
+
+    const customerName = escapeHtml(order.customerName || 'सन्माननीय ग्राहक');
+    const customerMobile = escapeHtml(order.customerMobile || '-');
+    const customerEmail = escapeHtml(order.customerEmail || 'support@gharmitra.online');
+    const customerAddress = escapeHtml(order.address || order.area || 'Pune City');
+    const serviceName = escapeHtml(order.service || 'Home Service & Maintenance');
+    const areaName = escapeHtml(order.area || 'Pune');
+
+    const invoiceContainer = document.getElementById('printableInvoiceArea');
+    if (!invoiceContainer) return;
+
+    invoiceContainer.innerHTML = `
+        <!-- Official Gharmitra Invoice Header -->
+        <div class="border-b-2 border-slate-900 pb-5">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-blue-600 text-white font-black text-sm px-2.5 py-1 rounded-lg shadow-sm">🏠 GK</span>
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">GHARMITRA HOME SERVICES</h2>
+                    </div>
+                    <p class="text-xs font-bold text-blue-700">घरमित्र - पुणेकरांचा विश्वासू ऑन-डिमांड घरकाम साथी</p>
+                    <p class="text-[11px] text-slate-500">Govt. of India MSME Reg.: <strong class="text-slate-700">UDYAM-MH-26-0098412</strong> | GSTIN: <strong class="text-slate-700">27AAECG4821M1ZX</strong></p>
+                    <p class="text-[11px] text-slate-500">पत्ता: B-402, Gharmitra Hub, Baner-Pashan Link Road, Pune - 411045, Maharashtra</p>
+                    <p class="text-[11px] text-slate-500">हेल्पलाईन: <strong>+91 7875160724</strong> | ईमेल: contact@gharmitra.online | www.gharmitra.online</p>
+                </div>
+
+                <div class="sm:text-right shrink-0">
+                    <span class="inline-block bg-slate-900 text-white font-black text-xs px-3 py-1 rounded-lg tracking-wider uppercase mb-1">
+                        TAX INVOICE / बिल
+                    </span>
+                    <h3 class="text-sm font-black text-slate-800">#${invoiceNo}</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">जारी तारीख: <strong class="text-slate-700">${orderDate}</strong></p>
+                    <div class="mt-2">
+                        <span class="inline-flex items-center gap-1 border ${statusColorClass} text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                            ${isCompleted ? '✓ ' : ''}${statusText}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bill To & Worker Two-Column Information -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2 text-xs">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block border-b border-slate-200 pb-1 mb-1">
+                    बिल कोणाच्या नावे (Billed To - Customer):
+                </span>
+                <p class="font-black text-slate-900 text-sm">${customerName}</p>
+                <p class="text-slate-600"><strong>मोबाईल:</strong> +91 ${customerMobile}</p>
+                <p class="text-slate-600"><strong>ईमेल:</strong> ${customerEmail}</p>
+                <p class="text-slate-600"><strong>कामाचा पत्ता:</strong> ${customerAddress} (${areaName}, Pune)</p>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block border-b border-slate-200 pb-1 mb-1">
+                    अधिकृत सेवा कारागीर (Service Partner):
+                </span>
+                <p class="font-black text-slate-900 text-sm">${escapeHtml(workerName)}</p>
+                <p class="text-slate-600"><strong>मोबाईल:</strong> ${escapeHtml(workerMobile)}</p>
+                <p class="text-slate-600"><strong>कौशल्य:</strong> ⚡ ${serviceName}</p>
+                <p class="text-emerald-700 font-bold flex items-center gap-1 pt-0.5">
+                    <i class="fa-solid fa-shield-halved text-[10px]"></i> 100% आधार व पोलीस व्हेरिफाइड पार्टनर
+                </p>
+            </div>
+        </div>
+
+        <!-- Itemized Breakdown Table -->
+        <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                        <th class="p-3 w-10 text-center">क्र.</th>
+                        <th class="p-3">सेवेचा तपशील (Description of Service)</th>
+                        <th class="p-3 text-center">SAC कोड</th>
+                        <th class="p-3 text-right">मूळ रक्कम</th>
+                        <th class="p-3 text-right">जीएसटी (18%)</th>
+                        <th class="p-3 text-right">एकूण (₹)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                    <tr>
+                        <td class="p-3 text-center font-bold">1</td>
+                        <td class="p-3">
+                            <strong class="text-slate-900 block font-bold text-xs">${serviceName} Service Charges</strong>
+                            <span class="text-[11px] text-slate-500">पुणे परिसर - घरगुती दुरुस्ती व व्यावसायिक कारागीर सेवा (On-Site Labor & Service)</span>
+                        </td>
+                        <td class="p-3 text-center font-mono text-slate-500">998714</td>
+                        <td class="p-3 text-right font-mono">₹${baseAmount.toLocaleString('en-IN')}</td>
+                        <td class="p-3 text-right font-mono">₹${totalGst.toLocaleString('en-IN')}</td>
+                        <td class="p-3 text-right font-black text-slate-900 font-mono">₹${rawBudget.toLocaleString('en-IN')}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Calculation Subtotals -->
+        <div class="flex flex-col sm:flex-row justify-between items-start gap-4 pt-1">
+            <div class="text-xs space-y-1 sm:max-w-xs">
+                <p class="font-bold text-slate-800">अक्षरी रक्कम (Amount in Words):</p>
+                <p class="text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-200 text-[11px] font-medium leading-relaxed">
+                    ${amountInWords} (अक्षरी: ₹${rawBudget} रुपये फक्त)
+                </p>
+                <div class="pt-2 text-[11px] text-slate-500 space-y-0.5">
+                    <p><strong>पेमेंट पद्धत:</strong> Cash / Instant UPI Direct</p>
+                    <p><strong>पेमेंट स्टेटस:</strong> ${isCompleted ? 'यशस्वीरीत्या भरणा पूर्ण (Payment Settled)' : 'कामाच्या वेळी देय (Payable on Work Completion)'}</p>
+                </div>
+            </div>
+
+            <div class="w-full sm:w-64 space-y-1.5 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <div class="flex justify-between text-slate-600">
+                    <span>मूळ सेवा आकार (Base Rate):</span>
+                    <span class="font-mono">₹${baseAmount.toLocaleString('en-IN')}</span>
+                </div>
+                <div class="flex justify-between text-slate-500 text-[11px]">
+                    <span>CGST (9%):</span>
+                    <span class="font-mono">₹${cgst.toLocaleString('en-IN')}</span>
+                </div>
+                <div class="flex justify-between text-slate-500 text-[11px]">
+                    <span>SGST (9%):</span>
+                    <span class="font-mono">₹${sgst.toLocaleString('en-IN')}</span>
+                </div>
+                <div class="flex justify-between text-slate-500 text-[11px]">
+                    <span>सुरक्षा व प्लॅटफॉर्म फी:</span>
+                    <span class="text-emerald-600 font-bold">मोफत / Free</span>
+                </div>
+                <div class="flex justify-between text-sm font-black text-slate-900 pt-2 border-t-2 border-slate-300">
+                    <span>एकूण देय रक्कम:</span>
+                    <span class="font-mono text-emerald-600">₹${rawBudget.toLocaleString('en-IN')}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guarantee Badge, Official Seal & Signatures -->
+        <div class="border-t border-slate-200 pt-4 flex flex-col sm:flex-row justify-between items-center gap-6">
+            
+            <!-- 7-Day Guarantee Badge -->
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <div class="text-xs">
+                    <h5 class="font-black text-slate-800">७ दिवसांची मोफत सर्व्हिस हमी</h5>
+                    <p class="text-[11px] text-slate-500">कामात काही अडचण आल्यास ७ दिवसांच्या आत मोफत रि-सर्व्हिस उपलब्ध.</p>
+                </div>
+            </div>
+
+            <!-- Official Stamp & Signature Block -->
+            <div class="flex items-center gap-4 text-center">
+                <!-- Circular Verified Stamp -->
+                <div class="w-20 h-20 rounded-full border-2 border-dashed border-emerald-600 text-emerald-700 flex flex-col items-center justify-center p-1 text-[8px] font-black uppercase tracking-tighter leading-tight rotate-[-6deg] opacity-90 shrink-0">
+                    <span>★ GHARMITRA ★</span>
+                    <span class="text-[9px] font-black">VERIFIED</span>
+                    <span>PUNE CITY</span>
+                    <span>OFFICIAL SEAL</span>
+                </div>
+
+                <div class="space-y-1">
+                    <div class="font-serif italic font-bold text-sm text-slate-800 tracking-wider">Gharmitra Pune</div>
+                    <div class="border-t border-slate-400 w-32 mx-auto pt-0.5 text-[10px] font-bold text-slate-600 uppercase">
+                        Authorized Signatory
+                    </div>
+                    <p class="text-[9px] text-slate-400">Operations Head, Pune</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terms Footer -->
+        <div class="border-t border-slate-100 pt-3 text-[10px] text-slate-400 text-center space-y-0.5">
+            <p>हा संगणक-निर्मित अधिकृत टॅक्स इनव्हॉइस आहे. यावर वेगळ्या स्वाक्षरीची आवश्यकता नाही.</p>
+            <p>&copy; 2026 Gharmitra Home Services, Pune City • Helpline: 7875160724 • Secured Operations</p>
+        </div>
+    `;
+
+    const subtitleEl = document.getElementById('invoiceHeaderSubtitle');
+    if (subtitleEl) subtitleEl.innerText = `ऑर्डर #${cleanOrderId} • ${customerName}`;
+
+    document.getElementById('adminInvoiceModal')?.classList.remove('hidden');
+    document.getElementById('adminInvoiceModal')?.classList.add('flex');
+}
+
+function closeAdminInvoiceModal() {
+    document.getElementById('adminInvoiceModal')?.classList.remove('flex');
+    document.getElementById('adminInvoiceModal')?.classList.add('hidden');
+    currentInvoiceOrder = null;
+}
+
+function printAdminInvoice() {
+    window.print();
+}
+
+function shareInvoiceOnWhatsApp() {
+    if (!currentInvoiceOrder) return;
+    const cleanMobile = String(currentInvoiceOrder.customerMobile || '').replace(/\D/g, '').slice(-10);
+    if (!cleanMobile || cleanMobile.length !== 10) {
+        alert("ग्राहकाचा वैध मोबाईल नंबर उपलब्ध नाही.");
+        return;
+    }
+
+    const cleanOrderId = String(currentInvoiceOrder.id || '').replace(/[^a-zA-Z0-9]/g, '').slice(-6).toUpperCase();
+    const customerName = currentInvoiceOrder.customerName || 'ग्राहक';
+    const serviceName = currentInvoiceOrder.service || 'होम सर्व्हिस';
+    const amount = currentInvoiceOrder.budget || '₹500';
+
+    const text = `*घरमित्र अधिकृत टॅक्स इनव्हॉइस (Gharmitra Invoice)* 🧾\n\n` +
+        `नमस्कार *${customerName}* जी,\n` +
+        `आपल्या घरमित्र सेवेचे अधिकृत बिल तपशील खालीलप्रमाणे आहेत:\n\n` +
+        `📦 *ऑर्डर आयडी:* #${cleanOrderId}\n` +
+        `⚡ *सेवा:* ${serviceName}\n` +
+        `📍 *पत्ता:* ${currentInvoiceOrder.address || currentInvoiceOrder.area || 'Pune'}\n` +
+        `💰 *एकूण रक्कम:* ${amount}\n` +
+        `🛡️ *हमी:* ७ दिवसांची मोफत सर्व्हिस हमी (Gharmitra Guarantee)\n\n` +
+        `धन्यवाद! घरमित्र होम सर्व्हिसेस, पुणे.\n` +
+        `📞 हेल्पलाईन: 7875160724\n` +
+        `🌐 www.gharmitra.online`;
+
+    const waUrl = `https://wa.me/91${cleanMobile}?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, '_blank');
+}
+
 // --- Initialize on Page Load ---
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminAuth();
 });
 
-// Global window bindings for Admin Auth & Route Guard
+// Global window bindings for Admin Auth, Route Guard & Invoices
 window.submitAdminCredentials = submitAdminCredentials;
 window.submitAdminOtp = submitAdminOtp;
 window.resendAdminOtp = resendAdminOtp;
@@ -1619,4 +1910,7 @@ window.checkAdminAuth = checkAdminAuth;
 window.lockAdminDashboard = lockAdminDashboard;
 window.sendAdminEmailOtp = sendAdminEmailOtp;
 window.verifyAdminEmailOtp = verifyAdminEmailOtp;
-
+window.downloadOrderInvoice = downloadOrderInvoice;
+window.closeAdminInvoiceModal = closeAdminInvoiceModal;
+window.printAdminInvoice = printAdminInvoice;
+window.shareInvoiceOnWhatsApp = shareInvoiceOnWhatsApp;

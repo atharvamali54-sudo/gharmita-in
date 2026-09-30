@@ -64,6 +64,59 @@
             font-size: 0.72rem;
             font-weight: 700;
         }
+
+        /* Dedicated Print Styles for Branded Tax Invoice */
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            body > *:not(#adminInvoiceModal) {
+                display: none !important;
+            }
+            #adminInvoiceModal {
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                background: transparent !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                z-index: 99999 !important;
+                overflow: visible !important;
+            }
+            #adminInvoiceModal .invoice-modal-content {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            #printableInvoiceArea {
+                display: block !important;
+                width: 100% !important;
+                padding: 8mm !important;
+                margin: 0 auto !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+            .invoice-no-print {
+                display: none !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen font-sans antialiased">
@@ -559,6 +612,56 @@
                     ✕ ऑर्डर रद्द करा
                 </button>
             </div>
+
+            <div class="pt-1">
+                <button type="button" onclick="downloadOrderInvoice(selectedOrderForModal)" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i> ब्रँडेड टॅक्स इनव्हॉइस / बिल डाऊनलोड करा (PDF)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         4B. Branded GST Tax Invoice Modal (Printable & Shareable)
+         ========================================================= -->
+    <div id="adminInvoiceModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm hidden items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+        <div class="invoice-modal-content bg-white rounded-3xl max-w-3xl w-full my-auto shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh]">
+            
+            <!-- Modal Action Bar (Hidden during Print) -->
+            <div class="invoice-no-print bg-slate-900 text-white px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </span>
+                    <div>
+                        <h4 class="font-bold text-sm text-white flex items-center gap-2">
+                            अधिकृत टॅक्स इनव्हॉइस / बिल (Official Invoice)
+                        </h4>
+                        <p class="text-[11px] text-slate-400" id="invoiceHeaderSubtitle">ऑर्डर बिल तपशील</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="printAdminInvoice()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-3.5 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-print"></i> <span>प्रिंट / PDF सेव्ह करा</span>
+                    </button>
+                    <button type="button" id="invoiceShareWhatsAppBtn" onclick="shareInvoiceOnWhatsApp()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs py-2 px-3 rounded-xl transition border border-emerald-300 flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-brands fa-whatsapp text-emerald-600"></i> <span class="hidden sm:inline">WhatsApp वर पाठवा</span>
+                    </button>
+                    <button type="button" onclick="closeAdminInvoiceModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Invoice Preview Body -->
+            <div class="overflow-y-auto p-3 sm:p-6 bg-slate-100/70">
+                <!-- Printable Invoice Container -->
+                <div id="printableInvoiceArea" class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm text-slate-800 font-sans max-w-2xl mx-auto space-y-6">
+                    <!-- Dynamic Content Injected Here by admin.js -->
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -591,7 +694,7 @@
     </div> <!-- /#adminMainDashboard -->
 
     <script src="js/firebase.js"></script>
-    <script src="js/admin.js?v=3.1"></script>
+    <script src="js/admin.js?v=3.2"></script>
     <script src="js/pwa.js?v=9.3"></script>
 </body>
 </html>
