@@ -54,6 +54,10 @@ let adminLockoutTimerInterval = null;
 let isDashboardInitialized = false;
 let clientActiveOtpState = null;
 let usedBackendForOtp = false;
+let selectedKycWorkerUid = null;
+let selectedKycWorkerMobile = null;
+let selectedKycAadharPhotoUrl = null;
+let cachedWorkerList = [];
 
 // Initialize EmailJS for dual browser-level mailer fallback
 if (window.emailjs) {
@@ -1263,26 +1267,74 @@ function renderWorkersTable() {
 
     const searchTerm = (document.getElementById('workerSearchInput')?.value || '').toLowerCase().trim();
     const dutyFilter = document.getElementById('workerDutyFilter')?.value || 'ALL';
+    const kycFilter = document.getElementById('workerKycFilter')?.value || 'ALL';
 
-    const workerList = Object.entries(allWorkers).map(([uid, w]) => {
-        const u = allUsers[uid] || {};
-        return {
-            uid,
-            name: w.name || u.fullName || u.name || 'Worker',
-            mobile: w.mobile || u.mobile || '-',
-            service: w.service || u.service || u.workType || 'Cleaning',
-            area: w.area || 'Pune',
-            wallet: w.wallet !== undefined ? w.wallet : 50,
-            isDutyOn: (w.isDutyOn || w.dutyStatus === 'ON' || Boolean(w.activeOrderId)),
-            activeOrderId: w.activeOrderId || null,
-            ratings: w.ratings || {},
-            photo: w.photo || w.photoUrl || u.photo || u.photoUrl || null
-        };
-    });
+    const workerMap = new Map();
+
+    // 1. Process workers under workers/accounts/workers
+    if (allWorkers && allWorkers.accounts && allWorkers.accounts.workers) {
+        Object.entries(allWorkers.accounts.workers).forEach(([mob, acc]) => {
+            if (!acc || typeof acc !== 'object') return;
+            const uid = 'local_worker_' + mob;
+            workerMap.set(uid, {
+                uid,
+                name: acc.fullName || acc.name || 'Worker',
+                mobile: mob,
+                service: acc.workType || acc.service || 'Cleaning',
+                area: acc.area || 'Pune',
+                wallet: acc.balance !== undefined ? acc.balance : (acc.wallet !== undefined ? acc.wallet : 50),
+                isDutyOn: Boolean(acc.isDutyOn || acc.dutyStatus === 'ON'),
+                activeOrderId: acc.activeOrderId || null,
+                ratings: acc.ratings || {},
+                photo: acc.photo || acc.photoUrl || null,
+                aadharCardPhoto: acc.aadharCardPhoto || acc.aadharCardUrl || null,
+                verificationStatus: acc.verificationStatus || 'approved',
+                kycSubmittedAt: acc.kycSubmittedAt || null,
+                kycRejectReason: acc.kycRejectReason || null
+            });
+        });
+    }
+
+    // 2. Process all direct worker nodes under workers/* (ignoring 'accounts')
+    if (allWorkers) {
+        Object.entries(allWorkers).forEach(([uid, w]) => {
+            if (uid === 'accounts' || !w || typeof w !== 'object') return;
+            const u = allUsers[uid] || {};
+            const mob = w.mobile || u.mobile || (uid.startsWith('local_worker_') ? uid.replace('local_worker_', '') : '-');
+
+            const existing = workerMap.get(uid) || (mob && mob !== '-' ? Array.from(workerMap.values()).find(x => x.mobile === mob) : null);
+
+            const merged = {
+                uid,
+                name: w.name || w.fullName || (existing && existing.name) || u.fullName || u.name || 'Worker',
+                mobile: mob,
+                service: w.service || w.workType || (existing && existing.service) || u.service || u.workType || 'Cleaning',
+                area: w.area || (existing && existing.area) || 'Pune',
+                wallet: w.wallet !== undefined ? w.wallet : (existing ? existing.wallet : 50),
+                isDutyOn: Boolean(w.isDutyOn || w.dutyStatus === 'ON' || w.activeOrderId || (existing && existing.isDutyOn)),
+                activeOrderId: w.activeOrderId || (existing && existing.activeOrderId) || null,
+                ratings: w.ratings || (existing && existing.ratings) || {},
+                photo: w.photo || w.photoUrl || (existing && existing.photo) || u.photo || u.photoUrl || null,
+                aadharCardPhoto: w.aadharCardPhoto || (existing && existing.aadharCardPhoto) || null,
+                verificationStatus: w.verificationStatus || (existing && existing.verificationStatus) || 'approved',
+                kycSubmittedAt: w.kycSubmittedAt || (existing && existing.kycSubmittedAt) || null,
+                kycRejectReason: w.kycRejectReason || (existing && existing.kycRejectReason) || null
+            };
+            workerMap.set(uid, merged);
+        });
+    }
+
+    const workerList = Array.from(workerMap.values());
+    cachedWorkerList = workerList;
 
     const filtered = workerList.filter(item => {
         if (dutyFilter === 'ON' && !item.isDutyOn) return false;
         if (dutyFilter === 'OFF' && item.isDutyOn) return false;
+
+        if (kycFilter !== 'ALL') {
+            const vStatus = item.verificationStatus || 'approved';
+            if (vStatus !== kycFilter) return false;
+        }
 
         if (searchTerm) {
             const str = `${item.name} ${item.mobile} ${item.service} ${escapeHtml(item.area)}`.toLowerCase();
@@ -1292,7 +1344,7 @@ function renderWorkersTable() {
     });
 
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">एकही कामगार आढळला नाही.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400">एकही कामगार आढळला नाही.</td></tr>`;
         return;
     }
 
@@ -1308,6 +1360,23 @@ function renderWorkersTable() {
             Object.values(item.ratings).forEach(r => sum += Number(r.rating || 5));
             rAvg = (sum / rCount).toFixed(1);
         }
+
+        // KYC Status & Action Badge
+        let kycBadge = '';
+        const vStatus = item.verificationStatus || 'approved';
+        if (vStatus === 'pending') {
+            kycBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse"><i class="fa-solid fa-hourglass-half"></i> प्रलंबित (Pending)</span>`;
+        } else if (vStatus === 'rejected') {
+            kycBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300"><i class="fa-solid fa-circle-xmark"></i> नाकारले (Rejected)</span>`;
+        } else {
+            kycBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check"></i> मंजूर (Approved)</span>`;
+        }
+
+        const kycActionBtn = `
+            <button type="button" onclick="openAdminWorkerKycModal('${item.uid}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold py-1 px-2.5 rounded-lg text-[11px] transition flex items-center gap-1 mt-1 cursor-pointer">
+                <i class="fa-solid fa-id-card"></i> 🪪 KYC तपासा
+            </button>
+        `;
 
         return `
         <tr class="hover:bg-slate-50 transition border-b border-slate-100">
@@ -1339,6 +1408,10 @@ function renderWorkersTable() {
             <td class="p-3.5 font-bold text-amber-500">
                 ⭐ ${rAvg} <span class="text-[10px] text-slate-400">(${rCount})</span>
             </td>
+            <td class="p-3.5">
+                ${kycBadge}
+                ${kycActionBtn}
+            </td>
             <td class="p-3.5 text-center">
                 <button onclick="openAdminWalletModal('${item.uid}', '${item.name}', ${item.wallet})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold py-1.5 px-3 rounded-lg text-xs transition">
                     + क्रेडिट्स द्या
@@ -1347,6 +1420,221 @@ function renderWorkersTable() {
         </tr>
         `;
     }).join('');
+}
+
+// =========================================================
+// Worker KYC Verification Modal Controller
+// =========================================================
+
+function openAdminWorkerKycModal(uid) {
+    selectedKycWorkerUid = uid;
+    
+    // Find worker from cachedWorkerList or allWorkers
+    const worker = cachedWorkerList.find(w => w.uid === uid) || (allWorkers && allWorkers[uid]) || {};
+    selectedKycWorkerMobile = worker.mobile || (uid.startsWith('local_worker_') ? uid.replace('local_worker_', '') : '');
+
+    const nameEl = document.getElementById('adminKycWorkerName');
+    const mobileEl = document.getElementById('adminKycWorkerMobile');
+    const serviceEl = document.getElementById('adminKycWorkerService');
+    const idEl = document.getElementById('adminKycWorkerId');
+    const dateEl = document.getElementById('adminKycSubmissionDate');
+    const badgeEl = document.getElementById('adminKycStatusBadge');
+    const photoEl = document.getElementById('adminKycWorkerPhoto');
+    const selfieEl = document.getElementById('adminKycSelfieImg');
+    const noSelfieEl = document.getElementById('adminKycNoSelfie');
+    const aadharEl = document.getElementById('adminKycaadharImg');
+    const noAadharEl = document.getElementById('adminKycNoAadhar');
+    const rejectBox = document.getElementById('adminKycRejectReasonBox');
+    const rejectInput = document.getElementById('adminKycRejectReasonInput');
+    const approveBtn = document.getElementById('adminKycApproveBtn');
+
+    if (rejectBox) rejectBox.classList.add('hidden');
+    if (rejectInput) rejectInput.value = worker.kycRejectReason || '';
+
+    if (nameEl) nameEl.innerText = worker.name || 'Worker';
+    if (mobileEl) {
+        mobileEl.innerText = worker.mobile || '-';
+        mobileEl.href = 'tel:' + worker.mobile;
+    }
+    if (serviceEl) serviceEl.innerText = worker.service || 'Cleaning';
+    if (idEl) idEl.innerText = 'ID: GK-' + (uid.slice(-6).toUpperCase());
+
+    if (dateEl) {
+        if (worker.kycSubmittedAt) {
+            const d = new Date(worker.kycSubmittedAt);
+            dateEl.innerText = 'अर्ज तारीख: ' + d.toLocaleDateString('mr-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } else {
+            dateEl.innerText = 'अर्ज तारीख: उपलब्ध नाही';
+        }
+    }
+
+    const status = worker.verificationStatus || 'approved';
+    if (badgeEl) {
+        if (status === 'approved') {
+            badgeEl.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-emerald-100 text-emerald-800 border-emerald-300';
+            badgeEl.innerText = '✓ मंजूर (Approved)';
+            if (approveBtn) approveBtn.innerHTML = '<i class="fa-solid fa-check text-sm"></i> <span>✓ आधीच मंजूर (Already Approved)</span>';
+        } else if (status === 'rejected') {
+            badgeEl.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-rose-100 text-rose-800 border-rose-300';
+            badgeEl.innerText = '✕ नाकारले (Rejected)';
+            if (approveBtn) approveBtn.innerHTML = '<i class="fa-solid fa-check text-sm"></i> <span>✓ पुनर्विचार करून मंजूर करा (Re-Approve)</span>';
+        } else {
+            badgeEl.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-amber-100 text-amber-800 border-amber-300 animate-pulse';
+            badgeEl.innerText = '⏳ प्रलंबित (Pending Review)';
+            if (approveBtn) approveBtn.innerHTML = '<i class="fa-solid fa-check text-sm"></i> <span>✓ मंजूर करा (Approve Worker)</span>';
+        }
+    }
+
+    const workerPhoto = worker.photo || worker.photoUrl || null;
+    if (photoEl) photoEl.src = workerPhoto || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231e293b'/%3E%3Ccircle cx='32' cy='24' r='12' fill='%23f59e0b'/%3E%3Cpath d='M14 54c0-9.94 8.06-18 18-18s18 8.06 18 18' fill='%23f59e0b'/%3E%3C/svg%3E";
+
+    if (workerPhoto) {
+        if (selfieEl) {
+            selfieEl.src = workerPhoto;
+            selfieEl.classList.remove('hidden');
+        }
+        if (noSelfieEl) noSelfieEl.classList.add('hidden');
+    } else {
+        if (selfieEl) selfieEl.classList.add('hidden');
+        if (noSelfieEl) noSelfieEl.classList.remove('hidden');
+    }
+
+    const aadharPhoto = worker.aadharCardPhoto || null;
+    selectedKycAadharPhotoUrl = aadharPhoto;
+    if (aadharPhoto) {
+        if (aadharEl) {
+            aadharEl.src = aadharPhoto;
+            aadharEl.classList.remove('hidden');
+        }
+        if (noAadharEl) noAadharEl.classList.add('hidden');
+    } else {
+        if (aadharEl) aadharEl.classList.add('hidden');
+        if (noAadharEl) noAadharEl.classList.remove('hidden');
+    }
+
+    const modal = document.getElementById('adminWorkerKycModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeAdminWorkerKycModal() {
+    const modal = document.getElementById('adminWorkerKycModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    selectedKycWorkerUid = null;
+    selectedKycWorkerMobile = null;
+    selectedKycAadharPhotoUrl = null;
+}
+
+function toggleAdminRejectReasonBox() {
+    const box = document.getElementById('adminKycRejectReasonBox');
+    if (box) {
+        box.classList.toggle('hidden');
+        if (!box.classList.contains('hidden')) {
+            document.getElementById('adminKycRejectReasonInput')?.focus();
+        }
+    }
+}
+
+function cancelAdminRejectKyc() {
+    const box = document.getElementById('adminKycRejectReasonBox');
+    if (box) box.classList.add('hidden');
+}
+
+async function confirmAdminApproveKyc() {
+    if (!selectedKycWorkerUid) return;
+    const workerMobile = selectedKycWorkerMobile;
+    const confirmed = confirm("तुम्हाला खात्री आहे का? या कामगाराचे आधार कार्ड मंजूर करायचे आहे का?\n\nमंजूर झाल्यावर कामगार Duty ON करू शकेल आणि त्याला कामाच्या नोटिफिकेशन्स मिळतील.");
+    if (!confirmed) return;
+
+    try {
+        const updateData = {
+            verificationStatus: 'approved',
+            kycVerifiedAt: firebase.database.ServerValue.TIMESTAMP,
+            kycVerifiedBy: 'Admin',
+            kycRejectReason: null
+        };
+
+        // 1. Update in workers/{uid}
+        await database.ref('workers/' + selectedKycWorkerUid).update(updateData);
+
+        // 2. Also update in workers/accounts/workers/{mobile}
+        if (workerMobile) {
+            await database.ref('workers/accounts/workers/' + workerMobile).update(updateData);
+            await database.ref('workers/local_worker_' + workerMobile).update(updateData);
+        }
+
+        alert("✅ कामगार यशस्वीरीत्या मंजूर (Approved) झाला आहे! आता तो Duty ON करू शकतो.");
+        closeAdminWorkerKycModal();
+    } catch (err) {
+        console.error("Approve error:", err);
+        alert("त्रुटी आली: " + err.message);
+    }
+}
+
+async function confirmAdminRejectKyc() {
+    if (!selectedKycWorkerUid) return;
+    const reasonInput = document.getElementById('adminKycRejectReasonInput');
+    const reason = (reasonInput?.value || '').trim() || "आधार कार्डचा फोटो अस्पष्ट आहे. कृपया पुन्हा स्पष्ट फोटो अपलोड करा.";
+
+    try {
+        const updateData = {
+            verificationStatus: 'rejected',
+            kycVerifiedAt: firebase.database.ServerValue.TIMESTAMP,
+            kycVerifiedBy: 'Admin',
+            kycRejectReason: reason,
+            isDutyOn: false,
+            dutyStatus: 'OFF'
+        };
+
+        // 1. Update in workers/{uid}
+        await database.ref('workers/' + selectedKycWorkerUid).update(updateData);
+
+        // 2. Also update in workers/accounts/workers/{mobile}
+        if (selectedKycWorkerMobile) {
+            await database.ref('workers/accounts/workers/' + selectedKycWorkerMobile).update(updateData);
+            await database.ref('workers/local_worker_' + selectedKycWorkerMobile).update(updateData);
+        }
+
+        alert("❌ कामगाराचे KYC नाकारले (Rejected). कामगाराच्या ॲपमध्ये पुन्हा फोटो अपलोड करण्याचा मेसेज दिसेल.");
+        closeAdminWorkerKycModal();
+    } catch (err) {
+        console.error("Reject error:", err);
+        alert("त्रुटी आली: " + err.message);
+    }
+}
+
+function zoomCurrentAadhaar() {
+    if (selectedKycAadharPhotoUrl) {
+        openAdminZoomModal(selectedKycAadharPhotoUrl, 'आधार कार्ड फोटो (Aadhaar Card)');
+    } else {
+        alert("आधार कार्डचा फोटो उपलब्ध नाही.");
+    }
+}
+
+function openAdminZoomModal(imgUrl, caption = '') {
+    if (!imgUrl) return;
+    const modal = document.getElementById('adminZoomModal');
+    const img = document.getElementById('adminZoomModalImg');
+    const cap = document.getElementById('adminZoomModalCaption');
+    if (img) img.src = imgUrl;
+    if (cap) cap.innerText = caption;
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeAdminZoomModal() {
+    const modal = document.getElementById('adminZoomModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 }
 
 // --- 8. Reviews & Complaints List ---

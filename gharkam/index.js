@@ -33,6 +33,7 @@ let currentRole = 'customer';
         let resetPasswordMobile = null;
         let resetPasswordRole = null;
         let currentWorkerPhoto = null;
+        let currentWorkerAadhar = null;
 
         const otpDigitInputs = Array.from(document.querySelectorAll('.otp-digit'));
 
@@ -332,6 +333,102 @@ let currentRole = 'customer';
             }
         }
 
+        function triggerWorkerAadharCamera() {
+            const camInput = document.getElementById('workerAadharCameraInput');
+            if (camInput) camInput.click();
+        }
+
+        function triggerWorkerAadharGallery() {
+            const galInput = document.getElementById('workerAadharGalleryInput');
+            if (galInput) galInput.click();
+        }
+
+        function clearWorkerAadhar(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            currentWorkerAadhar = null;
+            const base64Input = document.getElementById('workerAadharBase64');
+            if (base64Input) base64Input.value = '';
+            const camInput = document.getElementById('workerAadharCameraInput');
+            if (camInput) camInput.value = '';
+            const galInput = document.getElementById('workerAadharGalleryInput');
+            if (galInput) galInput.value = '';
+
+            const previewImg = document.getElementById('workerAadharPreviewImg');
+            const placeholder = document.getElementById('workerAadharPlaceholderIcon');
+            const removeBtn = document.getElementById('removeWorkerAadharBtn');
+            const badge = document.getElementById('workerAadharStatusBadge');
+            const hint = document.getElementById('workerAadharHint');
+
+            if (previewImg) {
+                previewImg.src = '';
+                previewImg.classList.add('hidden');
+            }
+            if (placeholder) placeholder.classList.remove('hidden');
+            if (removeBtn) removeBtn.classList.add('hidden');
+            if (badge) badge.classList.add('hidden');
+            if (hint) hint.innerText = "आधार कार्डचा समोरील स्पष्ट फोटो अपलोड करा.";
+        }
+
+        function setWorkerAadharPreview(dataUrl, isExisting = false) {
+            if (!dataUrl) return;
+            currentWorkerAadhar = dataUrl;
+            const base64Input = document.getElementById('workerAadharBase64');
+            if (base64Input) base64Input.value = dataUrl;
+
+            const previewImg = document.getElementById('workerAadharPreviewImg');
+            const placeholder = document.getElementById('workerAadharPlaceholderIcon');
+            const removeBtn = document.getElementById('removeWorkerAadharBtn');
+            const badge = document.getElementById('workerAadharStatusBadge');
+            const hint = document.getElementById('workerAadharHint');
+
+            if (previewImg) {
+                previewImg.src = dataUrl;
+                previewImg.classList.remove('hidden');
+            }
+            if (placeholder) placeholder.classList.add('hidden');
+            if (removeBtn) removeBtn.classList.remove('hidden');
+            if (badge) {
+                badge.innerHTML = isExisting ? '<i class="fa-solid fa-check"></i> सेव्ह केलेले आधार' : '<i class="fa-solid fa-check"></i> आधार जोडले';
+                badge.classList.remove('hidden');
+            }
+            if (hint) {
+                hint.innerText = isExisting ? "खात्यातील आधार कार्ड फोटो लोड केला आहे." : "आधार कार्ड फोटो यशस्वीरीत्या जोडला गेला!";
+            }
+        }
+
+        async function handleWorkerAadharSelected(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            showStatus("⏳ आधार कार्ड फोटो कॉम्प्रेस होत आहे...", "info");
+            try {
+                const compressedBase64 = await compressImageFile(file, 900, 900, 0.78);
+                setWorkerAadharPreview(compressedBase64, false);
+                showStatus("✅ आधार कार्ड फोटो जोडला गेला!", "success");
+                setTimeout(() => showStatus("", "hidden"), 2000);
+            } catch (err) {
+                console.error("Aadhaar photo compression error:", err);
+                showStatus("❌ फोटो लोड करण्यात अयशस्वी. कृपया दुसरा फोटो निवडा.", "error");
+            }
+        }
+
+        function highlightWorkerAadharInput() {
+            const container = document.getElementById('workerAadharContainer');
+            const previewBox = document.getElementById('workerAadharPreviewBox');
+            if (container) {
+                container.classList.add('ring-2', 'ring-rose-500', 'animate-pulse');
+                setTimeout(() => container.classList.remove('ring-2', 'ring-rose-500', 'animate-pulse'), 2500);
+                container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            if (previewBox) {
+                previewBox.classList.add('border-rose-500');
+                setTimeout(() => previewBox.classList.remove('border-rose-500'), 2500);
+            }
+        }
+
         async function checkWorkerSavedPhotoOnMobileInput() {
             if (currentRole !== 'worker' || isSignupMode) return;
             const mobileInput = document.getElementById('mobile');
@@ -341,6 +438,9 @@ let currentRole = 'customer';
                 const saved = await getUserForRoleAsync('worker', mobile);
                 if (saved && (saved.photo || saved.photoUrl)) {
                     setWorkerPhotoPreview(saved.photo || saved.photoUrl, true);
+                }
+                if (saved && (saved.aadharCardPhoto || saved.aadharCardUrl)) {
+                    setWorkerAadharPreview(saved.aadharCardPhoto || saved.aadharCardUrl, true);
                 }
             }
         }
@@ -722,6 +822,7 @@ let currentRole = 'customer';
             const forgotLinkContainer = document.getElementById('forgotPasswordLinkContainer');
             const workerPhotoContainer = document.getElementById('workerPhotoContainer');
             const workerPhotoSubtext = document.getElementById('workerPhotoSubtext');
+            const workerAadharContainer = document.getElementById('workerAadharContainer');
 
             let roleName = currentRole === 'customer' ? 'Customer' : 'Worker';
 
@@ -744,9 +845,17 @@ let currentRole = 'customer';
                 clearWorkerPhoto();
             }
 
+            // Worker Aadhaar Card Container Control (Required for worker registration & KYC verification)
+            if (currentRole === 'worker' && isSignupMode) {
+                if (workerAadharContainer) workerAadharContainer.classList.remove('hidden');
+            } else {
+                if (workerAadharContainer) workerAadharContainer.classList.add('hidden');
+                if (currentRole !== 'worker') clearWorkerAadhar();
+            }
+
             if (isSignupMode) {
                 title.innerText = roleName + " Signup";
-                sub.innerText = currentRole === 'worker' ? "Create account with Photo, Email OTP & Password" : "Create account using Email OTP & Password";
+                sub.innerText = currentRole === 'worker' ? "Create account with Photo, Aadhaar KYC, OTP & Password" : "Create account using Email OTP & Password";
                 btn.innerText = "Send OTP & Verify";
                 fullNameContainer.classList.remove('hidden');
                 fullNameInput.required = true;
@@ -936,6 +1045,13 @@ let currentRole = 'customer';
                     return;
                 }
 
+                // Worker Aadhaar Card Verification during Signup
+                if (currentRole === 'worker' && !currentWorkerAadhar) {
+                    showStatus("❌ कामगार सुरक्षिततेसाठी आधार कार्ड फोटो (Aadhaar Card) आवश्यक आहे! कृपया आधार कार्डचा स्पष्ट फोटो जोडा.", "error");
+                    highlightWorkerAadharInput();
+                    return;
+                }
+
                 showStatus("⏳ Checking mobile number...", "info");
                 const existingUser = await getUserForRoleAsync(currentRole, mobile);
 
@@ -951,7 +1067,10 @@ let currentRole = 'customer';
                     fullName, name: fullName, mobile, email, password: hashedPassword, role: currentRole, balance: 50, 
                     workType: selectedWorkType, service: selectedWorkType,
                     photo: currentWorkerPhoto || null,
-                    photoUrl: currentWorkerPhoto || null
+                    photoUrl: currentWorkerPhoto || null,
+                    aadharCardPhoto: currentWorkerAadhar || null,
+                    verificationStatus: 'pending',
+                    kycSubmittedAt: Date.now()
                 };
 
                 generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
@@ -1101,9 +1220,16 @@ let currentRole = 'customer';
             if (userEnteredOTP === generatedOTP) {
                 showStatus("⏳ OTP verify hot ahe...", "info");
                 animateOtpVerification(async () => {
-                    if (pendingUserData.role === 'worker' && currentWorkerPhoto) {
-                        pendingUserData.photo = currentWorkerPhoto;
-                        pendingUserData.photoUrl = currentWorkerPhoto;
+                    if (pendingUserData.role === 'worker') {
+                        if (currentWorkerPhoto) {
+                            pendingUserData.photo = currentWorkerPhoto;
+                            pendingUserData.photoUrl = currentWorkerPhoto;
+                        }
+                        if (currentWorkerAadhar) {
+                            pendingUserData.aadharCardPhoto = currentWorkerAadhar;
+                        }
+                        pendingUserData.verificationStatus = 'pending';
+                        pendingUserData.kycSubmittedAt = Date.now();
                     }
                     // Save to both LocalStorage AND Firebase Realtime Database
                     saveUserForRole(pendingUserData.role, pendingUserData);
@@ -1127,7 +1253,10 @@ let currentRole = 'customer';
                                     service: pendingUserData.service || 'Cleaning',
                                     wallet: pendingUserData.balance || 50,
                                     photo: pendingUserData.photo || currentWorkerPhoto || null,
-                                    photoUrl: pendingUserData.photoUrl || currentWorkerPhoto || null
+                                    photoUrl: pendingUserData.photoUrl || currentWorkerPhoto || null,
+                                    aadharCardPhoto: pendingUserData.aadharCardPhoto || currentWorkerAadhar || null,
+                                    verificationStatus: 'pending',
+                                    kycSubmittedAt: firebase.database.ServerValue.TIMESTAMP
                                 });
                             }
                         } catch(e) {

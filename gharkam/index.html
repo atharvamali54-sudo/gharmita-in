@@ -169,6 +169,57 @@
                     <input type="hidden" id="workerPhotoBase64" value="">
                 </div>
 
+                <!-- Worker Aadhaar Card Upload Container (Required for Worker KYC Verification & Approval) -->
+                <div id="workerAadharContainer" class="hidden p-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl transition">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                            <i class="fa-solid fa-id-card text-blue-600 text-sm"></i> 
+                            <span>आधार कार्ड फोटो (Aadhaar Card Photo) <span class="text-rose-600 font-bold">*</span></span>
+                        </label>
+                        <span id="workerAadharStatusBadge" class="hidden text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-300">
+                            <i class="fa-solid fa-check"></i> आधार जोडले (Added)
+                        </span>
+                    </div>
+                    <p id="workerAadharSubtext" class="text-[11px] text-blue-900/80 mb-3 leading-tight">
+                        कामगार सुरक्षिततेसाठी आधार कार्डचा स्पष्ट फोटो आवश्यक आहे. ॲडमिन पडताळणीनंतरच काम सुरू करता येईल.
+                    </p>
+
+                    <div class="flex items-center gap-3">
+                        <!-- Aadhaar Preview Box -->
+                        <div class="relative shrink-0">
+                            <div id="workerAadharPreviewBox" onclick="triggerWorkerAadharCamera()" class="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-blue-300 flex flex-col items-center justify-center text-blue-500 cursor-pointer overflow-hidden shadow-inner hover:border-blue-500 transition group" title="आधार कार्डचा फोटो घ्या किंवा निवडा">
+                                <i id="workerAadharPlaceholderIcon" class="fa-solid fa-id-card text-2xl text-blue-400 group-hover:scale-110 transition"></i>
+                                <img id="workerAadharPreviewImg" src="" alt="Aadhaar Card" class="hidden w-full h-full object-cover">
+                            </div>
+                            <button type="button" id="removeWorkerAadharBtn" onclick="clearWorkerAadhar(event)" class="hidden absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow hover:bg-rose-600 transition" title="Remove Aadhaar">
+                                ✕
+                            </button>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex-1 space-y-1.5">
+                            <div class="flex gap-2">
+                                <button type="button" onclick="triggerWorkerAadharCamera()" class="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-2 px-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 border border-blue-500/50 cursor-pointer">
+                                    <i class="fa-solid fa-camera text-white"></i>
+                                    <span>फोटो घ्या</span>
+                                </button>
+                                <button type="button" onclick="triggerWorkerAadharGallery()" class="bg-white hover:bg-blue-50 active:scale-95 text-blue-900 font-semibold text-xs py-2 px-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1 border border-blue-200 cursor-pointer">
+                                    <i class="fa-solid fa-image text-blue-600"></i>
+                                    <span>गॅलरी</span>
+                                </button>
+                            </div>
+                            <p id="workerAadharHint" class="text-[10px] text-gray-500">
+                                आधार कार्डचा समोरील स्पष्ट फोटो अपलोड करा.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Hidden file inputs for Aadhaar Camera & Gallery -->
+                    <input type="file" id="workerAadharCameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleWorkerAadharSelected(event)">
+                    <input type="file" id="workerAadharGalleryInput" accept="image/*" class="hidden" onchange="handleWorkerAadharSelected(event)">
+                    <input type="hidden" id="workerAadharBase64" value="">
+                </div>
+
                 <div id="forgotPasswordLinkContainer" class="hidden text-right">
                     <button type="button" onclick="showForgotPasswordUI()" class="text-xs text-blue-600 font-semibold hover:underline">Forgot Password?</button>
                 </div>

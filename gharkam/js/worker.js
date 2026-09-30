@@ -41,6 +41,10 @@ let workerTripPath = null;
 let workerTripPathPoints = [];
 let workerTripLastLocation = null;
 let workerTripMapOrderId = null;
+let currentWorkerVerificationStatus = 'pending'; // 'pending' | 'approved' | 'rejected'
+let currentWorkerRejectReason = '';
+let currentWorkerAadharPhoto = null;
+let reuploadAadharBase64 = null;
 
 // Pune Area Coordinates for delivery routing
 const PUNE_AREA_COORDINATES = {
@@ -386,8 +390,8 @@ function declineOrder(orderId) {
 }
 
 function claimNextOffer() {
-    // Only 1 order offered at a time. If worker already has an active order or an active offer, do not claim another!
-    if (offerClaimInFlight || !isDutyOn || !currentWorkerUid || getActiveOrderForCurrentWorker() || getActiveOfferForCurrentWorker() || !allOrdersData) return;
+    // Only 1 order offered at a time. If worker already has an active order or an active offer, or is not approved, do not claim another!
+    if (offerClaimInFlight || !isDutyOn || currentWorkerVerificationStatus !== 'approved' || !currentWorkerUid || getActiveOrderForCurrentWorker() || getActiveOfferForCurrentWorker() || !allOrdersData) return;
     const selectedArea = document.getElementById('workingAreaSelect')?.value;
     const candidate = Object.entries(allOrdersData)
         .map(([id, order]) => ({ id, order }))
@@ -741,6 +745,228 @@ async function handleDashboardWorkerPhotoSelected(event) {
     }
 }
 
+// =========================================================
+// Worker Aadhaar KYC Verification & Status Controller
+// =========================================================
+
+function updateKycUI(status, rejectReason) {
+    currentWorkerVerificationStatus = status || 'pending';
+    currentWorkerRejectReason = rejectReason || '';
+
+    const banner = document.getElementById('workerKycStatusBanner');
+    const headerBadge = document.getElementById('workerKycHeaderBadge');
+    const headerText = document.getElementById('workerKycHeaderBadgeText');
+    const dutyBtn = document.getElementById('dutyToggleBtn');
+
+    if (currentWorkerVerificationStatus === 'approved') {
+        if (headerBadge) {
+            headerBadge.className = "bg-emerald-400/20 text-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-400/30 flex items-center gap-1";
+        }
+        if (headerText) headerText.innerText = "✓ आधार व्हेरिफाइड पार्टनर";
+        if (banner) {
+            banner.className = "hidden";
+            banner.innerHTML = "";
+        }
+    } else if (currentWorkerVerificationStatus === 'rejected') {
+        if (headerBadge) {
+            headerBadge.className = "bg-rose-500/20 text-rose-200 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-400/30 flex items-center gap-1";
+        }
+        if (headerText) headerText.innerText = "✕ आधार नाकारले (Rejected)";
+        if (banner) {
+            banner.className = "mb-4 p-4 rounded-2xl shadow-sm text-xs transition bg-rose-50 border-rose-300 text-rose-900 flex items-start gap-3";
+            banner.innerHTML = `
+                <span class="text-2xl shrink-0">⚠️</span>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <strong class="font-bold text-rose-950 text-sm">आधार कार्ड पडताळणी नाकारली (KYC Rejected)</strong>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-200 text-rose-900 border border-rose-300">Rejected</span>
+                    </div>
+                    <p class="text-rose-800 leading-relaxed mb-2.5">
+                        <strong>कारण:</strong> ${escapeHtml(currentWorkerRejectReason || "आधार कार्डचा फोटो अस्पष्ट आहे. कृपया पुन्हा स्पष्ट फोटो अपलोड करा.")}
+                    </p>
+                    <button type="button" onclick="openWorkerReuploadKycModal()" class="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-id-card"></i> पुन्हा आधार कार्ड अपलोड करा
+                    </button>
+                </div>
+            `;
+        }
+        if (isDutyOn) {
+            isDutyOn = false;
+            if (dutyBtn) {
+                dutyBtn.className = "w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
+                dutyBtn.innerHTML = "🔴 Duty OFF (Click ON)";
+            }
+            const headerDot = document.getElementById('dutyDot');
+            const headerDText = document.getElementById('dutyText');
+            if (headerDot) headerDot.className = "w-2 h-2 rounded-full bg-red-500";
+            if (headerDText) headerDText.innerText = "Duty OFF";
+        }
+    } else {
+        // Pending Review
+        if (headerBadge) {
+            headerBadge.className = "bg-amber-400/20 text-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-400/30 flex items-center gap-1 animate-pulse";
+        }
+        if (headerText) headerText.innerText = "⏳ आधार पडताळणी प्रलंबित";
+        if (banner) {
+            banner.className = "mb-4 p-4 rounded-2xl shadow-sm text-xs transition bg-amber-50 border-amber-300 text-amber-900 flex items-start gap-3";
+            banner.innerHTML = `
+                <span class="text-2xl shrink-0">⏳</span>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <strong class="font-bold text-amber-950 text-sm">आधार कार्ड पडताळणी प्रलंबित (KYC Under Review)</strong>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900 border border-amber-300">Pending</span>
+                    </div>
+                    <p class="text-amber-800 leading-relaxed">
+                        तुमचे आधार कार्ड ॲडमिन पडताळणीसाठी पाठवले आहे. महिला व कौटुंबिक सुरक्षिततेसाठी ॲडमिनने मंजूर (Approve) केल्यावरच तुम्ही <strong>Duty ON</strong> करू शकाल आणि नवीन कामे स्वीकारू शकाल.
+                    </p>
+                </div>
+            `;
+        }
+        if (isDutyOn) {
+            isDutyOn = false;
+            if (dutyBtn) {
+                dutyBtn.className = "w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
+                dutyBtn.innerHTML = "🔴 Duty OFF (Click ON)";
+            }
+            const headerDot = document.getElementById('dutyDot');
+            const headerDText = document.getElementById('dutyText');
+            if (headerDot) headerDot.className = "w-2 h-2 rounded-full bg-red-500";
+            if (headerDText) headerDText.innerText = "Duty OFF";
+        }
+    }
+}
+
+function showWorkerKycAlertModal(status, rejectReason) {
+    const modal = document.getElementById('workerKycAlertModal');
+    const title = document.getElementById('kycAlertTitle');
+    const desc = document.getElementById('kycAlertDesc');
+    const icon = document.getElementById('kycAlertIcon');
+    const actionBox = document.getElementById('kycAlertActionBox');
+    if (!modal) return;
+
+    if (status === 'rejected') {
+        if (icon) icon.innerText = "⚠️";
+        if (title) title.innerText = "आधार पडताळणी नाकारली गेली आहे";
+        if (desc) desc.innerText = "कारण: " + (rejectReason || "आधार फोटो अस्पष्ट आहे. कृपया पुन्हा स्पष्ट आधार कार्ड अपलोड करा.");
+        if (actionBox) {
+            actionBox.innerHTML = `
+                <button type="button" onclick="closeWorkerKycAlertModal(); openWorkerReuploadKycModal();" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl text-xs shadow transition flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-id-card"></i> पुन्हा आधार कार्ड अपलोड करा
+                </button>
+                <button type="button" onclick="closeWorkerKycAlertModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition cursor-pointer">
+                    रद्द करा
+                </button>
+            `;
+        }
+    } else {
+        if (icon) icon.innerText = "⏳";
+        if (title) title.innerText = "आधार पडताळणी प्रलंबित आहे (Pending)";
+        if (desc) desc.innerText = "महिला व कौटुंबिक सुरक्षिततेसाठी घरमित्रच्या नियमानुसार ॲडमिनने आधार कार्ड मंजूर (Approve) केल्यावरच तुम्हाला Duty ON करता येईल आणि कामाच्या नोटिफिकेशन्स मिळतील.";
+        if (actionBox) {
+            actionBox.innerHTML = `
+                <button type="button" onclick="closeWorkerKycAlertModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-xs shadow transition cursor-pointer">
+                    समजले (OK)
+                </button>
+            `;
+        }
+    }
+    modal.classList.remove('hidden');
+}
+
+function closeWorkerKycAlertModal() {
+    const modal = document.getElementById('workerKycAlertModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function openWorkerReuploadKycModal() {
+    reuploadAadharBase64 = null;
+    const modal = document.getElementById('reuploadKycModal');
+    const preview = document.getElementById('reuploadAadharPreviewImg');
+    const placeholder = document.getElementById('reuploadAadharPlaceholder');
+    const camInput = document.getElementById('reuploadAadharCameraInput');
+    const galInput = document.getElementById('reuploadAadharGalleryInput');
+
+    if (camInput) camInput.value = '';
+    if (galInput) galInput.value = '';
+    if (preview) {
+        preview.src = '';
+        preview.classList.add('hidden');
+    }
+    if (placeholder) placeholder.classList.remove('hidden');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeWorkerReuploadKycModal() {
+    const modal = document.getElementById('reuploadKycModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function triggerReuploadAadharCamera() {
+    const input = document.getElementById('reuploadAadharCameraInput');
+    if (input) input.click();
+}
+
+function triggerReuploadAadharGallery() {
+    const input = document.getElementById('reuploadAadharGalleryInput');
+    if (input) input.click();
+}
+
+async function handleReuploadAadharSelected(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    try {
+        const compressed = await compressWorkerDashboardImage(file, 900, 900, 0.78);
+        reuploadAadharBase64 = compressed;
+        const preview = document.getElementById('reuploadAadharPreviewImg');
+        const placeholder = document.getElementById('reuploadAadharPlaceholder');
+        if (preview) {
+            preview.src = compressed;
+            preview.classList.remove('hidden');
+        }
+        if (placeholder) placeholder.classList.add('hidden');
+    } catch(err) {
+        console.error("Reupload Aadhaar compress error:", err);
+        alert("फोटो कॉम्प्रेस करताना त्रुटी आली. कृपया पुन्हा निवडा.");
+    }
+}
+
+async function submitReuploadAadhar() {
+    if (!reuploadAadharBase64) {
+        alert("कृपया आधी आधार कार्डचा फोटो कॅमेरा किंवा गॅलरीतून निवडा!");
+        return;
+    }
+
+    const mobile = getCurrentWorkerMobile();
+    const uid = currentWorkerUid || getLocalWorkerId();
+
+    const updatePayload = {
+        aadharCardPhoto: reuploadAadharBase64,
+        verificationStatus: 'pending',
+        kycSubmittedAt: firebase.database.ServerValue.TIMESTAMP,
+        kycRejectReason: null
+    };
+
+    try {
+        if (mobile && typeof database !== 'undefined') {
+            await database.ref('workers/accounts/workers/' + mobile).update(updatePayload);
+            await database.ref('workers/local_worker_' + mobile).update(updatePayload);
+        }
+        if (uid && typeof database !== 'undefined') {
+            await database.ref('workers/' + uid).update(updatePayload);
+        }
+
+        currentWorkerVerificationStatus = 'pending';
+        currentWorkerAadharPhoto = reuploadAadharBase64;
+        updateKycUI('pending', '');
+        closeWorkerReuploadKycModal();
+        alert("✅ तुमचे आधार कार्ड यशस्वीरीत्या सबमिट झाले आहे! ॲडमिन कडून लवकरच पडताळणी केली जाईल.");
+    } catch (err) {
+        console.error("Reupload Aadhaar submit error:", err);
+        alert("आधार कार्ड सबमिट करताना अडचण आली: " + err.message);
+    }
+}
+
 function loadLocalWorkerSession() {
     let session = localStorage.getItem('current_user_session');
     if (session) {
@@ -791,6 +1017,12 @@ function loadLocalWorkerSession() {
             applyWorkerPhoto(photo);
         }
 
+        // Initialize KYC status from session
+        currentWorkerVerificationStatus = userData.verificationStatus || 'approved';
+        currentWorkerRejectReason = userData.kycRejectReason || '';
+        currentWorkerAadharPhoto = userData.aadharCardPhoto || null;
+        updateKycUI(currentWorkerVerificationStatus, currentWorkerRejectReason);
+
         // Fallback: Query Firebase worker node or order history
         const uid = currentWorkerUid || getLocalWorkerId();
         if (uid) {
@@ -803,6 +1035,12 @@ function loadLocalWorkerSession() {
                     }
                     if (wData.photo || wData.photoUrl) {
                         applyWorkerPhoto(wData.photo || wData.photoUrl);
+                    }
+                    if (wData.verificationStatus !== undefined) {
+                        currentWorkerVerificationStatus = wData.verificationStatus;
+                        currentWorkerRejectReason = wData.kycRejectReason || '';
+                        if (wData.aadharCardPhoto) currentWorkerAadharPhoto = wData.aadharCardPhoto;
+                        updateKycUI(currentWorkerVerificationStatus, currentWorkerRejectReason);
                     }
                     let calcRating = 5.0;
                     let calcReviews = 0;
@@ -825,17 +1063,31 @@ function loadLocalWorkerSession() {
             });
 
             if (workerMobile) {
-                database.ref('workers/accounts/workers/' + workerMobile).once('value').then(aSnap => {
+                database.ref('workers/accounts/workers/' + workerMobile).on('value', aSnap => {
                     const aData = aSnap.val();
-                    if (aData && (aData.photo || aData.photoUrl)) {
-                        applyWorkerPhoto(aData.photo || aData.photoUrl);
+                    if (aData) {
+                        if (aData.photo || aData.photoUrl) {
+                            applyWorkerPhoto(aData.photo || aData.photoUrl);
+                        }
+                        if (aData.verificationStatus !== undefined) {
+                            currentWorkerVerificationStatus = aData.verificationStatus;
+                            currentWorkerRejectReason = aData.kycRejectReason || '';
+                            if (aData.aadharCardPhoto) currentWorkerAadharPhoto = aData.aadharCardPhoto;
+                            updateKycUI(currentWorkerVerificationStatus, currentWorkerRejectReason);
+                        }
                     }
-                }).catch(() => {});
+                });
 
                 database.ref('workers/local_worker_' + workerMobile).once('value').then(lwSnap => {
                     const lwData = lwSnap.val();
                     if (lwData && (lwData.photo || lwData.photoUrl)) {
                         applyWorkerPhoto(lwData.photo || lwData.photoUrl);
+                    }
+                    if (lwData && lwData.verificationStatus !== undefined) {
+                        currentWorkerVerificationStatus = lwData.verificationStatus;
+                        currentWorkerRejectReason = lwData.kycRejectReason || '';
+                        if (lwData.aadharCardPhoto) currentWorkerAadharPhoto = lwData.aadharCardPhoto;
+                        updateKycUI(currentWorkerVerificationStatus, currentWorkerRejectReason);
                     }
                 }).catch(() => {});
 
@@ -1679,6 +1931,12 @@ function closeImagePreview() {
 }
 
 function toggleDuty() {
+    if (!isDutyOn) {
+        if (currentWorkerVerificationStatus !== 'approved') {
+            showWorkerKycAlertModal(currentWorkerVerificationStatus, currentWorkerRejectReason);
+            return;
+        }
+    }
     isDutyOn = !isDutyOn;
     getAudioContext();
     if (!isDutyOn) {
@@ -1723,6 +1981,16 @@ function renderJobs() {
 
     if (!isDutyOn) {
         stopOrderAlert();
+        if (currentWorkerVerificationStatus !== 'approved') {
+            jobsContainer.innerHTML = `
+                <div class="text-center py-10">
+                    <span class="text-5xl block mb-3">🪪</span>
+                    <p class="font-bold text-amber-700 text-sm">आधार कार्ड पडताळणी प्रलंबित आहे</p>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">महिला व कौटुंबिक सुरक्षिततेसाठी ॲडमिन मंजुरीनंतरच कामे उपलब्ध होतील.</p>
+                </div>`;
+            jobCountBadge.innerText = "KYC Pending";
+            return;
+        }
         jobsContainer.innerHTML = `<div class="text-center py-10"><span class="text-5xl block mb-3">😴</span><p class="font-bold text-slate-700 text-sm">तुम्ही सध्या Duty OFF वर आहात</p></div>`;
         jobCountBadge.innerText = "0 New Jobs";
         return;
