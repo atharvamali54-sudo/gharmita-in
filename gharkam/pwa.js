@@ -702,18 +702,29 @@ window.GharmitraPush = (function() {
         } catch(e) {}
     }
 
-    async function showSystemNotification(title, body, targetUrl, tag, extraOptions = {}) {
-        playAlertSound();
-        triggerVibration();
+    async function showSystemNotification(titleOrObj, body, targetUrl, tag, extraOptions = {}) {
+        let title = titleOrObj;
+        if (typeof titleOrObj === 'object' && titleOrObj !== null) {
+            body = titleOrObj.body || body || '';
+            targetUrl = titleOrObj.url || titleOrObj.targetUrl || targetUrl || window.location.href;
+            tag = titleOrObj.tag || tag || ('gk-alert-' + Date.now());
+            extraOptions = Object.assign({}, titleOrObj.options || {}, extraOptions);
+            title = titleOrObj.title || 'घरमित्र (Gharmitra) अपडेट';
+        }
 
+        // Native mobile vibration
+        triggerVibration([250, 100, 250, 100, 300]);
+
+        // silent: false instructs Android / iOS to play the device's native notification ringtone
         const options = Object.assign({
             body: body || '',
             icon: './icons/icon-192x192.png',
             badge: './icons/favicon.png',
-            vibrate: [300, 150, 300, 150, 400],
+            vibrate: [250, 100, 250, 100, 300],
             tag: tag || ('gk-alert-' + Date.now()),
             renotify: true,
             requireInteraction: true,
+            silent: false, // Mobile system notification sound
             data: {
                 url: targetUrl || window.location.href,
                 timestamp: Date.now()

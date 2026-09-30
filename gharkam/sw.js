@@ -3,7 +3,7 @@
 // Cache Version: gharmitra-pwa-v1
 // =========================================================
 
-const CACHE_NAME = 'gharmitra-pwa-v49';
+const CACHE_NAME = 'gharmitra-pwa-v50';
 
 const STATIC_ASSETS = [
     './',
@@ -132,6 +132,7 @@ self.addEventListener('push', (event) => {
         tag: tag,
         renotify: true,
         requireInteraction: true,
+        silent: false, // Triggers native mobile OS system notification sound
         data: {
             url: targetUrl,
             orderId: payload.orderId || null,
@@ -190,7 +191,8 @@ self.addEventListener('message', (event) => {
             badge: './icons/favicon.png',
             vibrate: [250, 100, 250, 100, 300],
             requireInteraction: true,
-            renotify: true
+            renotify: true,
+            silent: false // Triggers native mobile OS system notification sound
         }, event.data.options || {});
 
         event.waitUntil(
