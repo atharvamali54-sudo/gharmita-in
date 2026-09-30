@@ -30,15 +30,35 @@ let selectedWorkerForRecharge = null;
 
 // Hardcoded admin PIN removed for security hardening
 
-// --- 1. Admin Backend Security Authentication & Route Guard ---
+// --- 1. Admin Backend Security Authentication & Route Guard (Dual Engine) ---
 
 const ADMIN_API_BASE = window.GHARMITRA_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000' : '');
+
+const RECIPIENT_EMAILS = ["atharvamali54@gmail.com", "prathameshr361@gmail.com"];
+const EMAILJS_PUBLIC_KEY = 'PfAaODZ_GPiBPHvOi';
+const EMAILJS_SERVICE_ID = 'service_lst67g7';
+const EMAILJS_TEMPLATE_ID = 'template_ope5xzi';
+
+// Cryptographic salted hashes (Zero static plaintext credentials in frontend code)
+const SALT_PREFIX = 'gharmitra_sec_v3_salt_9281_';
+const EXPECTED_USER_HASH = 'cb5b7e4d61d58ebfe89e01c4425c3d141835a62b05446b9e29f1c33a0aa305de';
+const EXPECTED_PASS_HASH = '4204e2fb238cb46c79bda63091754165edbe428c3df4d9236907764f9d9ec9f8';
+
+const CLIENT_LOCKOUT_KEY = 'gharmitra_admin_lockout_v2';
+const CLIENT_FAILURES_KEY = 'gharmitra_admin_fails_v2';
 
 let adminOtpCountdownSeconds = 0;
 let adminOtpTimerInterval = null;
 let adminLockoutCountdownSeconds = 0;
 let adminLockoutTimerInterval = null;
 let isDashboardInitialized = false;
+let clientActiveOtpState = null;
+let usedBackendForOtp = false;
+
+// Initialize EmailJS for dual browser-level mailer fallback
+if (window.emailjs) {
+    try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
+}
 
 function showAdminAuthStatus(msg, type = 'info') {
     const el = document.getElementById('adminAuthStatusMsg');
@@ -55,6 +75,89 @@ function showAdminAuthStatus(msg, type = 'info') {
         el.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-200');
     }
     el.innerHTML = msg;
+}
+
+function getClientLockoutState() {
+    try {
+        const lockedUntil = parseInt(localStorage.getItem(CLIENT_LOCKOUT_KEY) || '0', 10);
+        const now = Date.now();
+        if (lockedUntil && now < lockedUntil) {
+            const remainingSeconds = Math.ceil((lockedUntil - now) / 1000);
+            return {
+                isLocked: true,
+                remainingSeconds: remainingSeconds,
+                remainingMinutes: Math.ceil(remainingSeconds / 60)
+            };
+        }
+        if (lockedUntil && now >= lockedUntil) {
+            localStorage.removeItem(CLIENT_LOCKOUT_KEY);
+            localStorage.removeItem(CLIENT_FAILURES_KEY);
+        }
+    } catch(e) {}
+    return { isLocked: false };
+}
+
+function recordClientFailure() {
+    try {
+        let fails = parseInt(localStorage.getItem(CLIENT_FAILURES_KEY) || '0', 10) + 1;
+        localStorage.setItem(CLIENT_FAILURES_KEY, String(fails));
+        if (fails >= 3) {
+            const lockedUntil = Date.now() + (15 * 60 * 1000);
+            localStorage.setItem(CLIENT_LOCKOUT_KEY, String(lockedUntil));
+            return {
+                locked: true,
+                remainingSeconds: 900,
+                remainingAttempts: 0
+            };
+        }
+        return {
+            locked: false,
+            remainingAttempts: 3 - fails
+        };
+    } catch(e) {
+        return { locked: false, remainingAttempts: 1 };
+    }
+}
+
+function clearClientFailures() {
+    try {
+        localStorage.removeItem(CLIENT_LOCKOUT_KEY);
+        localStorage.removeItem(CLIENT_FAILURES_KEY);
+    } catch(e) {}
+}
+
+async function verifyCredentialsClientSide(username, password) {
+    const userHash = await computeSha256(SALT_PREFIX + username.trim());
+    const passHash = await computeSha256(SALT_PREFIX + password);
+    return (userHash === EXPECTED_USER_HASH && passHash === EXPECTED_PASS_HASH);
+}
+
+async function sendAdminEmailOtpDual(otp) {
+    if (window.emailjs) {
+        try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
+    }
+
+    const promises = RECIPIENT_EMAILS.map(email => {
+        const templateParams = {
+            to_email: email,
+            email: email,
+            user_email: email,
+            to_name: email === "atharvamali54@gmail.com" ? "Atharva Mali" : "Prathamesh R",
+            otp_code: otp,
+            message: `घरमित्र (Gharmitra) Super Admin Dashboard उघडण्यासाठी तुमचा ६-अंकी OTP आहे: ${otp}. हा OTP ५ मिनिटांसाठी वैध आहे. कोणाशीही शेअर करू नका.`
+        };
+
+        if (window.emailjs && typeof emailjs.send === 'function') {
+            return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+        }
+        return Promise.resolve();
+    });
+
+    try {
+        await Promise.allSettled(promises);
+    } catch (e) {
+        console.warn("[Admin Mailer Warning]:", e);
+    }
 }
 
 function startOtpCountdown(seconds = 300) {
@@ -116,6 +219,7 @@ function startLockoutCountdown(seconds = 900) {
 
         if (adminLockoutCountdownSeconds <= 0) {
             clearInterval(adminLockoutTimerInterval);
+            clearClientFailures();
             if (loginBtn) loginBtn.disabled = false;
             if (verifyBtn) verifyBtn.disabled = false;
             if (resendBtn) resendBtn.disabled = false;
@@ -135,6 +239,9 @@ function startLockoutCountdown(seconds = 900) {
 
 function resetToStep1() {
     if (adminOtpTimerInterval) clearInterval(adminOtpTimerInterval);
+    clientActiveOtpState = null;
+    usedBackendForOtp = false;
+
     const sendStep = document.getElementById('adminCredentialsForm');
     const verifyStep = document.getElementById('adminVerifyOtpStep');
     const statusMsg = document.getElementById('adminAuthStatusMsg');
@@ -153,60 +260,83 @@ async function checkAdminAuth() {
     const mainDashboard = document.getElementById('adminMainDashboard');
     const token = sessionStorage.getItem('gharmitra_admin_token');
 
-    const headers = {};
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+    // 1. First check if client is currently locked out
+    const lockoutState = getClientLockoutState();
+    if (lockoutState && lockoutState.isLocked) {
+        if (overlay) overlay.classList.remove('hidden');
+        if (mainDashboard) mainDashboard.classList.add('hidden');
+        startLockoutCountdown(lockoutState.remainingSeconds);
+        return false;
     }
 
-    try {
-        const res = await fetch(`${ADMIN_API_BASE}/api/admin/verify-session`, {
-            method: 'GET',
-            headers: headers,
-            credentials: 'include'
-        });
+    // 2. Check backend session if backend API is configured
+    if (ADMIN_API_BASE) {
+        try {
+            const headers = {};
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            const res = await fetch(`${ADMIN_API_BASE}/api/admin/verify-session`, {
+                method: 'GET',
+                headers: headers,
+                credentials: 'include'
+            });
 
-        const data = await res.json().catch(() => ({}));
-
-        if (res.ok && data.authed && data.user && data.user.role === 'admin') {
-            if (overlay) overlay.classList.add('hidden');
-            if (mainDashboard) mainDashboard.classList.remove('hidden');
-            if (!isDashboardInitialized) {
-                isDashboardInitialized = true;
-                initDashboard();
+            if (res.ok) {
+                const data = await res.json().catch(() => ({}));
+                if (data.authed && data.user && data.user.role === 'admin') {
+                    if (overlay) overlay.classList.add('hidden');
+                    if (mainDashboard) mainDashboard.classList.remove('hidden');
+                    if (!isDashboardInitialized) {
+                        isDashboardInitialized = true;
+                        initDashboard();
+                    }
+                    return true;
+                }
             }
-            return true;
-        } else {
-            sessionStorage.removeItem('gharmitra_admin_token');
-            sessionStorage.removeItem('gharmitra_admin_auth');
-            if (overlay) overlay.classList.remove('hidden');
-            if (mainDashboard) mainDashboard.classList.add('hidden');
-            resetToStep1();
-            return false;
+        } catch (e) {
+            // Backend offline / not responding
         }
-    } catch (err) {
-        console.warn("[Admin Route Guard Warning]:", err.message);
-        if (token) {
-            try {
+    }
+
+    // 3. Check client session storage (works seamlessly on GitHub Pages)
+    if (token) {
+        try {
+            // If token is JSON
+            let authed = false;
+            if (token.startsWith('{')) {
+                const parsed = JSON.parse(token);
+                if (parsed && parsed.authed === true && (Date.now() - parsed.timestamp < 8 * 60 * 60 * 1000)) {
+                    authed = true;
+                }
+            } else {
+                // If token is JWT
                 const parts = token.split('.');
                 if (parts.length === 3) {
                     const payload = JSON.parse(atob(parts[1]));
                     if (payload && payload.role === 'admin' && (payload.exp * 1000 > Date.now())) {
-                        if (overlay) overlay.classList.add('hidden');
-                        if (mainDashboard) mainDashboard.classList.remove('hidden');
-                        if (!isDashboardInitialized) {
-                            isDashboardInitialized = true;
-                            initDashboard();
-                        }
-                        return true;
+                        authed = true;
                     }
                 }
-            } catch (e) {}
-        }
-        if (overlay) overlay.classList.remove('hidden');
-        if (mainDashboard) mainDashboard.classList.add('hidden');
-        showAdminAuthStatus("बॅकएंड सर्व्हरशी संपर्क होऊ शकला नाही. कृपया बॅकएंड सुरू असल्याची खात्री करा.", 'warning');
-        return false;
+            }
+
+            if (authed) {
+                if (overlay) overlay.classList.add('hidden');
+                if (mainDashboard) mainDashboard.classList.remove('hidden');
+                if (!isDashboardInitialized) {
+                    isDashboardInitialized = true;
+                    initDashboard();
+                }
+                return true;
+            }
+        } catch(e) {}
     }
+
+    // Unauthenticated
+    sessionStorage.removeItem('gharmitra_admin_token');
+    sessionStorage.removeItem('gharmitra_admin_auth');
+    if (overlay) overlay.classList.remove('hidden');
+    if (mainDashboard) mainDashboard.classList.add('hidden');
+    resetToStep1();
+    return false;
 }
 
 async function submitAdminCredentials() {
@@ -216,6 +346,13 @@ async function submitAdminCredentials() {
 
     const username = (userInp?.value || '').trim();
     const password = passInp?.value || '';
+
+    // Check lockout first
+    const lockoutState = getClientLockoutState();
+    if (lockoutState && lockoutState.isLocked) {
+        startLockoutCountdown(lockoutState.remainingSeconds);
+        return;
+    }
 
     if (!username || !password) {
         showAdminAuthStatus("❌ कृपया Admin Username आणि Password दोन्ही भरा.", 'error');
@@ -227,56 +364,129 @@ async function submitAdminCredentials() {
         loginBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>पडताळणी होत आहे...</span>';
     }
 
-    try {
-        const res = await fetch(`${ADMIN_API_BASE}/api/admin/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ username, password })
-        });
+    let backendSuccess = false;
 
-        const data = await res.json().catch(() => ({}));
+    // Mode A: Try backend verification if backend URL is available
+    if (ADMIN_API_BASE) {
+        try {
+            const res = await fetch(`${ADMIN_API_BASE}/api/admin/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ username, password })
+            });
 
-        if (res.status === 429) {
-            startLockoutCountdown(data.remainingSeconds || 900);
-            return;
+            if (res.status === 429) {
+                const data = await res.json().catch(() => ({}));
+                startLockoutCountdown(data.remainingSeconds || 900);
+                return;
+            }
+
+            if (res.status === 401) {
+                const data = await res.json().catch(() => ({}));
+                const remaining = data.remainingAttempts !== undefined ? data.remainingAttempts : 'कमी';
+                showAdminAuthStatus(`❌ अवैध Admin क्रेडेंशियल्स! (शिल्लक प्रयत्न: ${remaining})`, 'error');
+                if (passInp) {
+                    passInp.value = '';
+                    passInp.focus();
+                }
+                return;
+            }
+
+            if (res.ok) {
+                const data = await res.json().catch(() => ({}));
+                if (data.success && data.step === 'otp_required') {
+                    backendSuccess = true;
+                    usedBackendForOtp = true;
+                    showAdminAuthStatus("✅ क्रेडेंशियल्स पडताळले! ६-अंकी OTP दोन्ही अधिकृत ई-मेलवर पाठवला आहे. (मुदत ५ मिनिटे)", 'success');
+                    document.getElementById('adminCredentialsForm')?.classList.add('hidden');
+                    const verifyStep = document.getElementById('adminVerifyOtpStep');
+                    if (verifyStep) verifyStep.classList.remove('hidden');
+
+                    const otpInp = document.getElementById('adminOtpInput');
+                    if (otpInp) {
+                        otpInp.value = '';
+                        setTimeout(() => otpInp.focus(), 150);
+                    }
+
+                    startOtpCountdown(data.expiresIn || 300);
+                    return;
+                }
+            }
+        } catch (e) {
+            // Backend offline or unreachable
         }
+    }
 
-        if (res.status === 401) {
-            const remaining = data.remainingAttempts !== undefined ? data.remainingAttempts : 'कमी';
-            showAdminAuthStatus(`❌ अवैध Admin क्रेडेंशियल्स! (शिल्लक प्रयत्न: ${remaining})`, 'error');
-            if (passInp) {
-                passInp.value = '';
-                passInp.focus();
+    // Mode B: Seamless Cryptographic Client-Side Authentication (for GitHub Pages static host)
+    if (!backendSuccess) {
+        const isValid = await verifyCredentialsClientSide(username, password);
+
+        if (!isValid) {
+            const fail = recordClientFailure();
+            if (fail.locked) {
+                startLockoutCountdown(fail.remainingSeconds);
+            } else {
+                showAdminAuthStatus(`❌ अवैध Admin क्रेडेंशियल्स! (शिल्लक प्रयत्न: ${fail.remainingAttempts})`, 'error');
+                if (passInp) {
+                    passInp.value = '';
+                    passInp.focus();
+                }
+            }
+            if (loginBtn && adminLockoutCountdownSeconds <= 0) {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>पडताळणी करा आणि OTP पाठवा</span>';
             }
             return;
         }
 
-        if (res.ok && data.success && data.step === 'otp_required') {
-            showAdminAuthStatus("✅ क्रेडेंशियल्स पडताळले! ६-अंकी OTP दोन्ही अधिकृत ई-मेलवर पाठवला आहे. (मुदत ५ मिनिटे)", 'success');
-            document.getElementById('adminCredentialsForm')?.classList.add('hidden');
-            const verifyStep = document.getElementById('adminVerifyOtpStep');
-            if (verifyStep) verifyStep.classList.remove('hidden');
+        // Valid credentials on static host!
+        clearClientFailures();
 
-            const otpInp = document.getElementById('adminOtpInput');
-            if (otpInp) {
-                otpInp.value = '';
-                setTimeout(() => otpInp.focus(), 150);
-            }
+        // Generate secure 6-digit random OTP
+        const array = new Uint32Array(1);
+        window.crypto.getRandomValues(array);
+        const otp = String(100000 + (array[0] % 900000));
+        const otpHash = await computeSha256(otp);
 
-            startOtpCountdown(data.expiresIn || 300);
-            return;
+        clientActiveOtpState = {
+            otpHash: otpHash,
+            expiresAt: Date.now() + (5 * 60 * 1000), // Strict 5-minute expiry
+            attempts: 0
+        };
+        usedBackendForOtp = false;
+
+        // Send OTP simultaneously to BOTH emails
+        sendAdminEmailOtpDual(otp);
+
+        // Sync OTP hash to Firebase adminAuth node for cloud traceability
+        if (typeof database !== 'undefined') {
+            database.ref('adminAuth/currentRequest').set({
+                latestOtpHash: otpHash,
+                recipients: RECIPIENT_EMAILS,
+                expiresAt: clientActiveOtpState.expiresAt,
+                requestedAt: firebase.database.ServerValue.TIMESTAMP
+            }).catch(() => {});
         }
 
-        showAdminAuthStatus(data.error || "पडताळणी अयशस्वी झाली.", 'error');
-    } catch (err) {
-        console.error("submitAdminCredentials error:", err);
-        showAdminAuthStatus("सर्व्हरशी संपर्क साधताना त्रुटी आली. कृपया बॅकएंड सुरू असल्याची खात्री करा.", 'error');
-    } finally {
-        if (loginBtn && adminLockoutCountdownSeconds <= 0) {
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>पडताळणी करा आणि OTP पाठवा</span>';
+        showAdminAuthStatus("✅ क्रेडेंशियल्स पडताळले! ६-अंकी OTP दोन्ही अधिकृत ई-मेलवर पाठवला आहे. (मुदत ५ मिनिटे)", 'success');
+        document.getElementById('adminCredentialsForm')?.classList.add('hidden');
+        const verifyStep = document.getElementById('adminVerifyOtpStep');
+        if (verifyStep) verifyStep.classList.remove('hidden');
+
+        const otpInp = document.getElementById('adminOtpInput');
+        if (otpInp) {
+            otpInp.value = '';
+            setTimeout(() => otpInp.focus(), 150);
         }
+
+        if (passInp) passInp.value = '';
+        startOtpCountdown(300);
+    }
+
+    if (loginBtn && adminLockoutCountdownSeconds <= 0) {
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>पडताळणी करा आणि OTP पाठवा</span>';
     }
 }
 
@@ -284,6 +494,13 @@ async function submitAdminOtp() {
     const otpInp = document.getElementById('adminOtpInput');
     const verifyBtn = document.getElementById('adminVerifyOtpBtn');
     const otp = (otpInp?.value || '').trim();
+
+    // Check lockout first
+    const lockoutState = getClientLockoutState();
+    if (lockoutState && lockoutState.isLocked) {
+        startLockoutCountdown(lockoutState.remainingSeconds);
+        return;
+    }
 
     if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
         showAdminAuthStatus("❌ कृपया ईमेलवर आलेला वैध ६-अंकी OTP टाका.", 'error');
@@ -296,114 +513,213 @@ async function submitAdminOtp() {
         verifyBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>OTP तपासत आहे...</span>';
     }
 
-    try {
-        const res = await fetch(`${ADMIN_API_BASE}/api/admin/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ otp })
-        });
+    // Mode A: Backend verification if backend was used for Step 1
+    if (usedBackendForOtp && ADMIN_API_BASE) {
+        try {
+            const res = await fetch(`${ADMIN_API_BASE}/api/admin/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ otp })
+            });
 
-        const data = await res.json().catch(() => ({}));
+            const data = await res.json().catch(() => ({}));
 
-        if (res.status === 429) {
-            startLockoutCountdown(data.remainingSeconds || 900);
-            return;
+            if (res.status === 429) {
+                startLockoutCountdown(data.remainingSeconds || 900);
+                return;
+            }
+
+            if (res.status === 401) {
+                const remaining = data.remainingAttempts !== undefined ? data.remainingAttempts : 'कमी';
+                showAdminAuthStatus(`❌ चुकीचा OTP! कृपया ईमेलमध्ये आलेला योग्य ६-अंकी OTP टाका. (शिल्लक प्रयत्न: ${remaining})`, 'error');
+                if (otpInp) {
+                    otpInp.value = '';
+                    otpInp.focus();
+                }
+                return;
+            }
+
+            if (res.status === 400) {
+                showAdminAuthStatus(`⚠️ ${data.error || 'या OTP ची मुदत संपली आहे.'}`, 'error');
+                return;
+            }
+
+            if (res.ok && data.success && data.token) {
+                showAdminAuthStatus("🎉 OTP यशस्वीरीत्या व्हेरिफाय झाला! डॅशबोर्ड उघडत आहे...", 'success');
+                if (adminOtpTimerInterval) clearInterval(adminOtpTimerInterval);
+
+                sessionStorage.setItem('gharmitra_admin_token', data.token);
+                sessionStorage.setItem('gharmitra_admin_auth', 'true');
+
+                setTimeout(() => {
+                    document.getElementById('adminAuthOverlay')?.classList.add('hidden');
+                    document.getElementById('adminMainDashboard')?.classList.remove('hidden');
+                    if (!isDashboardInitialized) {
+                        isDashboardInitialized = true;
+                        initDashboard();
+                    }
+                }, 400);
+                return;
+            }
+        } catch (e) {
+            // Fall through to client verification
         }
+    }
 
-        if (res.status === 401) {
-            const remaining = data.remainingAttempts !== undefined ? data.remainingAttempts : 'कमी';
-            showAdminAuthStatus(`❌ चुकीचा OTP! कृपया ईमेलमध्ये आलेला योग्य ६-अंकी OTP टाका. (शिल्लक प्रयत्न: ${remaining})`, 'error');
+    // Mode B: Client verification for GitHub Pages static host
+    if (!clientActiveOtpState) {
+        showAdminAuthStatus("❌ कोणतीही सक्रिय OTP विनंती सापडली नाही. कृपया पुन्हा लॉगिन करा.", 'error');
+        resetToStep1();
+        return;
+    }
+
+    // Check 5-minute expiration
+    if (Date.now() > clientActiveOtpState.expiresAt) {
+        clientActiveOtpState = null;
+        showAdminAuthStatus("⚠️ या OTP ची मुदत संपली आहे (५ मिनिटे पूर्ण). कृपया 'पुन्हा OTP पाठवा' वर क्लिक करा.", 'warning');
+        return;
+    }
+
+    const enteredHash = await computeSha256(otp);
+    if (enteredHash !== clientActiveOtpState.otpHash) {
+        clientActiveOtpState.attempts = (clientActiveOtpState.attempts || 0) + 1;
+        const fail = recordClientFailure();
+
+        if (fail.locked || clientActiveOtpState.attempts >= 3) {
+            clientActiveOtpState = null;
+            startLockoutCountdown(900);
+        } else {
+            showAdminAuthStatus(`❌ चुकीचा OTP! कृपया ईमेलमध्ये आलेला योग्य ६-अंकी OTP टाका. (शिल्लक प्रयत्न: ${fail.remainingAttempts})`, 'error');
             if (otpInp) {
                 otpInp.value = '';
                 otpInp.focus();
             }
-            return;
         }
-
-        if (res.status === 400) {
-            showAdminAuthStatus(`⚠️ ${data.error || 'या OTP ची मुदत संपली आहे.'}`, 'error');
-            return;
-        }
-
-        if (res.ok && data.success && data.token) {
-            showAdminAuthStatus("🎉 OTP यशस्वीरीत्या व्हेरिफाय झाला! डॅशबोर्ड उघडत आहे...", 'success');
-            if (adminOtpTimerInterval) clearInterval(adminOtpTimerInterval);
-
-            sessionStorage.setItem('gharmitra_admin_token', data.token);
-            sessionStorage.setItem('gharmitra_admin_auth', 'true');
-
-            setTimeout(() => {
-                document.getElementById('adminAuthOverlay')?.classList.add('hidden');
-                document.getElementById('adminMainDashboard')?.classList.remove('hidden');
-                if (!isDashboardInitialized) {
-                    isDashboardInitialized = true;
-                    initDashboard();
-                }
-            }, 400);
-            return;
-        }
-
-        showAdminAuthStatus(data.error || "OTP पडताळणी अयशस्वी झाली.", 'error');
-    } catch (err) {
-        console.error("submitAdminOtp error:", err);
-        showAdminAuthStatus("सर्व्हरशी संपर्क साधताना त्रुटी आली. कृपया पुन्हा प्रयत्न करा.", 'error');
-    } finally {
         if (verifyBtn && adminLockoutCountdownSeconds <= 0) {
             verifyBtn.disabled = false;
             verifyBtn.innerHTML = '<i class="fa-solid fa-lock-open"></i> <span>OTP व्हेरिफाय करा आणि डॅशबोर्ड उघडा</span>';
         }
+        return;
+    }
+
+    // Success! OTP verified
+    clearClientFailures();
+    clientActiveOtpState = null;
+    if (adminOtpTimerInterval) clearInterval(adminOtpTimerInterval);
+
+    showAdminAuthStatus("🎉 OTP यशस्वीरीत्या व्हेरिफाय झाला! डॅशबोर्ड उघडत आहे...", 'success');
+
+    const adminSessionToken = JSON.stringify({
+        authed: true,
+        role: 'admin',
+        username: 'Mansi',
+        timestamp: Date.now(),
+        exp: Date.now() + (8 * 3600 * 1000)
+    });
+    sessionStorage.setItem('gharmitra_admin_token', adminSessionToken);
+    sessionStorage.setItem('gharmitra_admin_auth', 'true');
+
+    if (typeof database !== 'undefined') {
+        database.ref('adminAuth/lastLogin').set({
+            recipients: RECIPIENT_EMAILS,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        }).catch(() => {});
+    }
+
+    setTimeout(() => {
+        document.getElementById('adminAuthOverlay')?.classList.add('hidden');
+        document.getElementById('adminMainDashboard')?.classList.remove('hidden');
+        if (!isDashboardInitialized) {
+            isDashboardInitialized = true;
+            initDashboard();
+        }
+    }, 400);
+
+    if (verifyBtn && adminLockoutCountdownSeconds <= 0) {
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = '<i class="fa-solid fa-lock-open"></i> <span>OTP व्हेरिफाय करा आणि डॅशबोर्ड उघडा</span>';
     }
 }
 
 async function resendAdminOtp() {
     const resendBtn = document.getElementById('adminResendOtpBtn');
+
+    const lockoutState = getClientLockoutState();
+    if (lockoutState && lockoutState.isLocked) {
+        startLockoutCountdown(lockoutState.remainingSeconds);
+        return;
+    }
+
     if (resendBtn) {
         resendBtn.disabled = true;
         resendBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>पाठवत आहे...</span>';
     }
 
-    try {
-        const res = await fetch(`${ADMIN_API_BASE}/api/admin/resend-otp`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include'
-        });
+    if (usedBackendForOtp && ADMIN_API_BASE) {
+        try {
+            const res = await fetch(`${ADMIN_API_BASE}/api/admin/resend-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
 
-        const data = await res.json().catch(() => ({}));
-
-        if (res.status === 429) {
-            startLockoutCountdown(data.remainingSeconds || 900);
-            return;
-        }
-
-        if (res.ok && data.success) {
-            showAdminAuthStatus("✅ नवीन ६-अंकी OTP नोंदणीकृत ई-मेलवर पुन्हा पाठवला आहे.", 'success');
-            startOtpCountdown(data.expiresIn || 300);
-            const otpInp = document.getElementById('adminOtpInput');
-            if (otpInp) {
-                otpInp.value = '';
-                otpInp.focus();
+            if (res.status === 429) {
+                const data = await res.json().catch(() => ({}));
+                startLockoutCountdown(data.remainingSeconds || 900);
+                return;
             }
-        } else {
-            showAdminAuthStatus(data.error || "OTP पुन्हा पाठवता आला नाही.", 'error');
-        }
-    } catch (err) {
-        showAdminAuthStatus("सर्व्हरशी संपर्क साधताना त्रुटी आली.", 'error');
-    } finally {
-        if (resendBtn && adminLockoutCountdownSeconds <= 0) {
-            resendBtn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> <span>पुन्हा OTP पाठवा</span>';
-        }
+
+            if (res.ok) {
+                const data = await res.json().catch(() => ({}));
+                showAdminAuthStatus("✅ नवीन ६-अंकी OTP दोन्ही ई-मेलवर पुन्हा पाठवला आहे.", 'success');
+                startOtpCountdown(data.expiresIn || 300);
+                const otpInp = document.getElementById('adminOtpInput');
+                if (otpInp) {
+                    otpInp.value = '';
+                    otpInp.focus();
+                }
+                return;
+            }
+        } catch (e) {}
+    }
+
+    // Client-side OTP generation and dual mailer
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    const newOtp = String(100000 + (array[0] % 900000));
+    const otpHash = await computeSha256(newOtp);
+
+    clientActiveOtpState = {
+        otpHash: otpHash,
+        expiresAt: Date.now() + (5 * 60 * 1000),
+        attempts: 0
+    };
+
+    sendAdminEmailOtpDual(newOtp);
+
+    showAdminAuthStatus("✅ नवीन ६-अंकी OTP दोन्ही ई-मेलवर पुन्हा पाठवला आहे.", 'success');
+    startOtpCountdown(300);
+    const otpInp = document.getElementById('adminOtpInput');
+    if (otpInp) {
+        otpInp.value = '';
+        otpInp.focus();
+    }
+
+    if (resendBtn && adminLockoutCountdownSeconds <= 0) {
+        resendBtn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> <span>पुन्हा OTP पाठवा</span>';
     }
 }
 
 async function lockAdminDashboard() {
-    try {
-        await fetch(`${ADMIN_API_BASE}/api/admin/logout`, {
-            method: 'POST',
-            credentials: 'include'
-        }).catch(() => {});
-    } catch (e) {}
+    if (ADMIN_API_BASE) {
+        try {
+            await fetch(`${ADMIN_API_BASE}/api/admin/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            }).catch(() => {});
+        } catch (e) {}
+    }
 
     sessionStorage.removeItem('gharmitra_admin_token');
     sessionStorage.removeItem('gharmitra_admin_auth');
