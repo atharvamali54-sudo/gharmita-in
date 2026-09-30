@@ -235,6 +235,19 @@ function startOrderAlert(orderId, orderDetails) {
         alertModal.classList.remove('hidden');
     }
 
+    // Trigger OS-level system push notification (Sound + Vibration on lockscreen/background)
+    if (window.GharmitraPush && typeof window.GharmitraPush.showSystemNotification === 'function') {
+        const srv = (orderDetails && orderDetails.service) ? orderDetails.service : 'नवीन काम';
+        const cost = (orderDetails && orderDetails.budget) ? orderDetails.budget : '₹500';
+        const loc = (orderDetails && orderDetails.area) ? orderDetails.area : 'पुणे';
+        window.GharmitraPush.showSystemNotification({
+            title: `⚡ नवीन ऑर्डर उपलब्ध: ${srv} (${cost})`,
+            body: `पत्ता: ${loc}. त्वरित स्वीकारा आणि आजच कमाई सुरू करा!`,
+            url: 'worker.html',
+            tag: 'order-alert-' + (orderId || 'new')
+        });
+    }
+
     playLoudDeliveryChime();
 
     if (orderAlertInterval) clearInterval(orderAlertInterval);
@@ -755,8 +768,19 @@ function updateKycUI(status, rejectReason) {
 
     const banner = document.getElementById('workerKycStatusBanner');
     const headerBadge = document.getElementById('workerKycHeaderBadge');
-    const headerText = document.getElementById('workerKycHeaderBadgeText');
-    const dutyBtn = document.getElementById('dutyToggleBtn');
+    const prevKycStatus = window._lastWorkerKycStatus;
+    window._lastWorkerKycStatus = currentWorkerVerificationStatus;
+
+    if (prevKycStatus && prevKycStatus !== 'approved' && currentWorkerVerificationStatus === 'approved') {
+        if (window.GharmitraPush && typeof window.GharmitraPush.showSystemNotification === 'function') {
+            window.GharmitraPush.showSystemNotification({
+                title: '🎉 आधार KYC मंजूर झाले!',
+                body: 'अभिनंदन! तुमचे घरमित्र प्रोफाइल मंजूर झाले आहे. तुम्ही आता Duty ON करून काम सुरू करू शकता.',
+                url: 'worker.html',
+                tag: 'kyc-approved'
+            });
+        }
+    }
 
     if (currentWorkerVerificationStatus === 'approved') {
         if (headerBadge) {

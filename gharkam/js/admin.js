@@ -24,6 +24,7 @@ let allOrders = {};
 let allWorkers = {};
 let allUsers = {};
 let allReviews = [];
+let allBroadcastNotifications = {};
 let weeklyChartInstance = null;
 let selectedOrderForModal = null;
 let selectedWorkerForRecharge = null;
@@ -868,10 +869,15 @@ function switchTab(tabId) {
     if (tabId === 'reviewsTab') activeBtnId = 'tabBtnReviews';
     if (tabId === 'societyTab') activeBtnId = 'tabBtnSociety';
     if (tabId === 'settingsTab') activeBtnId = 'tabBtnSettings';
+    if (tabId === 'pushTab') activeBtnId = 'tabBtnPush';
 
     const activeBtn = document.getElementById(activeBtnId);
     if (activeBtn) {
         activeBtn.className = "tab-btn px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 text-white shadow-sm flex items-center gap-2 transition whitespace-nowrap";
+    }
+
+    if (tabId === 'pushTab') {
+        renderAdminPushBroadcastHistory();
     }
 }
 
@@ -912,6 +918,12 @@ function initDashboard() {
         allQualityResolutions = snap.val() || {};
         loadLocalQualityResolutions();
         renderQualityDisputeShield();
+    });
+
+    // 6. Listen to Push Broadcasts
+    database.ref('broadcastNotifications').on('value', (snap) => {
+        allBroadcastNotifications = snap.val() || {};
+        renderAdminPushBroadcastHistory();
     });
 }
 
@@ -3077,12 +3089,232 @@ async function executeForceAssignWorker(orderId, workerUid) {
     }
 }
 
+// =========================================================
+// 8. Admin System Push Notification Broadcaster
+// =========================================================
+
+function applyAdminPushPreset(type) {
+    const titleEl = document.getElementById('pushTitleInput');
+    const bodyEl = document.getElementById('pushBodyInput');
+    const urlEl = document.getElementById('pushUrlInput');
+    const radioWorkers = document.querySelector('input[name="adminPushAudience"][value="WORKERS"]');
+    const radioCustomers = document.querySelector('input[name="adminPushAudience"][value="CUSTOMERS"]');
+    const radioAll = document.querySelector('input[name="adminPushAudience"][value="ALL"]');
+
+    if (!titleEl || !bodyEl) return;
+
+    if (type === 'NEW_JOB') {
+        titleEl.value = '⚡ नवीन घरकाम ऑर्डर उपलब्ध!';
+        bodyEl.value = 'तुमच्या भागात नवीन ऑर्डर आली आहे. त्वरित घरमित्र ॲप उघडा आणि ऑर्डर स्वीकारा!';
+        if (urlEl) urlEl.value = 'worker.html';
+        if (radioWorkers) radioWorkers.checked = true;
+    } else if (type === 'DISCOUNT') {
+        titleEl.value = '🎉 घरमित्र विशेष सवलत धमाका!';
+        bodyEl.value = 'आजच घरातील दुरुस्ती किंवा स्वच्छता सेवा बुक करा आणि मिळवा विशेष सवलत! घरमित्र सोबत घरकाम सोपे करा.';
+        if (urlEl) urlEl.value = 'customer.html';
+        if (radioCustomers) radioCustomers.checked = true;
+    } else if (type === 'KYC') {
+        titleEl.value = '🪪 आधार KYC व्हेरिफिकेशन सूचना';
+        bodyEl.value = 'सर्व कामगारांनी कृपया आपले आधार कार्ड अपलोड करून प्रोफाइल व्हेरिफाय करावे, जेणेकरून तुम्हाला नवीन कामांचे ऑर्डर्स मिळतील.';
+        if (urlEl) urlEl.value = 'worker.html';
+        if (radioWorkers) radioWorkers.checked = true;
+    } else if (type === 'SYSTEM_UPDATE') {
+        titleEl.value = '📢 घरमित्र नवीन अपडेट उपलब्ध!';
+        bodyEl.value = 'सुरक्षितता आणि वेगवान सेवेसाठी नवीन फीचर्स जोडण्यात आले आहेत. घरमित्र वापरल्याबद्दल धन्यवाद!';
+        if (urlEl) urlEl.value = 'index.html';
+        if (radioAll) radioAll.checked = true;
+    }
+
+    toggleAdminPushSpecificMobile();
+    updateAdminPushPreview();
+}
+
+function toggleAdminPushSpecificMobile() {
+    const specificRadio = document.querySelector('input[name="adminPushAudience"][value="SPECIFIC"]');
+    const group = document.getElementById('pushSpecificMobileGroup');
+    if (!group) return;
+    if (specificRadio && specificRadio.checked) {
+        group.classList.remove('hidden');
+    } else {
+        group.classList.add('hidden');
+    }
+}
+
+function updateAdminPushPreview() {
+    const titleVal = (document.getElementById('pushTitleInput')?.value || '').trim();
+    const bodyVal = (document.getElementById('pushBodyInput')?.value || '').trim();
+
+    const previewTitle = document.getElementById('previewPushTitle');
+    const previewBody = document.getElementById('previewPushBody');
+
+    if (previewTitle) previewTitle.textContent = titleVal || '⚡ नवीन घरकाम ऑर्डर उपलब्ध!';
+    if (previewBody) previewBody.textContent = bodyVal || 'तुमच्या भागात नवीन काम आले आहे. लगेच स्वीकारा!';
+}
+
+async function dispatchAdminBroadcastPush() {
+    const titleInput = document.getElementById('pushTitleInput');
+    const bodyInput = document.getElementById('pushBodyInput');
+    const urlInput = document.getElementById('pushUrlInput');
+    const audienceInput = document.querySelector('input[name="adminPushAudience"]:checked');
+    const targetMobileInput = document.getElementById('pushTargetMobile');
+
+    const title = (titleInput?.value || '').trim();
+    const body = (bodyInput?.value || '').trim();
+    const targetUrl = (urlInput?.value || 'index.html').trim();
+    const audience = audienceInput ? audienceInput.value : 'ALL';
+    let targetMobile = (targetMobileInput?.value || '').trim();
+
+    if (!title || !body) {
+        alert('कृपया नोटिफिकेशन शीर्षक (Title) आणि संदेश (Body) दोन्ही भरा.');
+        return;
+    }
+
+    if (audience === 'SPECIFIC') {
+        targetMobile = targetMobile.replace(/[^0-9]/g, '');
+        if (targetMobile.length !== 10) {
+            alert('कृपया अचूक १० अंकी मोबाईल नंबर टाका.');
+            return;
+        }
+    } else {
+        targetMobile = null;
+    }
+
+    const confirmMsg = `तुम्हाला हा पुश नोटिफिकेशन संदेश पाठवायचा आहे का?\n\nशीर्षक: ${title}\nप्रेक्षक: ${audience === 'ALL' ? 'सर्व वापरकर्ते' : (audience === 'WORKERS' ? 'सर्व कामगार' : (audience === 'CUSTOMERS' ? 'सर्व ग्राहक' : targetMobile))}\n\nहा संदेश युझरच्या मोबाईल स्क्रीनवर थेट दिसेल.`;
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        const payload = {
+            title: title,
+            body: body,
+            targetUrl: targetUrl,
+            audience: audience,
+            targetMobile: targetMobile,
+            sender: 'Super Admin',
+            createdAt: Date.now(),
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        };
+
+        await database.ref('broadcastNotifications').push(payload);
+
+        // Also trigger on admin's local device for instant test confirmation
+        if (window.GharmitraPush && typeof window.GharmitraPush.showSystemNotification === 'function') {
+            window.GharmitraPush.showSystemNotification({
+                title: `[ब्रॉडकास्ट पाठवले] ${title}`,
+                body: body,
+                url: targetUrl
+            });
+        }
+
+        alert('🚀 पुश नोटिफिकेशन यशस्वीरित्या ब्रॉडकास्ट झाले!\nसर्व संबंधित डिव्हाइसेसवर काही सेकंदांत सिस्टीम नोटिफिकेशन झळकेल.');
+
+        if (titleInput) titleInput.value = '';
+        if (bodyInput) bodyInput.value = '';
+        updateAdminPushPreview();
+    } catch(err) {
+        console.error('Push Broadcast Error:', err);
+        alert('ब्रॉडकास्ट पाठवताना त्रुटी आली: ' + (err.message || err));
+    }
+}
+
+async function testAdminPushOnDevice() {
+    if (window.GharmitraPush && typeof window.GharmitraPush.testPushNotification === 'function') {
+        window.GharmitraPush.testPushNotification();
+        return;
+    }
+
+    if (!('Notification' in window)) {
+        alert('या ब्राउझरमध्ये पुश नोटिफिकेशन सपोर्ट नाही.');
+        return;
+    }
+
+    if (Notification.permission === 'granted') {
+        try {
+            new Notification('🔔 घरमित्र ॲडमिन टेस्ट अलर्ट', {
+                body: 'तुमच्या डिव्हाइसवर पुश नोटिफिकेशन्स उत्तम रित्या सुरू आहेत!',
+                icon: 'images/logo.png',
+                vibrate: [200, 100, 200]
+            });
+        } catch(e) {
+            alert('टेस्ट नोटिफिकेशन पाठवले!');
+        }
+    } else {
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+            alert('✅ नोटिफिकेशन्स सुरू झाली! आता पुन्हा "टेस्ट करा" वर क्लिक करा.');
+        } else {
+            alert('⚠️ कृपया ब्राउझर सेटिंग्जमधून नोटिफिकेशन्स Allow करा.');
+        }
+    }
+}
+
+function renderAdminPushBroadcastHistory() {
+    const container = document.getElementById('pushBroadcastHistoryContainer');
+    if (!container) return;
+
+    const entries = Object.entries(allBroadcastNotifications || {});
+    if (entries.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-6 text-slate-400 text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <i class="fa-solid fa-bullhorn text-2xl mb-1 text-slate-300"></i>
+                <p>अद्याप कोणताही पुश ब्रॉडकास्ट पाठवला गेलेला नाही.</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Sort descending by timestamp / createdAt
+    entries.sort((a, b) => {
+        const timeA = a[1].createdAt || a[1].timestamp || 0;
+        const timeB = b[1].createdAt || b[1].timestamp || 0;
+        return timeB - timeA;
+    });
+
+    let html = '';
+    entries.slice(0, 20).forEach(([key, item]) => {
+        const timeVal = item.createdAt || item.timestamp || Date.now();
+        const dateStr = new Date(timeVal).toLocaleString('mr-IN', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: true
+        });
+
+        let audBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">सर्व वापरकर्ते</span>';
+        if (item.audience === 'WORKERS') {
+            audBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">👷 सर्व कामगार</span>';
+        } else if (item.audience === 'CUSTOMERS') {
+            audBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">🏠 सर्व ग्राहक</span>';
+        } else if (item.audience === 'SPECIFIC') {
+            audBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">📱 ${item.targetMobile || 'विशिष्ट'}</span>`;
+        }
+
+        html += `
+            <div class="p-3.5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200 transition flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-bold text-xs text-slate-800">${item.title || 'शीर्षक नाही'}</span>
+                        ${audBadge}
+                        <span class="text-[10px] text-slate-400"><i class="fa-regular fa-clock"></i> ${dateStr}</span>
+                    </div>
+                    <p class="text-xs text-slate-600 line-clamp-2">${item.body || '-'}</p>
+                    ${item.targetUrl ? `<span class="text-[10px] text-blue-500 font-mono">🔗 ${item.targetUrl}</span>` : ''}
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200 whitespace-nowrap">
+                        <i class="fa-solid fa-check-double"></i> पाठवले
+                    </span>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
 // --- Initialize on Page Load ---
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminAuth();
 });
 
-// Global window bindings for Admin Auth, Route Guard, Invoices & SOS Force Assign
+// Global window bindings for Admin Auth, Route Guard, Invoices, SOS Force Assign & Push Broadcast
 window.submitAdminCredentials = submitAdminCredentials;
 window.submitAdminOtp = submitAdminOtp;
 window.resendAdminOtp = resendAdminOtp;
@@ -3105,3 +3337,9 @@ window.scrollToQualityShield = scrollToQualityShield;
 window.toggleQualityShieldHistory = toggleQualityShieldHistory;
 window.resolveQualityAlert = resolveQualityAlert;
 window.suspendWorkerFromShield = suspendWorkerFromShield;
+window.applyAdminPushPreset = applyAdminPushPreset;
+window.toggleAdminPushSpecificMobile = toggleAdminPushSpecificMobile;
+window.updateAdminPushPreview = updateAdminPushPreview;
+window.dispatchAdminBroadcastPush = dispatchAdminBroadcastPush;
+window.testAdminPushOnDevice = testAdminPushOnDevice;
+window.renderAdminPushBroadcastHistory = renderAdminPushBroadcastHistory;

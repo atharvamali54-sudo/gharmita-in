@@ -580,3 +580,273 @@ if (window.matchMedia) {
     const shield = document.getElementById('securityScreenShield');
     if (shield) shield.remove();
 })();
+
+// =========================================================
+// 12. Gharmitra Native Web Push & Background Notification Bridge
+// Enables OS-level sound, vibration, lock-screen alerts
+// even when the website or PWA is closed / in background!
+// =========================================================
+window.GharmitraPush = (function() {
+    let swRegistration = null;
+
+    async function getRegistration() {
+        if (swRegistration) return swRegistration;
+        if ('serviceWorker' in navigator) {
+            try {
+                swRegistration = await navigator.serviceWorker.ready;
+                return swRegistration;
+            } catch(e) {}
+        }
+        return null;
+    }
+
+    function isSupported() {
+        return ('Notification' in window) && ('serviceWorker' in navigator);
+    }
+
+    function getPermission() {
+        if (!('Notification' in window)) return 'unsupported';
+        return Notification.permission;
+    }
+
+    function playAlertSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.4);
+        } catch(e) {}
+    }
+
+    function triggerVibration(pattern = [250, 100, 250, 100, 300]) {
+        try {
+            if (navigator.vibrate) {
+                navigator.vibrate(pattern);
+            }
+        } catch(e) {}
+    }
+
+    async function requestPermission(onGrantedCallback) {
+        if (!isSupported()) {
+            alert("आपला ब्राउझर पुश नोटिफिकेशन्सना सपोर्ट करत नाही.");
+            return false;
+        }
+
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                updateBannerUI();
+                savePushSubscriber();
+                
+                // Show Welcome System Notification
+                showSystemNotification(
+                    "🎉 घरमित्र नोटिफिकेशन्स सुरू झाले!",
+                    "आता ॲप बंद असतानाही आपल्याला नवीन कामे आणि ऑर्डरचे थेट अलर्ट्स मिळतील.",
+                    window.location.href,
+                    "welcome-alert"
+                );
+
+                if (typeof onGrantedCallback === 'function') onGrantedCallback();
+                return true;
+            } else if (permission === 'denied') {
+                alert("⚠️ नोटिफिकेशन्स ब्लॉक केले आहेत. कृपया ब्राउझरच्या साईट सेटिंग्जमधून परवानगी Allow करा.");
+                return false;
+            }
+        } catch(e) {
+            console.warn("Notification permission error:", e);
+        }
+        return false;
+    }
+
+    async function savePushSubscriber() {
+        try {
+            if (typeof database === 'undefined') return;
+            const reg = await getRegistration();
+            if (!reg) return;
+
+            let subData = null;
+            try {
+                const sub = await reg.pushManager.getSubscription();
+                if (sub) subData = JSON.parse(JSON.stringify(sub));
+            } catch(e) {}
+
+            let currentMobile = '';
+            try {
+                const s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+                currentMobile = s.mobile || '';
+            } catch(e) {}
+
+            const path = window.location.pathname;
+            const role = path.includes('worker') ? 'worker' : (path.includes('customer') ? 'customer' : 'user');
+
+            const subscriberId = currentMobile ? ('mob_' + currentMobile) : ('dev_' + Math.random().toString(36).substring(2, 10));
+
+            database.ref('pushSubscribers/' + subscriberId).set({
+                id: subscriberId,
+                mobile: currentMobile || null,
+                role: role,
+                page: path,
+                permission: Notification.permission,
+                subscription: subData,
+                userAgent: navigator.userAgent,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            }).catch(() => {});
+        } catch(e) {}
+    }
+
+    async function showSystemNotification(title, body, targetUrl, tag, extraOptions = {}) {
+        playAlertSound();
+        triggerVibration();
+
+        const options = Object.assign({
+            body: body || '',
+            icon: './icons/icon-192x192.png',
+            badge: './icons/favicon.png',
+            vibrate: [300, 150, 300, 150, 400],
+            tag: tag || ('gk-alert-' + Date.now()),
+            renotify: true,
+            requireInteraction: true,
+            data: {
+                url: targetUrl || window.location.href,
+                timestamp: Date.now()
+            },
+            actions: [
+                { action: 'open_app', title: '📲 ॲप उघडा' },
+                { action: 'dismiss', title: '✕ बंद करा' }
+            ]
+        }, extraOptions);
+
+        // 1. Primary: Show via Service Worker (Works even when app is in background / closed)
+        const reg = await getRegistration();
+        if (reg && reg.showNotification) {
+            try {
+                await reg.showNotification(title, options);
+                return;
+            } catch(e) {
+                console.warn("ServiceWorker showNotification fallback:", e);
+            }
+        }
+
+        // 2. Fallback: Native Window Notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                const n = new Notification(title, options);
+                n.onclick = function() {
+                    window.focus();
+                    n.close();
+                };
+            } catch(e) {}
+        }
+    }
+
+    function testPushNotification(role = 'user') {
+        const title = role === 'worker'
+            ? "⚡ नवीन काम उपलब्ध! ₹500"
+            : (role === 'customer' ? "🚗 कारागीर आपल्या घराकडे निघाला आहे!" : "🏠 घरमित्र टेस्ट पुश अलर्ट!");
+        const body = role === 'worker'
+            ? "कोथरूड, पुणे येथे दीप क्लिनिंगचे काम आले आहे. स्वीकारण्यासाठी त्वरित टॅप करा."
+            : (role === 'customer' ? "सचिन शिंदे (प्लंबर) ५ मिनिटांत पोहोचत आहेत. स्टार्ट पिन तयार ठेवा." : "हे एक टेस्ट नोटिफिकेशन आहे. आपली सिस्टीम यशस्वीरित्या कार्यरत आहे!");
+
+        if (Notification.permission !== 'granted') {
+            requestPermission(() => {
+                showSystemNotification(title, body, window.location.href, 'test-push');
+            });
+            return;
+        }
+
+        showSystemNotification(title, body, window.location.href, 'test-push');
+        alert("📲 टेस्ट नोटिफिकेशन पाठवले आहे!\n\nहे पाहण्यासाठी मोबाईलची स्क्रीन लॉक करा किंवा ॲप मिनिमाईज करा; नोटिफिकेशन बारमध्ये आवाज व व्हायब्रेशनसह हे नोटिफिकेशन दिसेल.");
+    }
+
+    function updateBannerUI() {
+        const banner = document.getElementById('appPushNotificationBanner');
+        if (!banner) return;
+        if (Notification.permission === 'granted') {
+            banner.classList.add('hidden');
+        } else if (Notification.permission === 'default') {
+            const isDismissed = sessionStorage.getItem('gharmitra_push_banner_dismissed');
+            if (!isDismissed) {
+                banner.classList.remove('hidden');
+            }
+        } else {
+            banner.classList.add('hidden');
+        }
+    }
+
+    function dismissBanner() {
+        const banner = document.getElementById('appPushNotificationBanner');
+        if (banner) banner.classList.add('hidden');
+        try { sessionStorage.setItem('gharmitra_push_banner_dismissed', 'true'); } catch(e) {}
+    }
+
+    // 4. Real-time Firebase Broadcast Notifications Listener
+    function initBroadcastListener(role) {
+        if (typeof database === 'undefined') return;
+
+        database.ref('broadcastNotifications').limitToLast(1).on('child_added', (snap) => {
+            const b = snap.val();
+            if (!b) return;
+
+            // Only fire if created recently (within last 60 seconds)
+            const created = Number(b.timestamp || b.createdAt || 0);
+            if (created && (Date.now() - created) > 60000) return;
+
+            let currentMobile = '';
+            try {
+                const s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+                currentMobile = String(s.mobile || '').replace(/\D/g, '').slice(-10);
+            } catch(e) {}
+
+            let isAudience = false;
+            if (b.audience === 'ALL') isAudience = true;
+            else if (b.audience === 'WORKERS' && role === 'worker') isAudience = true;
+            else if (b.audience === 'CUSTOMERS' && role === 'customer') isAudience = true;
+            else if (b.targetMobile && currentMobile && b.targetMobile.includes(currentMobile)) isAudience = true;
+
+            if (isAudience) {
+                showSystemNotification(
+                    b.title || '📢 घरमित्र ॲडमिन अलर्ट',
+                    b.body || b.message || 'नवीन अपडेट उपलब्ध आहे.',
+                    b.targetUrl || window.location.href,
+                    'broadcast-' + snap.key
+                );
+            }
+        });
+    }
+
+    return {
+        isSupported,
+        getPermission,
+        requestPermission,
+        showSystemNotification,
+        testPushNotification,
+        updateBannerUI,
+        dismissBanner,
+        initBroadcastListener,
+        savePushSubscriber
+    };
+})();
+
+// Global window helpers for inline onclick handlers
+window.enablePushNotifications = () => window.GharmitraPush.requestPermission();
+window.testPushNotification = (role) => window.GharmitraPush.testPushNotification(role);
+window.dismissPushNotificationBanner = () => window.GharmitraPush.dismissBanner();
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.GharmitraPush) {
+        window.GharmitraPush.updateBannerUI();
+        const path = window.location.pathname;
+        const role = path.includes('worker') ? 'worker' : (path.includes('customer') ? 'customer' : 'user');
+        window.GharmitraPush.initBroadcastListener(role);
+    }
+});
+

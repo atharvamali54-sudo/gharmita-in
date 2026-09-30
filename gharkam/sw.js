@@ -3,7 +3,7 @@
 // Cache Version: gharmitra-pwa-v1
 // =========================================================
 
-const CACHE_NAME = 'gharmitra-pwa-v48';
+const CACHE_NAME = 'gharmitra-pwa-v49';
 
 const STATIC_ASSETS = [
     './',
@@ -105,3 +105,97 @@ self.addEventListener('fetch', (event) => {
             })
     );
 });
+
+// =========================================================
+// 4. Background Push Event (Web Push API - Works when app is closed)
+// =========================================================
+self.addEventListener('push', (event) => {
+    let payload = {};
+    if (event.data) {
+        try {
+            payload = event.data.json();
+        } catch (e) {
+            payload = { title: 'घरमित्र (Gharmitra) अपडेट', body: event.data.text() };
+        }
+    }
+
+    const title = payload.title || 'घरमित्र (Gharmitra) अलर्ट 🔔';
+    const body = payload.body || 'नवीन ऑर्डर किंवा महत्त्वाचे अपडेट उपलब्ध आहे.';
+    const targetUrl = payload.url || payload.click_action || './index.html';
+    const tag = payload.tag || ('gharmitra-' + Date.now());
+
+    const options = {
+        body: body,
+        icon: payload.icon || './icons/icon-192x192.png',
+        badge: payload.badge || './icons/favicon.png',
+        vibrate: payload.vibrate || [300, 150, 300, 150, 400],
+        tag: tag,
+        renotify: true,
+        requireInteraction: true,
+        data: {
+            url: targetUrl,
+            orderId: payload.orderId || null,
+            timestamp: Date.now()
+        },
+        actions: [
+            { action: 'open_app', title: '📲 ॲप उघडा' },
+            { action: 'dismiss', title: '✕ बंद करा' }
+        ]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
+
+// =========================================================
+// 5. Notification Click Event (User taps notification on lock screen)
+// =========================================================
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    if (event.action === 'dismiss') {
+        return;
+    }
+
+    const targetUrl = (event.notification.data && event.notification.data.url)
+        ? event.notification.data.url
+        : './index.html';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            // Check if there is already an open window matching the target
+            for (let i = 0; i < windowClients.length; i++) {
+                const client = windowClients[i];
+                if (client.url.includes(targetUrl) && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // If not open, launch the window
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
+});
+
+// =========================================================
+// 6. Direct Client Message Dispatch (Show Notification via Service Worker)
+// =========================================================
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+        const title = event.data.title || 'घरमित्र (Gharmitra) अपडेट';
+        const options = Object.assign({
+            icon: './icons/icon-192x192.png',
+            badge: './icons/favicon.png',
+            vibrate: [250, 100, 250, 100, 300],
+            requireInteraction: true,
+            renotify: true
+        }, event.data.options || {});
+
+        event.waitUntil(
+            self.registration.showNotification(title, options)
+        );
+    }
+});
+

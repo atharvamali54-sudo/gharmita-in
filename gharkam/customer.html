@@ -73,6 +73,23 @@
             </div>
         </header>
 
+        <!-- Push Notification Permission & Background Alerts Banner -->
+        <div id="appPushNotificationBanner" class="hidden px-4 py-2.5 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs border-b border-blue-400/30">
+            <div class="flex items-center gap-2">
+                <span class="text-base animate-pulse">🔔</span>
+                <span><strong>ॲप बंद असतानाही ऑर्डर अपडेट्स मिळवा:</strong> कामगार स्वीकारल्याचे व निघाल्याचे नोटिफिकेशन थेट मोबाईलवर मिळवण्यासाठी सुरू करा.</span>
+            </div>
+            <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                <button type="button" onclick="enablePushNotifications()" class="bg-yellow-300 hover:bg-yellow-400 active:scale-95 text-slate-950 font-black px-3 py-1.5 rounded-xl shadow-xs transition cursor-pointer">
+                    सुरू करा (Enable)
+                </button>
+                <button type="button" onclick="testPushNotification('customer')" class="bg-white/10 hover:bg-white/20 text-white font-bold px-2.5 py-1.5 rounded-xl border border-white/20 transition cursor-pointer" title="टेस्ट नोटिफिकेशन पाठवा">
+                    <i class="fa-solid fa-vial"></i> टेस्ट
+                </button>
+                <button type="button" onclick="dismissPushNotificationBanner()" class="text-white/70 hover:text-white text-xs px-1 cursor-pointer">✕</button>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
             
             <div id="customerBookingColumn" class="lg:col-span-12 p-6 md:p-8 bg-white border-b lg:border-b-0 border-slate-200 transition-all duration-300">

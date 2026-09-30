@@ -361,6 +361,9 @@
             <button onclick="switchTab('settingsTab')" id="tabBtnSettings" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm flex items-center gap-2 transition whitespace-nowrap">
                 <i class="fa-solid fa-gear"></i> ॲडमिन सेटिंग्ज
             </button>
+            <button onclick="switchTab('pushTab')" id="tabBtnPush" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm flex items-center gap-2 transition whitespace-nowrap">
+                <i class="fa-solid fa-bullhorn text-amber-500"></i> पुश ब्रॉडकास्ट (Push)
+            </button>
         </div>
 
         <!-- =====================================================
@@ -602,6 +605,185 @@
                 <button onclick="saveAdminSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition text-xs shadow-md">
                     सेटिंग्ज सेव्ह करा
                 </button>
+            </div>
+        </div>
+
+        <!-- =====================================================
+             TAB 6: Push Notification Broadcast Center
+             ===================================================== -->
+        <div id="pushTab" class="tab-content hidden space-y-5">
+            <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+                <div class="relative z-10 max-w-2xl">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-bold uppercase tracking-wider mb-2">
+                        <i class="fa-solid fa-satellite-dish animate-pulse"></i> थेट सिस्टीम पुश (Web Push + Service Worker)
+                    </span>
+                    <h2 class="text-xl md:text-2xl font-black">📢 थेट पुश नोटिफिकेशन्स ब्रॉडकास्ट सेंटर</h2>
+                    <p class="text-xs text-white/90 mt-1">
+                        ग्राहक किंवा कामगारांचे ॲप/ब्राउझर बंद असले तरीही त्यांच्या मोबाईलवर थेट सिस्टीम नोटिफिकेशन (रिंगटोन + व्हायब्रेशनसह) पाठवा.
+                    </p>
+                </div>
+                <i class="fa-solid fa-bell text-white/10 text-9xl absolute -right-6 -bottom-6 pointer-events-none"></i>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left: Form (2 Cols) -->
+                <div class="lg:col-span-2 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5">
+                    <!-- Presets -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> झटपट मेसेज निवडा (Quick Presets)
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <button type="button" onclick="applyAdminPushPreset('NEW_JOB')" class="p-2.5 text-left rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 transition">
+                                <span class="font-bold text-slate-800 block">⚡ कामगारांना नवीन कामाचा अलर्ट</span>
+                                <span class="text-[10px] text-slate-500">तुमच्या भागात नवीन ऑर्डर उपलब्ध आहे!</span>
+                            </button>
+                            <button type="button" onclick="applyAdminPushPreset('DISCOUNT')" class="p-2.5 text-left rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 transition">
+                                <span class="font-bold text-slate-800 block">🎉 ग्राहकांसाठी सवलत ऑफर</span>
+                                <span class="text-[10px] text-slate-500">आजच घरकाम बुक करा आणि मिळवा विशेष सूट!</span>
+                            </button>
+                            <button type="button" onclick="applyAdminPushPreset('KYC')" class="p-2.5 text-left rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 transition">
+                                <span class="font-bold text-slate-800 block">🪪 आधार KYC व्हेरिफिकेशन सूचना</span>
+                                <span class="text-[10px] text-slate-500">कामावर जाण्यासाठी आधार कार्ड अपलोड करा.</span>
+                            </button>
+                            <button type="button" onclick="applyAdminPushPreset('SYSTEM_UPDATE')" class="p-2.5 text-left rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 transition">
+                                <span class="font-bold text-slate-800 block">📢 घरमित्र महत्त्वाची अपडेट</span>
+                                <span class="text-[10px] text-slate-500">नवीन सेवा व सुरक्षा फीचर्स आता लाइव्ह!</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr class="border-slate-100">
+
+                    <!-- Audience Selector -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-users text-blue-600"></i> कोणाला पाठवायचे आहे? (Target Audience)
+                        </label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="adminPushAudience" value="ALL" checked onchange="toggleAdminPushSpecificMobile()" class="peer sr-only">
+                                <div class="p-2.5 text-center rounded-xl border border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition font-bold text-xs">
+                                    🌐 सर्व वापरकर्ते
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="adminPushAudience" value="WORKERS" onchange="toggleAdminPushSpecificMobile()" class="peer sr-only">
+                                <div class="p-2.5 text-center rounded-xl border border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition font-bold text-xs">
+                                    👷 सर्व कामगार
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="adminPushAudience" value="CUSTOMERS" onchange="toggleAdminPushSpecificMobile()" class="peer sr-only">
+                                <div class="p-2.5 text-center rounded-xl border border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition font-bold text-xs">
+                                    🏠 सर्व ग्राहक
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="adminPushAudience" value="SPECIFIC" onchange="toggleAdminPushSpecificMobile()" class="peer sr-only">
+                                <div class="p-2.5 text-center rounded-xl border border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition font-bold text-xs">
+                                    📱 विशिष्ट मोबाईल
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Specific Mobile Input -->
+                        <div id="pushSpecificMobileGroup" class="hidden mt-3">
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">लक्ष्य मोबाईल नंबर (१० अंकी):</label>
+                            <input type="tel" id="pushTargetMobile" placeholder="उदा. 9876543210" maxlength="10" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Title & Message -->
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                नोटिफिकेशन शीर्षक (Title) <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" id="pushTitleInput" oninput="updateAdminPushPreview()" placeholder="उदा. ⚡ नवीन घरकाम ऑर्डर उपलब्ध!" class="w-full p-3 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                नोटिफिकेशन संदेश (Body Text) <span class="text-rose-500">*</span>
+                            </label>
+                            <textarea id="pushBodyInput" oninput="updateAdminPushPreview()" rows="3" placeholder="उदा. तुमच्या भागात नवीन इलेक्ट्रिशियन ऑर्डर आली आहे. त्वरित स्वीकारा आणि आजच कमाई सुरू करा!" class="w-full p-3 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                क्लिक केल्यावर उघडायचे पान (Target URL / Link)
+                            </label>
+                            <input type="text" id="pushUrlInput" value="worker.html" placeholder="उदा. worker.html किंवा customer.html" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="pt-2 flex flex-col sm:flex-row gap-3">
+                        <button type="button" onclick="dispatchAdminBroadcastPush()" class="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> थेट सर्वांच्या मोबाईलवर पुश पाठवा (Broadcast Now)
+                        </button>
+                        <button type="button" onclick="testAdminPushOnDevice()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl text-xs transition border border-slate-200 flex items-center justify-center gap-2 whitespace-nowrap">
+                            <i class="fa-solid fa-mobile-screen"></i> या डिव्हाइसवर टेस्ट करा
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Mobile Live Preview (1 Col) -->
+                <div class="space-y-4">
+                    <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
+                        <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-eye text-blue-600"></i> मोबाईलवरील थेट प्रिव्ह्यू (Live Preview)
+                        </h4>
+                        <p class="text-[11px] text-slate-500">युझरचा फोन लॉक असला तरी हे नोटिफिकेशन अशा प्रकारे वर पॉप-अप होईल:</p>
+
+                        <!-- Simulated Android Push Banner -->
+                        <div class="bg-slate-900 text-white p-3.5 rounded-2xl shadow-xl border border-slate-700 space-y-2 mt-2">
+                            <div class="flex items-center justify-between text-[10px] text-slate-400">
+                                <span class="flex items-center gap-1.5 font-bold text-slate-300">
+                                    <img src="images/logo.png" alt="Logo" class="w-3.5 h-3.5 rounded" onerror="this.src='https://placehold.co/20x20?text=G'">
+                                    घरमित्र • आत्ताच
+                                </span>
+                                <i class="fa-solid fa-chevron-down text-[9px]"></i>
+                            </div>
+                            <div>
+                                <h5 id="previewPushTitle" class="font-bold text-xs text-white">⚡ नवीन घरकाम ऑर्डर उपलब्ध!</h5>
+                                <p id="previewPushBody" class="text-[11px] text-slate-300 line-clamp-2 mt-0.5">तुमच्या भागात नवीन काम आले आहे. लगेच स्वीकारा!</p>
+                            </div>
+                            <div class="flex items-center gap-2 pt-1 border-t border-slate-800 text-[10px] font-bold text-amber-400">
+                                <span class="bg-slate-800 px-2 py-0.5 rounded">उघडा</span>
+                                <span class="text-slate-500">बंद करा</span>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-[11px] text-amber-800 space-y-1">
+                            <div class="font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-circle-info text-amber-600"></i> कसे काम करते?
+                            </div>
+                            <p>१. सिस्टीम पुशसाठी युझरने ॲप/वेबसाइट उघडल्यावर नोटिफिकेशन परमिशन 'Allow' केलेली असावी लागते.</p>
+                            <p>२. परमिशन असल्यास, ॲप किंवा क्रोम पूर्ण बंद असले तरी हे नोटिफिकेशन स्क्रीनवर झळकते.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sent Broadcasts History -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-slate-500"></i> नुकतेच पाठवलेले ब्रॉडकास्ट नोटिफिकेशन्स
+                        </h3>
+                        <p class="text-[11px] text-slate-400">मागील सर्व पाठवलेल्या नोटिफिकेशन्सचा इतिहास</p>
+                    </div>
+                    <button onclick="renderAdminPushBroadcastHistory()" class="text-xs text-blue-600 hover:underline font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-arrows-rotate"></i> रीफ्रेश
+                    </button>
+                </div>
+
+                <div id="pushBroadcastHistoryContainer" class="space-y-2">
+                    <div class="text-center py-6 text-slate-400 text-xs">
+                        लोड करत आहे किंवा कोणताही ब्रॉडकास्ट सापडला नाही...
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -1752,6 +1752,8 @@ _Sent securely via Gharmitra Family Safety Shield._`;
             }
         }
 
+        const lastTrackedCustomerOrderStatus = {};
+
         function trackLiveStatus(orderId) {
             if (!orderId) return;
             currentOrderId = orderId;
@@ -1771,6 +1773,45 @@ _Sent securely via Gharmitra Family Safety Shield._`;
             database.ref("orders/" + orderId).on("value", (snapshot) => {
                 const data = snapshot.val();
                 if(!data) return;
+
+                // Push Notification Alert for Customer on status changes
+                const prevStatus = lastTrackedCustomerOrderStatus[orderId];
+                if (prevStatus && prevStatus !== data.status) {
+                    if (window.GharmitraPush && typeof window.GharmitraPush.showSystemNotification === 'function') {
+                        const workerName = data.workerName || 'घरमित्र कामगार';
+                        const srv = data.service || 'घरकाम';
+                        if (data.status === 'Accepted') {
+                            window.GharmitraPush.showSystemNotification({
+                                title: `👷 ऑर्डर स्वीकारली: ${srv}`,
+                                body: `${workerName} यांनी तुमची ऑर्डर स्वीकारली आहे आणि ते लवकरच पोहोचतील.`,
+                                url: 'customer.html',
+                                tag: 'cust-order-' + orderId
+                            });
+                        } else if (data.status === 'On The Way') {
+                            window.GharmitraPush.showSystemNotification({
+                                title: `🚴 कामगार निघाला आहे: ${workerName}`,
+                                body: `${workerName} तुमच्या घराकडे निघाले आहेत. थेट नकाशावर ट्रॅक करा!`,
+                                url: 'customer.html',
+                                tag: 'cust-order-' + orderId
+                            });
+                        } else if (data.status === 'In Progress') {
+                            window.GharmitraPush.showSystemNotification({
+                                title: `🛠️ काम सुरू झाले: ${srv}`,
+                                body: `${workerName} यांनी कामाला सुरुवात केली आहे.`,
+                                url: 'customer.html',
+                                tag: 'cust-order-' + orderId
+                            });
+                        } else if (data.status === 'Completed') {
+                            window.GharmitraPush.showSystemNotification({
+                                title: `🎉 काम पूर्ण झाले: ${srv}`,
+                                body: `ऑर्डर यशस्वीरित्या पूर्ण झाली! कृपया अनुभव रेटिंग द्या.`,
+                                url: 'customer.html',
+                                tag: 'cust-order-' + orderId
+                            });
+                        }
+                    }
+                }
+                lastTrackedCustomerOrderStatus[orderId] = data.status;
 
                 currentTrackedOrderData = data;
 
