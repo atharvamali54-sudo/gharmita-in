@@ -136,14 +136,285 @@ function setProfileStatus(message, type = 'info') {
     status.classList.remove('hidden');
 }
 
+let currentCustomerLocation = null;
+
+function populateSavedAddress() {
+    const addressInput = document.getElementById('customerAddress');
+    const areaSelect = document.getElementById('areaSelect');
+    const savedBadge = document.getElementById('savedAddressBadge');
+
+    let savedAddr = '';
+    try {
+        savedAddr = localStorage.getItem('gharmitra_saved_address') || localStorage.getItem('gharmitra_customer_address') || '';
+    } catch(e) {}
+
+    let savedArea = '';
+    try {
+        savedArea = localStorage.getItem('gharmitra_saved_area') || '';
+    } catch(e) {}
+
+    if (customerProfile) {
+        if (customerProfile.address && !savedAddr) savedAddr = customerProfile.address;
+        if (customerProfile.area && !savedArea) savedArea = customerProfile.area;
+    }
+
+    if (addressInput && savedAddr && !addressInput.value) {
+        addressInput.value = savedAddr;
+        if (savedBadge) {
+            savedBadge.classList.remove('hidden');
+            savedBadge.classList.add('inline-flex');
+            const badgeText = document.getElementById('savedAddressBadgeText');
+            if (badgeText) badgeText.innerText = "पत्ता सेव्ह आहे (Saved)";
+        }
+    }
+
+    if (areaSelect && savedArea && (!areaSelect.value || areaSelect.value === 'Swargate')) {
+        areaSelect.value = savedArea;
+    }
+
+    try {
+        const savedLocStr = localStorage.getItem('gharmitra_saved_location');
+        if (savedLocStr) {
+            const savedLoc = JSON.parse(savedLocStr);
+            if (savedLoc && savedLoc.lat && savedLoc.lng) {
+                currentCustomerLocation = savedLoc;
+                renderGpsLocationBadge(savedLoc.lat, savedLoc.lng, savedLoc.accuracy);
+            }
+        }
+    } catch (e) {}
+}
+
+function handleAddressChange() {
+    const addressInput = document.getElementById('customerAddress');
+    const savedBadge = document.getElementById('savedAddressBadge');
+    const badgeText = document.getElementById('savedAddressBadgeText');
+    if (!addressInput) return;
+
+    const val = addressInput.value.trim();
+    if (val) {
+        try {
+            localStorage.setItem('gharmitra_saved_address', val);
+            localStorage.setItem('gharmitra_customer_address', val);
+        } catch(e) {}
+
+        if (customerProfile) {
+            customerProfile.address = val;
+            try {
+                localStorage.setItem('current_user_session', JSON.stringify(customerProfile));
+            } catch(e) {}
+        }
+
+        if (savedBadge) {
+            savedBadge.classList.remove('hidden');
+            savedBadge.classList.add('inline-flex');
+        }
+        if (badgeText) {
+            badgeText.innerText = "पत्ता सेव्ह केला (Auto-saved)";
+        }
+    } else {
+        if (savedBadge) {
+            savedBadge.classList.add('hidden');
+            savedBadge.classList.remove('inline-flex');
+        }
+    }
+}
+
+function focusAddressForEdit() {
+    const addressInput = document.getElementById('customerAddress');
+    if (addressInput) {
+        addressInput.focus();
+        addressInput.select();
+        addressInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function renderGpsLocationBadge(lat, lng, accuracy) {
+    const badge = document.getElementById('gpsLocationBadge');
+    const text = document.getElementById('gpsLocationText');
+    const link = document.getElementById('gpsMapLink');
+
+    if (!badge) return;
+
+    badge.classList.remove('hidden');
+    badge.classList.add('inline-flex');
+
+    const accText = accuracy ? ` (±${accuracy}m)` : '';
+    if (text) text.innerText = `अचूक GPS जोडले${accText}`;
+    if (link) {
+        link.href = `https://www.google.com/maps?q=${lat},${lng}`;
+    }
+}
+
+async function detectCustomerExactLocation() {
+    if (typeof triggerHapticFeedback === 'function') {
+        triggerHapticFeedback(60);
+    }
+    const btn = document.getElementById('detectGpsBtn');
+    const originalBtnHtml = btn ? btn.innerHTML : '';
+
+    if (!navigator.geolocation) {
+        alert("आपल्या डिव्हाइसवर Geolocation (GPS) सपोर्ट उपलब्ध नाही.");
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-600"></i> <span>लोकेशन शोधत आहे...</span>';
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            try {
+                if (typeof triggerHapticFeedback === 'function') {
+                    triggerHapticFeedback(60);
+                }
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const accuracy = Math.round(position.coords.accuracy || 0);
+
+                currentCustomerLocation = {
+                    lat: lat,
+                    lng: lng,
+                    accuracy: accuracy,
+                    timestamp: Date.now()
+                };
+
+                try {
+                    localStorage.setItem('gharmitra_saved_location', JSON.stringify(currentCustomerLocation));
+                } catch(e) {}
+
+                // Find closest Pune Area from PUNE_AREA_COORDINATES
+                let closestArea = null;
+                let minDistance = Infinity;
+                if (typeof PUNE_AREA_COORDINATES === 'object') {
+                    for (const [areaName, coords] of Object.entries(PUNE_AREA_COORDINATES)) {
+                        const d = calculateDistanceKm(lat, lng, coords.lat, coords.lng);
+                        if (d < minDistance) {
+                            minDistance = d;
+                            closestArea = areaName;
+                        }
+                    }
+                }
+
+                const areaSelect = document.getElementById('areaSelect');
+                if (areaSelect && closestArea && minDistance < 25) {
+                    areaSelect.value = closestArea;
+                    try {
+                        localStorage.setItem('gharmitra_saved_area', closestArea);
+                    } catch(e) {}
+                }
+
+                // Reverse geocode via OpenStreetMap Nominatim with fallback
+                let detectedAddressText = "";
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+                        headers: { 'Accept-Language': 'mr,en' }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.address) {
+                            const a = data.address;
+                            const parts = [];
+                            if (a.building || a.house_number || a.apartment) {
+                                parts.push(a.building || a.house_number || a.apartment);
+                            }
+                            if (a.road || a.pedestrian || a.suburb) {
+                                parts.push(a.road || a.pedestrian || a.suburb);
+                            }
+                            if (a.neighbourhood || a.residential) {
+                                parts.push(a.neighbourhood || a.residential);
+                            }
+                            if (closestArea && !parts.some(p => p.toLowerCase().includes(closestArea.toLowerCase()))) {
+                                parts.push(closestArea);
+                            }
+                            parts.push('Pune');
+                            if (a.postcode) {
+                                parts.push(a.postcode);
+                            }
+                            detectedAddressText = parts.filter(Boolean).join(', ');
+                        }
+                    }
+                } catch (fetchErr) {
+                    console.warn("Nominatim fetch error:", fetchErr);
+                }
+
+                const addressInput = document.getElementById('customerAddress');
+                if (addressInput) {
+                    const currentVal = addressInput.value.trim();
+                    if (!currentVal) {
+                        addressInput.value = detectedAddressText || `${closestArea || 'Pune'}, Maharashtra (GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+                    } else if (detectedAddressText && !currentVal.toLowerCase().includes(closestArea ? closestArea.toLowerCase() : 'pune')) {
+                        addressInput.value = `${currentVal}, ${detectedAddressText}`;
+                    }
+                    try {
+                        localStorage.setItem('gharmitra_saved_address', addressInput.value.trim());
+                        localStorage.setItem('gharmitra_customer_address', addressInput.value.trim());
+                    } catch(e) {}
+                }
+
+                renderGpsLocationBadge(lat, lng, accuracy);
+
+                const savedBadge = document.getElementById('savedAddressBadge');
+                if (savedBadge) {
+                    savedBadge.classList.remove('hidden');
+                    savedBadge.classList.add('inline-flex');
+                    const badgeText = document.getElementById('savedAddressBadgeText');
+                    if (badgeText) badgeText.innerText = "पत्ता व अचूक GPS सेव्ह झाले";
+                }
+
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i> <span class="text-emerald-700">लोकेशन प्राप्त झाले</span>';
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-crosshairs text-blue-600"></i> <span>अचूक लोकेशन मिळवा (GPS)</span>';
+                    }, 2500);
+                }
+
+            } catch (err) {
+                console.error("GPS processing error:", err);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml;
+                }
+            }
+        },
+        (err) => {
+            console.warn("Geolocation error:", err);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+            }
+            let errorMsg = "GPS अचूक लोकेशन मिळवण्यात अडचण आली.";
+            if (err.code === 1) {
+                errorMsg = "लोकेशन ॲक्सेस नाकारला गेला. कृपया ब्राउझरमध्ये Location Permission चालू करा.";
+            } else if (err.code === 2) {
+                errorMsg = "डिव्हाइसचे लोकेशन उपलब्ध नाही. कृपया फोनचे GPS चालू करा.";
+            } else if (err.code === 3) {
+                errorMsg = "लोकेशन शोधण्याची वेळ संपली. कृपया पुन्हा प्रयत्न करा.";
+            }
+            alert(errorMsg);
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 12000,
+            maximumAge: 0
+        }
+    );
+}
+
 function populateBookingProfile() {
     customerProfile = readCustomerSession();
-    if (!customerProfile) return;
+    if (!customerProfile) {
+        populateSavedAddress();
+        return;
+    }
 
     const nameInput = document.getElementById('customerName');
     const mobileInput = document.getElementById('customerMobile');
     if (nameInput) nameInput.value = customerProfile.fullName || customerProfile.name || '';
     if (mobileInput) mobileInput.value = customerProfile.mobile || '';
+
+    populateSavedAddress();
 }
 
 function openProfileModal() {
@@ -157,6 +428,10 @@ function openProfileModal() {
     document.getElementById('profileName').value = customerProfile.fullName || customerProfile.name || '';
     document.getElementById('profileEmail').value = customerProfile.email || '';
     document.getElementById('profileMobile').value = customerProfile.mobile || '';
+    const profAddress = document.getElementById('profileAddress');
+    if (profAddress) {
+        profAddress.value = customerProfile.address || localStorage.getItem('gharmitra_saved_address') || '';
+    }
     document.getElementById('profileOtp').value = '';
     document.getElementById('profileOtpArea').classList.add('hidden');
     document.getElementById('profileSaveBtn').classList.remove('hidden');
@@ -192,6 +467,7 @@ function writeCustomerProfile(profile, previousMobile) {
             name: profile.name || profile.fullName || '',
             email: profile.email || '',
             mobile: cleanMobile,
+            address: profile.address || '',
             role: 'customer',
             updatedAt: firebase.database.ServerValue.TIMESTAMP
         }).catch(e => console.warn('Customer cloud update:', e));
@@ -209,23 +485,42 @@ function saveProfile(event) {
     const nextName = document.getElementById('profileName').value.trim();
     const nextEmail = document.getElementById('profileEmail').value.trim().toLowerCase();
     const nextMobile = document.getElementById('profileMobile').value.trim();
+    const profAddress = document.getElementById('profileAddress');
+    const nextAddress = profAddress ? profAddress.value.trim() : '';
+
     if (!nextName || !nextEmail || !/^\d{10}$/.test(nextMobile)) {
         setProfileStatus('पूर्ण नाव, योग्य email आणि 10-digit mobile number द्या.', 'error');
         return;
     }
 
     const currentName = customerProfile.fullName || customerProfile.name || '';
+    const currentAddress = customerProfile.address || '';
     const emailChanged = nextEmail !== String(customerProfile.email || '').toLowerCase();
     const mobileChanged = nextMobile !== String(customerProfile.mobile || '');
-    const nextProfile = { ...customerProfile, fullName: nextName, name: nextName, email: nextEmail, mobile: nextMobile, role: 'customer' };
+    const addressChanged = nextAddress !== currentAddress;
+
+    const nextProfile = { ...customerProfile, fullName: nextName, name: nextName, email: nextEmail, mobile: nextMobile, address: nextAddress, role: 'customer' };
 
     if (!emailChanged && !mobileChanged) {
-        if (nextName === currentName) {
+        if (nextName === currentName && !addressChanged) {
             setProfileStatus('कोणताही बदल केलेला नाही.', 'info');
             return;
         }
         writeCustomerProfile(nextProfile, customerProfile.mobile);
-        setProfileStatus('नाव अपडेट झाले. Booking form मध्येही बदल दिसेल.', 'success');
+        if (nextAddress) {
+            try {
+                localStorage.setItem('gharmitra_saved_address', nextAddress);
+                localStorage.setItem('gharmitra_customer_address', nextAddress);
+            } catch(e) {}
+            const addrField = document.getElementById('customerAddress');
+            if (addrField) addrField.value = nextAddress;
+            const savedBadge = document.getElementById('savedAddressBadge');
+            if (savedBadge) {
+                savedBadge.classList.remove('hidden');
+                savedBadge.classList.add('inline-flex');
+            }
+        }
+        setProfileStatus('प्रोफाइल माहिती व पत्ता यशस्वीरीत्या अपडेट झाले.', 'success');
         setTimeout(closeProfileModal, 900);
         return;
     }
@@ -985,6 +1280,28 @@ populateBookingProfile();
                     }
                 }
 
+                // Persist address and area to localStorage so customer never loses it
+                try {
+                    if (address) {
+                        localStorage.setItem('gharmitra_saved_address', address.trim());
+                        localStorage.setItem('gharmitra_customer_address', address.trim());
+                    }
+                    if (area) {
+                        localStorage.setItem('gharmitra_saved_area', area);
+                    }
+                    if (customerProfile) {
+                        customerProfile.address = address.trim();
+                        customerProfile.area = area;
+                        localStorage.setItem('current_user_session', JSON.stringify(customerProfile));
+                    }
+                } catch(e) {}
+
+                const custLat = (currentCustomerLocation && currentCustomerLocation.lat) ? Number(currentCustomerLocation.lat) : (PUNE_AREA_COORDINATES[area] ? PUNE_AREA_COORDINATES[area].lat : 18.5204);
+                const custLng = (currentCustomerLocation && currentCustomerLocation.lng) ? Number(currentCustomerLocation.lng) : (PUNE_AREA_COORDINATES[area] ? PUNE_AREA_COORDINATES[area].lng : 73.8567);
+                const custMapsUrl = (currentCustomerLocation && currentCustomerLocation.lat)
+                    ? `https://www.google.com/maps?q=${currentCustomerLocation.lat},${currentCustomerLocation.lng}`
+                    : `https://maps.google.com/?q=${encodeURIComponent(address + ', ' + area + ', Pune')}`;
+
                 const payload = {
                     service: service,
                     customerName: name,
@@ -992,6 +1309,11 @@ populateBookingProfile();
                     customerEmail: customerEmail,
                     area: area,
                     address: address,
+                    customerLat: custLat,
+                    customerLng: custLng,
+                    customerLocationAccuracy: (currentCustomerLocation && currentCustomerLocation.accuracy) ? currentCustomerLocation.accuracy : null,
+                    customerMapsUrl: custMapsUrl,
+                    hasExactGps: !!(currentCustomerLocation && currentCustomerLocation.lat),
                     budget: "₹" + budget,
                     date: date,
                     time: time,
@@ -1649,6 +1971,11 @@ _Sent securely via Gharmitra Family Safety Shield._`;
         window.setLiveStatusVisible = setLiveStatusVisible;
         window.closeLiveStatusView = closeLiveStatusView;
         window.initCustomerOrderState = initCustomerOrderState;
+        window.detectCustomerExactLocation = detectCustomerExactLocation;
+        window.handleAddressChange = handleAddressChange;
+        window.focusAddressForEdit = focusAddressForEdit;
+        window.populateSavedAddress = populateSavedAddress;
+        window.renderGpsLocationBadge = renderGpsLocationBadge;
 
 
 // =========================================================
@@ -1759,6 +2086,8 @@ window.handleSocietyPassSubmit = handleSocietyPassSubmit;
 // Customer Live Status Visibility & Initialization
 // =========================================================
 function initCustomerOrderState() {
+    populateSavedAddress();
+
     // 1. Check URL param first: e.g. customer.html?track=-Oabc123
     let urlTrackId = null;
     try {

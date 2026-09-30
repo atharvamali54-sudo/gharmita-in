@@ -180,8 +180,31 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">FULL ADDRESS</label>
-                        <textarea id="customerAddress" rows="3" placeholder="House number, society, street or landmark..." required class="w-full bg-slate-50 border border-slate-200 text-slate-800 font-medium py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm"></textarea>
+                        <div class="flex items-center justify-between mb-1.5 gap-2">
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                                FULL ADDRESS (घर किंवा कामाचा पत्ता)
+                            </label>
+                            <button type="button" id="detectGpsBtn" onclick="detectCustomerExactLocation()" class="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                                <i class="fa-solid fa-crosshairs text-blue-600"></i>
+                                <span>अचूक लोकेशन मिळवा (GPS)</span>
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <textarea id="customerAddress" oninput="handleAddressChange()" rows="3" placeholder="House number, flat, society, landmark, street..." required class="w-full bg-slate-50 border border-slate-200 text-slate-800 font-medium py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm"></textarea>
+                        </div>
+                        <!-- Saved Address & GPS Status Indicator -->
+                        <div id="addressStatusContainer" class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+                            <div id="savedAddressBadge" class="hidden items-center gap-1.5 text-[11px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-md">
+                                <i class="fa-solid fa-check text-emerald-600"></i>
+                                <span id="savedAddressBadgeText">पत्ता सेव्ह आहे (Saved)</span>
+                                <button type="button" onclick="focusAddressForEdit()" class="text-blue-600 hover:underline ml-1 font-bold cursor-pointer">Edit</button>
+                            </div>
+                            <div id="gpsLocationBadge" class="hidden items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
+                                <i class="fa-solid fa-location-dot text-emerald-600"></i>
+                                <span id="gpsLocationText">अचूक GPS जोडले</span>
+                                <a id="gpsMapLink" href="#" target="_blank" rel="noopener" class="text-blue-600 underline text-[10px] ml-1 font-semibold">मॅपवर पहा</a>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
@@ -584,6 +607,10 @@
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Mobile Number</label>
                     <input type="tel" id="profileMobile" pattern="[0-9]{10}" inputmode="numeric" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 font-medium py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Saved Address (घर किंवा कामाचा पत्ता)</label>
+                    <textarea id="profileAddress" rows="2" placeholder="House number, flat, society, street or landmark..." class="w-full bg-slate-50 border border-slate-200 text-slate-800 font-medium py-2.5 px-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-xs"></textarea>
+                </div>
 
                 <div id="profileOtpArea" class="hidden rounded-2xl border border-blue-100 bg-blue-50 p-4 space-y-3">
                     <p class="text-xs text-blue-900 font-semibold">An OTP has been sent to your registered email address.</p>
@@ -848,7 +875,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="js/firebase.js?v=43"></script>
     <script src="js/call-masking.js?v=43"></script>
-    <script src="js/customer.js?v=44"></script>
+    <script src="js/customer.js?v=45"></script>
     <script src="js/pwa.js?v=43"></script>
 </body>
 </html>

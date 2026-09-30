@@ -1762,13 +1762,17 @@ function renderJobs() {
             const jobCard = document.createElement('div');
             jobCard.className = "bg-white border-2 border-blue-500 p-4 rounded-2xl shadow-lg space-y-3 relative overflow-hidden";
 
+            const hasGps = !!(item.hasExactGps || (item.customerLat && item.customerLng));
+            const mapQuery = hasGps ? `${item.customerLat},${item.customerLng}` : encodeURIComponent(item.address);
+            const gpsBadge = hasGps ? `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full ml-1"><i class="fa-solid fa-crosshairs text-emerald-600"></i> अचूक GPS</span>` : '';
+
             jobCard.innerHTML = `
             <div class="flex justify-between items-start">
             <div><span class="bg-blue-100 text-blue-700 text-[11px] font-bold px-2.5 py-1 rounded-full">⚡ ${escapeHtml(item.service)}</span><h4 class="font-bold text-slate-800 text-sm mt-2"><i class="fa-solid fa-user text-blue-600"></i> ${escapeHtml(item.customerName)}</h4></div>
             <span class="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">${escapeHtml(item.budget || "₹500")}</span>
             </div>
             <div class="text-xs text-slate-600 space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
-            <p><i class="fa-solid fa-location-dot text-red-500 mr-1.5"></i><strong>पत्ता:</strong> ${escapeHtml(item.address)}</p>
+            <p><i class="fa-solid fa-location-dot text-red-500 mr-1.5"></i><strong>पत्ता:</strong> ${escapeHtml(item.address)}${gpsBadge}</p>
             <p><i class="fa-regular fa-calendar text-blue-500 mr-1.5"></i><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
             <p><i class="fa-regular fa-clock text-blue-500 mr-1.5"></i><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
             <p class="text-slate-400"><i class="fa-solid fa-shield-halved text-emerald-500 mr-1.5"></i>कॉलिंग सुविधा (Masked Call) On The Way केल्यानंतर सुरू होईल.</p>
@@ -1783,7 +1787,7 @@ function renderJobs() {
             <button onclick="acceptOrder('${key}')" class="col-span-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5">🤝 Accept Order</button>
             <button onclick="declineOrder('${key}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-1 border border-slate-200" title="हे काम सोडून पुढील काम पहा">❌ Skip</button>
             </div>
-            <a href="https://maps.google.com/?q=${encodeURIComponent(item.address)}" target="_blank" class="block text-center text-[11px] font-bold text-emerald-600 hover:underline py-1"><i class="fa-solid fa-map-location-dot mr-1"></i> नकाशावर पत्ता पहा</a>`;
+            <a href="https://maps.google.com/?q=${mapQuery}" target="_blank" class="block text-center text-[11px] font-bold text-emerald-600 hover:underline py-1"><i class="fa-solid fa-map-location-dot mr-1"></i> नकाशावर पत्ता पहा</a>`;
             jobsContainer.appendChild(jobCard);
         }
 
@@ -1797,6 +1801,10 @@ function renderJobs() {
                 ? window.GharmitraCallMasking.maskDisplayNumber(rawCustPhone)
                 : (rawCustPhone ? '+91 ••••• ••' + String(rawCustPhone).slice(-3) : 'उपलब्ध नाही');
 
+            const activeHasGps = !!(item.hasExactGps || (item.customerLat && item.customerLng));
+            const activeNavDest = activeHasGps ? `${item.customerLat},${item.customerLng}` : encodeURIComponent(item.address);
+            const activeGpsBadge = activeHasGps ? `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full ml-1"><i class="fa-solid fa-crosshairs text-emerald-600"></i> अचूक GPS</span>` : '';
+
             const activeCard = document.createElement('div');
             activeCard.className = "bg-white p-5 rounded-2xl border border-emerald-200 shadow-md space-y-4";
             activeCard.innerHTML = `
@@ -1804,10 +1812,11 @@ function renderJobs() {
             <span class="font-bold text-slate-800 text-xs">🛠️ Active Task In-Progress</span>
             <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${item.status === 'In Progress' ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-700'}">${item.status}</span>
             </div>
+
             <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-100 text-xs space-y-1.5 text-slate-700">
             <p><strong>ग्राहक:</strong> ${item.customerName}</p>
             <p><strong>सेवा:</strong> ${item.service}</p>
-            <p><strong>पत्ता:</strong> ${escapeHtml(item.address)}</p>
+            <p><strong>पत्ता:</strong> ${escapeHtml(item.address)}${activeGpsBadge}</p>
             <p><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
             <p><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
             ${(item.status === 'On The Way' || item.status === 'In Progress')
@@ -1854,13 +1863,13 @@ function renderJobs() {
                      <span id="workerTripLocationMeta" class="text-[10px] text-slate-500 flex items-center gap-1">
                          <i class="fa-solid fa-satellite-dish text-emerald-500"></i> On The Way केल्यावर live GPS सुरू होईल
                      </span>
-                     <a id="workerNavBtn" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.address)}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-xl text-[11px] transition shadow-sm flex items-center justify-center gap-1.5 shrink-0">
+                     <a id="workerNavBtn" href="https://www.google.com/maps/dir/?api=1&destination=${activeNavDest}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-xl text-[11px] transition shadow-sm flex items-center justify-center gap-1.5 shrink-0">
                          <i class="fa-solid fa-diamond-turn-right"></i> Google Navigation
                      </a>
                  </div>
              </div>
             <div class="grid grid-cols-2 gap-2">
-            <a href="https://maps.google.com/?q=${encodeURIComponent(item.address)}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">📍 Map</a>
+            <a href="https://maps.google.com/?q=${activeNavDest}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">📍 Map</a>
             <button onclick="openChatModal('${key}', '${item.customerName}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">💬 Chat</button>
             </div>
             ${item.status === 'Accepted' ? `
