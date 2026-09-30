@@ -115,6 +115,13 @@ public class MainActivity extends Activity {
             }
 
             @Override
+            public void onPermissionRequest(final android.webkit.PermissionRequest request) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    request.grant(request.getResources());
+                }
+            }
+
+            @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
                 if (fileUploadCallback != null) {
                     fileUploadCallback.onReceiveValue(null);
@@ -196,7 +203,7 @@ public class MainActivity extends Activity {
         // 3. Communications & Maps schemes
         if (url.startsWith("tel:") || url.startsWith("mailto:") || url.startsWith("sms:") ||
             url.startsWith("whatsapp:") || url.contains("api.whatsapp.com") || url.contains("wa.me") ||
-            url.contains("maps.google.com") || url.contains("goo.gl/maps")) {
+            url.contains("maps.google.com") || url.contains("goo.gl/maps") || url.contains("google.com/maps")) {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 startActivity(intent);
@@ -216,7 +223,8 @@ public class MainActivity extends Activity {
             String[] permissions = new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.CAMERA
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.RECORD_AUDIO
             };
             boolean need = false;
             for (String perm : permissions) {
