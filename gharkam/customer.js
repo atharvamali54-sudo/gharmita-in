@@ -1010,6 +1010,12 @@ populateBookingProfile();
                 deleteVoiceNote();
                 alert("तुमची अपॉइंटमेंट यशस्वीरीत्या बुक झाली आहे!");
                 trackLiveStatus(currentOrderId);
+                setTimeout(() => {
+                    const liveCol = document.getElementById('customerLiveStatusColumn');
+                    if (liveCol) {
+                        liveCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 200);
 
             } catch (err) {
                 console.error("Booking Error:", err);
@@ -1067,8 +1073,68 @@ _Sent securely via Gharmitra Family Safety Shield._`;
 
         window.shareFamilySafetyOnWhatsApp = shareFamilySafetyOnWhatsApp;
 
+        function setLiveStatusVisible(isVisible) {
+            const mainContainer = document.getElementById('customerMainContainer');
+            const bookingCol = document.getElementById('customerBookingColumn');
+            const liveCol = document.getElementById('customerLiveStatusColumn');
+
+            if (!liveCol) return;
+
+            if (isVisible) {
+                liveCol.classList.remove('hidden');
+                if (mainContainer) {
+                    mainContainer.classList.remove('max-w-3xl');
+                    mainContainer.classList.add('max-w-6xl');
+                }
+                if (bookingCol) {
+                    bookingCol.classList.remove('lg:col-span-12');
+                    bookingCol.classList.add('lg:col-span-7');
+                }
+            } else {
+                liveCol.classList.add('hidden');
+                if (mainContainer) {
+                    mainContainer.classList.remove('max-w-6xl');
+                    mainContainer.classList.add('max-w-3xl');
+                }
+                if (bookingCol) {
+                    bookingCol.classList.remove('lg:col-span-7');
+                    bookingCol.classList.add('lg:col-span-12');
+                }
+            }
+        }
+
+        function closeLiveStatusView() {
+            if (activeListener) {
+                database.ref("orders/" + activeListener).off();
+                activeListener = null;
+            }
+            if (workerLocationListener && activeLocationOrderId) {
+                database.ref("orders/" + activeLocationOrderId + "/workerLiveLocation").off();
+                workerLocationListener = null;
+                activeLocationOrderId = null;
+            }
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.removeItem('gharmitra_active_order_id');
+                }
+            } catch (e) {}
+            currentOrderId = null;
+            setLiveStatusVisible(false);
+            if (typeof window !== 'undefined' && window.scrollTo) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
         function trackLiveStatus(orderId) {
+            if (!orderId) return;
             currentOrderId = orderId;
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.setItem('gharmitra_active_order_id', orderId);
+                }
+            } catch (e) {}
+
+            setLiveStatusVisible(true);
 
             if (activeListener) {
                 database.ref("orders/" + activeListener).off();
@@ -1588,7 +1654,7 @@ _Sent securely via Gharmitra Family Safety Shield._`;
             closeMyOrdersModal();
             trackLiveStatus(orderId);
             setTimeout(() => {
-                const target = document.getElementById('liveStatusContainer') || document.getElementById('stepsTrackerContainer');
+                const target = document.getElementById('customerLiveStatusColumn') || document.getElementById('liveStatusContainer') || document.getElementById('stepsTrackerContainer');
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
@@ -1621,6 +1687,10 @@ _Sent securely via Gharmitra Family Safety Shield._`;
         window.fetchCustomerOrders = fetchCustomerOrders;
         window.trackSelectedOrder = trackSelectedOrder;
         window.customerNavTo = customerNavTo;
+        window.trackLiveStatus = trackLiveStatus;
+        window.setLiveStatusVisible = setLiveStatusVisible;
+        window.closeLiveStatusView = closeLiveStatusView;
+        window.initCustomerOrderState = initCustomerOrderState;
 
 
 // =========================================================
@@ -1726,3 +1796,60 @@ window.openSocietyPassModal = openSocietyPassModal;
 window.closeSocietyPassModal = closeSocietyPassModal;
 window.selectSocietyPassPlan = selectSocietyPassPlan;
 window.handleSocietyPassSubmit = handleSocietyPassSubmit;
+
+// =========================================================
+// Customer Live Status Visibility & Initialization
+// =========================================================
+function initCustomerOrderState() {
+    // 1. Check URL param first: e.g. customer.html?track=-Oabc123
+    let urlTrackId = null;
+    try {
+        if (typeof window !== 'undefined' && window.location && window.location.search) {
+            const params = new URLSearchParams(window.location.search);
+            urlTrackId = params.get('track');
+        }
+    } catch (e) {}
+
+    if (urlTrackId) {
+        trackLiveStatus(urlTrackId);
+        return;
+    }
+
+    // 2. Check localStorage for active order
+    let savedOrderId = null;
+    try {
+        if (typeof localStorage !== 'undefined') {
+            savedOrderId = localStorage.getItem('gharmitra_active_order_id');
+        }
+    } catch (e) {}
+
+    if (savedOrderId && typeof database !== 'undefined') {
+        database.ref("orders/" + savedOrderId).once("value").then((snapshot) => {
+            const data = snapshot.val();
+            const activeStatuses = ['Pending', 'Accepted', 'On The Way', 'In Progress'];
+            if (data && activeStatuses.includes(data.status)) {
+                trackLiveStatus(savedOrderId);
+            } else {
+                try {
+                    if (typeof localStorage !== 'undefined') {
+                        localStorage.removeItem('gharmitra_active_order_id');
+                    }
+                } catch (e) {}
+                setLiveStatusVisible(false);
+            }
+        }).catch(() => {
+            setLiveStatusVisible(false);
+        });
+    } else {
+        setLiveStatusVisible(false);
+    }
+}
+
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCustomerOrderState);
+    } else {
+        initCustomerOrderState();
+    }
+}
+
