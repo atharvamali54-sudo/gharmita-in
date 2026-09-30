@@ -203,17 +203,23 @@ function revokeToken(jti) {
 // 3. Express Authorization Middleware
 // -------------------------------------------------------------
 function requireAuth(req, res, next) {
+    let token = null;
     const authHeader = req.headers['authorization'];
-    if (!authHeader) {
+    if (authHeader) {
+        const parts = authHeader.split(' ');
+        if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+            token = parts[1];
+        }
+    }
+    if (!token && req.cookies && req.cookies.gharmitra_admin_session) {
+        token = req.cookies.gharmitra_admin_session;
+    }
+
+    if (!token) {
         return res.status(401).json({ error: 'Authorization token required' });
     }
 
-    const parts = authHeader.split(' ');
-    if (parts.length !== 2 || parts[0].toLowerCase() !== 'bearer') {
-        return res.status(401).json({ error: 'Invalid token format. Format must be: Bearer <token>' });
-    }
-
-    const user = verifyToken(parts[1]);
+    const user = verifyToken(token);
     if (!user) {
         return res.status(401).json({ error: 'Invalid or expired authorization token' });
     }

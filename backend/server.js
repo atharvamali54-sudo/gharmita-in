@@ -6,10 +6,12 @@ if (!process.env.RAZORPAY_KEY_ID) {
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
+const cookieParser = require('cookie-parser');
 const Razorpay = require('razorpay');
 
 const auth = require('./auth');
 const walletManager = require('./wallet');
+const { sendAdminOtpEmail, ADMIN_EMAILS } = require('./mailer');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,11 +26,15 @@ app.use((req, res, next) => {
     next();
 });
 
-// Enable CORS and JSON parsing with request size limit
+// Enable cookie parsing
+app.use(cookieParser());
+
+// Enable CORS and JSON parsing with request size limit and credentials
 app.use(cors({
-    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true
 }));
 app.use(express.json({ limit: '10kb' }));
 
@@ -385,6 +391,355 @@ app.post('/api/wallet/deduct-fee', auth.requireAuth, async (req, res) => {
 app.get('/api/wallet/transactions', auth.requireAuth, (req, res) => {
     const transactions = walletManager.getTransactions(req.user.mobile);
     res.json({ success: true, transactions });
+});
+
+// -------------------------------------------------------------
+// Super Admin Production Security System
+// Brute-force protection (3 tries max, 15-min lockout),
+// 5-min strict OTP expiry, dual email dispatch, and HttpOnly / JWT session guard
+// -------------------------------------------------------------
+const EXPECTED_ADMIN_USER = process.env.ADMIN_USERNAME || 'Mansi';
+const EXPECTED_ADMIN_PASS = process.env.ADMIN_PASSWORD || 'Khushi';
+
+const adminLockoutStore = new Map();
+const MAX_ADMIN_ATTEMPTS = 3;
+const ADMIN_LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+
+function getClientIp(req) {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (forwarded) {
+        return forwarded.split(',')[0].trim();
+    }
+    return req.ip || req.connection.remoteAddress || '127.0.0.1';
+}
+
+function checkAdminLockout(ip) {
+    const now = Date.now();
+    const entry = adminLockoutStore.get(ip);
+    if (!entry) return null;
+
+    if (entry.lockedUntil && now < entry.lockedUntil) {
+        const remainingSeconds = Math.ceil((entry.lockedUntil - now) / 1000);
+        const remainingMinutes = Math.ceil(remainingSeconds / 60);
+        return {
+            isLocked: true,
+            remainingSeconds,
+            remainingMinutes
+        };
+    }
+
+    if (entry.lockedUntil && now >= entry.lockedUntil) {
+        adminLockoutStore.delete(ip);
+        return null;
+    }
+
+    return null;
+}
+
+function recordAdminFailure(ip) {
+    const now = Date.now();
+    const entry = adminLockoutStore.get(ip) || { attempts: 0, lockedUntil: null };
+    entry.attempts++;
+
+    if (entry.attempts >= MAX_ADMIN_ATTEMPTS) {
+        entry.lockedUntil = now + ADMIN_LOCKOUT_MS;
+        adminLockoutStore.set(ip, entry);
+        return {
+            lockedNow: true,
+            remainingSeconds: Math.ceil(ADMIN_LOCKOUT_MS / 1000),
+            remainingMinutes: 15
+        };
+    }
+
+    adminLockoutStore.set(ip, entry);
+    return {
+        lockedNow: false,
+        remainingAttempts: MAX_ADMIN_ATTEMPTS - entry.attempts
+    };
+}
+
+function clearAdminLockout(ip) {
+    adminLockoutStore.delete(ip);
+}
+
+// In-Memory Secure OTP Store for Super Admin
+let activeAdminOtpState = null;
+
+function timingSafeStringEqual(a, b) {
+    if (typeof a !== 'string' || typeof b !== 'string') return false;
+    const aBuf = Buffer.from(a);
+    const bBuf = Buffer.from(b);
+    if (aBuf.length !== bBuf.length) {
+        crypto.timingSafeEqual(aBuf, aBuf);
+        return false;
+    }
+    return crypto.timingSafeEqual(aBuf, bBuf);
+}
+
+/**
+ * Core unified verification endpoint: /api/admin/verify
+ * Handles:
+ * 1) Username + Password verification -> triggers 5-min OTP generation & simultaneous email dispatch
+ * 2) 6-digit OTP verification -> validates OTP, clears state, sets HttpOnly cookie & returns JWT
+ */
+app.post('/api/admin/verify', async (req, res) => {
+    try {
+        const clientIp = getClientIp(req);
+        const lockout = checkAdminLockout(clientIp);
+        if (lockout && lockout.isLocked) {
+            return res.status(429).json({
+                success: false,
+                error: `Account/IP is locked due to 3 failed attempts. Try again in ${lockout.remainingMinutes} minute(s).`,
+                locked: true,
+                remainingSeconds: lockout.remainingSeconds,
+                remainingMinutes: lockout.remainingMinutes
+            });
+        }
+
+        const { username, password, otp } = req.body;
+
+        // Mode 1: Verifying 6-digit OTP
+        if (otp) {
+            if (!activeAdminOtpState) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'No active OTP request found. Please login with username and password first.'
+                });
+            }
+
+            // Check 5-minute expiration
+            if (Date.now() > activeAdminOtpState.expiresAt) {
+                activeAdminOtpState = null;
+                return res.status(400).json({
+                    success: false,
+                    error: 'OTP has expired (5-minute limit exceeded). Please request a new OTP.'
+                });
+            }
+
+            const cleanOtp = String(otp).trim();
+            const enteredHash = crypto.createHash('sha256').update(cleanOtp).digest('hex');
+            const isMatch = timingSafeStringEqual(enteredHash, activeAdminOtpState.otpHash);
+
+            if (!isMatch) {
+                activeAdminOtpState.attempts = (activeAdminOtpState.attempts || 0) + 1;
+                const failure = recordAdminFailure(clientIp);
+
+                if (failure.lockedNow || activeAdminOtpState.attempts >= MAX_ADMIN_ATTEMPTS) {
+                    activeAdminOtpState = null;
+                    return res.status(429).json({
+                        success: false,
+                        error: 'Too many incorrect OTP attempts. Account locked for 15 minutes.',
+                        locked: true,
+                        remainingSeconds: failure.remainingSeconds,
+                        remainingMinutes: 15
+                    });
+                }
+
+                return res.status(401).json({
+                    success: false,
+                    error: `Incorrect OTP. Remaining attempts: ${failure.remainingAttempts}`,
+                    remainingAttempts: failure.remainingAttempts
+                });
+            }
+
+            // OTP verified successfully
+            activeAdminOtpState = null;
+            clearAdminLockout(clientIp);
+
+            const token = auth.generateToken({
+                uid: 'admin_mansi',
+                role: 'admin',
+                username: EXPECTED_ADMIN_USER,
+                name: 'Super Admin (Mansi)',
+                ip: clientIp
+            }, 8 * 3600); // 8-hour validity
+
+            // Set secure HttpOnly cookie for session hijacking prevention
+            res.cookie('gharmitra_admin_session', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 8 * 3600 * 1000
+            });
+
+            return res.json({
+                success: true,
+                authed: true,
+                token: token,
+                role: 'admin',
+                username: EXPECTED_ADMIN_USER,
+                message: 'Super Admin authentication successful.'
+            });
+        }
+
+        // Mode 2: Verifying Username and Password
+        if (!username || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Username and password are required'
+            });
+        }
+
+        const isUserMatch = timingSafeStringEqual(String(username).trim(), EXPECTED_ADMIN_USER);
+        const isPassMatch = timingSafeStringEqual(String(password), EXPECTED_ADMIN_PASS);
+
+        if (!isUserMatch || !isPassMatch) {
+            const failure = recordAdminFailure(clientIp);
+            if (failure.lockedNow) {
+                return res.status(429).json({
+                    success: false,
+                    error: 'Invalid credentials. 3 consecutive failed attempts reached. Locked for 15 minutes.',
+                    locked: true,
+                    remainingSeconds: failure.remainingSeconds,
+                    remainingMinutes: 15
+                });
+            }
+            return res.status(401).json({
+                success: false,
+                error: `Invalid admin credentials. Remaining attempts: ${failure.remainingAttempts}`,
+                remainingAttempts: failure.remainingAttempts
+            });
+        }
+
+        // Credentials valid! Generate secure 6-digit OTP
+        const rawOtp = crypto.randomInt(100000, 1000000).toString();
+        const otpHash = crypto.createHash('sha256').update(rawOtp).digest('hex');
+        const expiresAt = Date.now() + 5 * 60 * 1000; // 5-minute strict timer
+
+        activeAdminOtpState = {
+            otpHash,
+            expiresAt,
+            username: EXPECTED_ADMIN_USER,
+            ip: clientIp,
+            attempts: 0
+        };
+
+        // Dispatch simultaneously to atharvamali54@gmail.com and prathameshr361@gmail.com
+        sendAdminOtpEmail(rawOtp, clientIp).catch(err => {
+            console.error('[Admin Mailer Background Error]:', err.message);
+        });
+
+        return res.json({
+            success: true,
+            step: 'otp_required',
+            message: 'Admin credentials verified. 6-digit OTP sent to registered admin emails.',
+            expiresIn: 300,
+            recipients: ['atharvamali54@gmail.com', 'prathameshr361@gmail.com']
+        });
+
+    } catch (e) {
+        console.error('[Admin Verify Error]:', e);
+        res.status(500).json({ success: false, error: 'Internal admin verification error' });
+    }
+});
+
+// Explicit alias endpoints for convenience and direct routes
+app.post('/api/admin/login', (req, res, next) => {
+    req.url = '/api/admin/verify';
+    app._router.handle(req, res, next);
+});
+
+app.post('/api/admin/verify-otp', (req, res, next) => {
+    req.url = '/api/admin/verify';
+    app._router.handle(req, res, next);
+});
+
+// Resend Admin OTP (Strictly rate-limited and lockout protected)
+app.post('/api/admin/resend-otp', async (req, res) => {
+    try {
+        const clientIp = getClientIp(req);
+        const lockout = checkAdminLockout(clientIp);
+        if (lockout && lockout.isLocked) {
+            return res.status(429).json({
+                success: false,
+                error: `Account/IP is locked due to 3 failed attempts. Try again in ${lockout.remainingMinutes} minute(s).`,
+                locked: true,
+                remainingSeconds: lockout.remainingSeconds
+            });
+        }
+
+        const rawOtp = crypto.randomInt(100000, 1000000).toString();
+        const otpHash = crypto.createHash('sha256').update(rawOtp).digest('hex');
+        const expiresAt = Date.now() + 5 * 60 * 1000;
+
+        activeAdminOtpState = {
+            otpHash,
+            expiresAt,
+            username: EXPECTED_ADMIN_USER,
+            ip: clientIp,
+            attempts: 0
+        };
+
+        sendAdminOtpEmail(rawOtp, clientIp).catch(err => console.error('[Resend OTP Error]:', err.message));
+
+        res.json({
+            success: true,
+            step: 'otp_required',
+            message: 'New 6-digit OTP sent to registered admin emails.',
+            expiresIn: 300,
+            recipients: ['atharvamali54@gmail.com', 'prathameshr361@gmail.com']
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: 'Failed to resend OTP' });
+    }
+});
+
+// Verify Current Admin Session (Route Guard Endpoint)
+app.get(['/api/admin/verify-session', '/api/admin/session'], (req, res) => {
+    let token = null;
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+        const parts = authHeader.split(' ');
+        if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+            token = parts[1];
+        }
+    }
+    if (!token && req.cookies && req.cookies.gharmitra_admin_session) {
+        token = req.cookies.gharmitra_admin_session;
+    }
+
+    if (!token) {
+        return res.status(401).json({ success: false, authed: false, error: 'No session token found' });
+    }
+
+    const payload = auth.verifyToken(token);
+    if (!payload || payload.role !== 'admin') {
+        return res.status(401).json({ success: false, authed: false, error: 'Invalid or expired admin session' });
+    }
+
+    res.json({
+        success: true,
+        authed: true,
+        user: {
+            uid: payload.uid,
+            role: payload.role,
+            username: payload.username || EXPECTED_ADMIN_USER,
+            name: payload.name || 'Super Admin'
+        }
+    });
+});
+
+// Admin Logout
+app.post('/api/admin/logout', (req, res) => {
+    res.clearCookie('gharmitra_admin_session');
+    let token = null;
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+        const parts = authHeader.split(' ');
+        if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+            token = parts[1];
+        }
+    }
+    if (!token && req.cookies && req.cookies.gharmitra_admin_session) {
+        token = req.cookies.gharmitra_admin_session;
+    }
+    if (token) {
+        const payload = auth.verifyToken(token);
+        if (payload && payload.jti) {
+            auth.revokeToken(payload.jti);
+        }
+    }
+    res.json({ success: true, message: 'Super Admin logged out successfully' });
 });
 
 // Super Admin manual credit adjustment (Audit logged)
