@@ -59,6 +59,8 @@ let selectedKycWorkerMobile = null;
 let selectedKycAadharPhotoUrl = null;
 let cachedWorkerList = [];
 let selectedForceAssignOrderId = null;
+let allQualityResolutions = {};
+let isQualityHistoryOpen = false;
 
 // Initialize EmailJS for dual browser-level mailer fallback
 if (window.emailjs) {
@@ -904,6 +906,13 @@ function initDashboard() {
         allSocietyPassEnquiries = snap.val() || {};
         renderSocietyPassEnquiries();
     });
+
+    // 5. Listen to Quality & Dispute Resolutions
+    database.ref('qualityDisputeResolutions').on('value', (snap) => {
+        allQualityResolutions = snap.val() || {};
+        loadLocalQualityResolutions();
+        renderQualityDisputeShield();
+    });
 }
 
 // --- 4. KPI Calculations & Analytics ---
@@ -1052,11 +1061,12 @@ function calculateKpisAndRender() {
     // Update Area filter dropdown
     updateAreaDropdown(Array.from(areaSet).sort());
 
-    // Render tables and chart
+    // Render tables, chart, and Quality & Dispute Shield
     renderOrdersTable();
     renderWorkersTable();
     renderReviewsList();
     renderWeeklyChart();
+    renderQualityDisputeShield();
 }
 
 // --- 5. Weekly Chart Analytics ---
@@ -2218,6 +2228,460 @@ function shareInvoiceOnWhatsApp() {
 }
 
 // =========================================================
+// 🚨 फ्रॉड व क्वालिटी अलर्ट शिल्ड (Low-Rating & Dispute Shield)
+// =========================================================
+
+function loadLocalQualityResolutions() {
+    try {
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('gharmitra_resolved_')) {
+                const alertId = key.replace('gharmitra_resolved_', '');
+                if (!allQualityResolutions[alertId]) {
+                    allQualityResolutions[alertId] = JSON.parse(localStorage.getItem(key) || '{}');
+                }
+            }
+        }
+    } catch(e) {}
+}
+
+function formatShieldTime(ts) {
+    if (!ts) return 'काही वेळापूर्वी';
+    const now = Date.now();
+    const diffMs = now - Number(ts);
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'आत्ताच';
+    if (diffMins < 60) return `${diffMins} मि. पूर्वी`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} तासांपूर्वी`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return 'काल';
+    if (diffDays < 7) return `${diffDays} दिवसांपूर्वी`;
+    return new Date(Number(ts)).toLocaleDateString('mr-IN', { day: '2-digit', month: 'short' });
+}
+
+function renderQualityAlertCard(alert, isResolved = false) {
+    const isLowRating = alert.type === 'LOW_RATING';
+    const borderClass = isResolved
+        ? 'border-slate-200 bg-slate-50/80 opacity-90'
+        : 'border-rose-400 bg-gradient-to-br from-white via-rose-50/40 to-amber-50/30 shadow-md ring-1 ring-rose-400/40';
+    const orderNum = alert.orderId ? '#' + String(alert.orderId).slice(-6).toUpperCase() : 'N/A';
+    const timeStr = formatShieldTime(alert.timestamp);
+
+    const cleanCustMobile = String(alert.customerMobile || '').replace(/\D/g, '').slice(-10);
+    const cleanWorkerMobile = String(alert.workerMobile || '').replace(/\D/g, '').slice(-10);
+
+    const custWaText = isLowRating
+        ? `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरमित्र (Gharmitra) मॅनेजमेंटकडून हा मेसेज आहे. आपल्या ऑर्डर ${orderNum} (${alert.service || 'काम'}) वरील ${alert.rating}★ रेटिंग व तक्रारीबाबत आम्ही अत्यंत दिलगीर आहोत. आपल्या समस्येचे तातडीने निवारण करण्यासाठी आम्ही तत्पर आहोत. काय मदत करू शकतो किंवा आम्ही आपल्याला कॉल करू का? - घरमित्र सपोर्ट (पुणे)`
+        : `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरमित्र (Gharmitra) मॅनेजमेंटकडून हा मेसेज आहे. आपली ऑर्डर ${orderNum} (${alert.service || 'काम'}) रद्द झाल्याचे समजले. काय अडचण आली किंवा कारागिराबाबत काही तक्रार आहे का? आम्ही आपले समाधान करण्यासाठी कटिबद्ध आहोत. - घरमित्र सपोर्ट (पुणे)`;
+
+    const workerWaText = isLowRating
+        ? `घरमित्र ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} वर ग्राहकाने ${alert.rating}★ रेटिंग देऊन गंभीर तक्रार नोंदवली आहे. याबाबत तातडीने ॲडमिनशी संपर्क साधावा, अन्यथा आपले खाते तात्पुरते सस्पेंड केले जाईल.`
+        : `घरमित्र ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} रद्द झाली आहे. याचे नेमके काय कारण होते? तातडीने ॲडमिनशी संपर्क साधावा.`;
+
+    const custWaUrl = cleanCustMobile ? `https://wa.me/91${cleanCustMobile}?text=${encodeURIComponent(custWaText)}` : null;
+    const workerWaUrl = cleanWorkerMobile ? `https://wa.me/91${cleanWorkerMobile}?text=${encodeURIComponent(workerWaText)}` : null;
+
+    return `
+    <div class="bg-white p-4 sm:p-5 rounded-2xl border ${borderClass} space-y-3.5 transition">
+        <!-- Card Top Header -->
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2 flex-wrap">
+                ${!isResolved ? `
+                <span class="bg-red-600 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm animate-pulse">
+                    <i class="fa-solid fa-triangle-exclamation"></i> HIGH ATTENTION
+                </span>
+                ` : `
+                <span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <i class="fa-solid fa-check"></i> सोडवलेली तक्रार (Resolved)
+                </span>
+                `}
+                <span class="${isLowRating ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-rose-100 text-rose-900 border-rose-300'} text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border">
+                    ${isLowRating ? `⭐ ${alert.rating}.0★ कमी रेटिंग तक्रार` : `🚨 ऑर्डर रद्द / वाद (Dispute)`}
+                </span>
+                ${alert.orderId ? `
+                <button type="button" onclick="openAdminOrderModal('${alert.orderId}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs font-black px-2.5 py-0.5 rounded-lg transition inline-flex items-center gap-1 cursor-pointer">
+                    <i class="fa-solid fa-receipt text-[10px]"></i> ऑर्डर ${orderNum}
+                </button>
+                ` : ''}
+                <span class="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-md">
+                    ⚡ ${escapeHtml(alert.service || 'सर्व्हिस')}
+                </span>
+            </div>
+            <div class="text-[11px] text-slate-400 font-medium">
+                <i class="fa-regular fa-clock"></i> ${timeStr}
+            </div>
+        </div>
+
+        <!-- Issue / Complaint Highlight Box -->
+        <div class="bg-rose-50/90 border border-rose-200 rounded-xl p-3 text-slate-800">
+            <div class="flex items-start gap-2.5">
+                <span class="text-rose-600 text-lg leading-none shrink-0 mt-0.5">
+                    <i class="fa-solid fa-comment-dots"></i>
+                </span>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <strong class="text-xs font-bold text-rose-900">
+                            ${isLowRating ? 'ग्राहकाचा असंतोष व तक्रार:' : 'ऑर्डर रद्द करण्याचे कारण / वाद तपशील:'}
+                        </strong>
+                        ${isLowRating ? `
+                        <span class="text-amber-500 font-bold text-sm tracking-wider">
+                            ${'★'.repeat(alert.rating)}${'☆'.repeat(5 - alert.rating)}
+                        </span>
+                        ` : ''}
+                    </div>
+                    <p class="text-xs text-slate-800 font-semibold italic">
+                        "${escapeHtml(alert.issueDescription)}"
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Two Columns: Customer Outreach vs Worker Inquiry -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            <!-- Customer Contact Column -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user text-blue-600"></i> ग्राहक (Customer):
+                    </span>
+                    <span class="text-xs font-black text-slate-900">${escapeHtml(alert.customerName || 'अज्ञात ग्राहक')}</span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-slate-500">
+                    <span>मोबाईल नंबर:</span>
+                    <a href="tel:${alert.customerMobile}" class="font-bold text-blue-600 hover:underline">${alert.customerMobile || '-'}</a>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <a href="tel:${alert.customerMobile}" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold py-2 px-2.5 rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-phone"></i> ग्राहकाला कॉल
+                    </a>
+                    ${custWaUrl ? `
+                    <a href="${custWaUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2 px-2.5 rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> व्हॉट्सॲप दिलगिरी
+                    </a>
+                    ` : `
+                    <button disabled class="bg-slate-200 text-slate-400 font-bold py-2 px-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-not-allowed">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> व्हॉट्सॲप
+                    </button>
+                    `}
+                </div>
+            </div>
+
+            <!-- Worker Investigation & Action Column -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-helmet-safety text-amber-600"></i> कामगार (Worker):
+                    </span>
+                    <span class="text-xs font-black text-slate-900">${escapeHtml(alert.workerName || 'कामगार')}</span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-slate-500">
+                    <span>मोबाईल नंबर:</span>
+                    <a href="tel:${alert.workerMobile}" class="font-bold text-blue-600 hover:underline">${alert.workerMobile || '-'}</a>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <a href="tel:${alert.workerMobile}" class="bg-slate-800 hover:bg-slate-900 active:scale-95 text-white font-bold py-2 px-2.5 rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-phone"></i> कामगाराला कॉल
+                    </a>
+                    ${workerWaUrl ? `
+                    <a href="${workerWaUrl}" target="_blank" class="bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold py-2 px-2.5 rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> ताकीद नोटीस
+                    </a>
+                    ` : `
+                    <button disabled class="bg-slate-200 text-slate-400 font-bold py-2 px-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-not-allowed">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> ताकीद
+                    </button>
+                    `}
+                </div>
+            </div>
+        </div>
+
+        <!-- Resolution & Disciplinary Footer Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-2">
+                ${(alert.workerUid || alert.workerId || alert.workerMobile) && !isResolved ? `
+                <button type="button" onclick="suspendWorkerFromShield('${alert.workerUid || alert.workerId || ''}', '${alert.workerMobile || ''}', '${escapeHtml(alert.workerName)}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 hover:border-rose-300 font-bold text-xs py-1.5 px-3 rounded-xl transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                    <i class="fa-solid fa-user-slash text-xs"></i> 🚫 कामगार ड्युटी बंद / सस्पेंड करा
+                </button>
+                ` : ''}
+            </div>
+
+            <div>
+                ${!isResolved ? `
+                <button type="button" onclick="resolveQualityAlert('${alert.alertId}')" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-black text-xs py-2 px-4 rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-check-double text-sm"></i> ✓ तक्रार सोडवली (Mark Resolved)
+                </button>
+                ` : `
+                <div class="text-[11px] text-emerald-700 font-bold flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                    <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                    <span>सोडवले: ${escapeHtml(alert.resolutionNote || 'ॲडमिनद्वारे सोडवले')} (${alert.resolvedAtStr || 'Done'})</span>
+                </div>
+                `}
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+function renderQualityDisputeShield() {
+    const container = document.getElementById('qualityDisputeShieldSection');
+    if (!container) return;
+
+    loadLocalQualityResolutions();
+
+    const alertsList = [];
+    const seenOrderIds = new Set();
+
+    // 1. Collect low rating reviews (<= 2 stars)
+    allReviews.forEach(r => {
+        if (r.rating <= 2) {
+            const alertId = `review_${r.reviewId || r.orderId}`;
+            const resolution = allQualityResolutions[alertId] || (localStorage.getItem('gharmitra_resolved_' + alertId) ? JSON.parse(localStorage.getItem('gharmitra_resolved_' + alertId)) : null);
+            const isResolved = Boolean(resolution);
+
+            alertsList.push({
+                alertId,
+                type: 'LOW_RATING',
+                orderId: r.orderId,
+                service: r.service,
+                rating: r.rating,
+                issueDescription: r.review || 'ग्राहकाने १ किंवा २ स्टार रेटिंग देऊन कामाबद्दल असंतोष व्यक्त केला आहे.',
+                customerName: r.customerName || 'ग्राहक',
+                customerMobile: r.customerMobile || '',
+                workerName: r.workerName || 'कामगार',
+                workerMobile: r.workerMobile || '',
+                workerId: r.workerId || '',
+                workerUid: r.workerId || '',
+                timestamp: r.timestamp || Date.now(),
+                isResolved,
+                resolutionNote: resolution ? (resolution.resolutionNote || 'सोडवले') : null,
+                resolvedAt: resolution ? resolution.resolvedAt : null,
+                resolvedAtStr: resolution ? new Date(resolution.resolvedAt || Date.now()).toLocaleDateString('mr-IN', { day: '2-digit', month: 'short' }) : null
+            });
+            if (r.orderId) seenOrderIds.add(r.orderId);
+        }
+    });
+
+    // 2. Collect cancelled orders (Disputes / Cancellations)
+    Object.entries(allOrders).forEach(([orderId, order]) => {
+        if (order && order.status === 'Cancelled' && !seenOrderIds.has(orderId)) {
+            const alertId = `order_cancelled_${orderId}`;
+            const resolution = allQualityResolutions[alertId] || (localStorage.getItem('gharmitra_resolved_' + alertId) ? JSON.parse(localStorage.getItem('gharmitra_resolved_' + alertId)) : null);
+            const isResolved = Boolean(resolution);
+
+            const targetWorkerId = order.workerUid || order.workerId || '';
+            const wInfo = (targetWorkerId && allWorkers[targetWorkerId]) || (order.workerMobile && Object.values(allWorkers).find(w => w.mobile === order.workerMobile));
+            const resolvedWorkerName = order.workerName || (wInfo && (wInfo.name || wInfo.fullName)) || (order.workerMobile ? 'कामगार (' + order.workerMobile + ')' : 'अजून नेमला नव्हता');
+            const resolvedWorkerMobile = order.workerMobile || (wInfo && wInfo.mobile) || '';
+
+            const cancelReason = order.cancelReason || order.cancellationReason || order.cancelledReason || order.disputeNote || 'ग्राहकाने किंवा कामगाराने वाद / समस्येमुळे ऑर्डर रद्द केली.';
+
+            alertsList.push({
+                alertId,
+                type: 'CANCELLED_DISPUTE',
+                orderId: orderId,
+                service: order.service || 'होम सर्व्हिस',
+                budget: order.budget || '₹500',
+                issueDescription: cancelReason,
+                customerName: order.customerName || 'ग्राहक',
+                customerMobile: order.customerMobile || '',
+                workerName: resolvedWorkerName,
+                workerMobile: resolvedWorkerMobile,
+                workerId: targetWorkerId,
+                workerUid: targetWorkerId,
+                timestamp: order.cancelledAt || order.timestamp || order.createdAt || Date.now(),
+                isResolved,
+                resolutionNote: resolution ? (resolution.resolutionNote || 'सोडवले') : null,
+                resolvedAt: resolution ? resolution.resolvedAt : null,
+                resolvedAtStr: resolution ? new Date(resolution.resolvedAt || Date.now()).toLocaleDateString('mr-IN', { day: '2-digit', month: 'short' }) : null
+            });
+        }
+    });
+
+    const activeAlerts = alertsList.filter(a => !a.isResolved);
+    const resolvedAlerts = alertsList.filter(a => a.isResolved);
+
+    activeAlerts.sort((a, b) => (Number(b.timestamp || 0)) - (Number(a.timestamp || 0)));
+    resolvedAlerts.sort((a, b) => (Number(b.timestamp || 0)) - (Number(a.timestamp || 0)));
+
+    if (activeAlerts.length === 0) {
+        if (resolvedAlerts.length > 0) {
+            container.classList.remove('hidden');
+            container.innerHTML = `
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-4 sm:p-5 rounded-3xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3.5">
+                        <span class="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center text-xl text-yellow-300 shrink-0">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </span>
+                        <div>
+                            <h4 class="font-black text-sm sm:text-base flex items-center gap-2">
+                                🛡️ क्वालिटी अलर्ट शिल्ड सुरक्षित (All Clear)
+                            </h4>
+                            <p class="text-xs text-emerald-100">सध्या कोणतीही प्रलंबित १-२ स्टार तक्रार किंवा वाद नाही. सर्व्हिस क्वालिटी उत्तम राखली आहे!</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="toggleQualityShieldHistory()" id="shieldHistoryToggleBtn" class="bg-white/20 hover:bg-white/30 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition border border-white/20 cursor-pointer">
+                        <i class="fa-solid fa-clock-rotate-left mr-1"></i> सोडवलेल्या तक्रारी (${resolvedAlerts.length}) पहा
+                    </button>
+                </div>
+                <div id="shieldHistoryContainer" class="${isQualityHistoryOpen ? '' : 'hidden'} space-y-3 pt-1">
+                    <div class="flex items-center justify-between px-1">
+                        <h5 class="text-xs font-bold text-slate-500 uppercase tracking-wider">सोडवलेल्या तक्रारींचा इतिहास (Resolved History):</h5>
+                    </div>
+                    ${resolvedAlerts.map(a => renderQualityAlertCard(a, true)).join('')}
+                </div>
+            `;
+        } else {
+            container.classList.add('hidden');
+            container.innerHTML = '';
+        }
+        return;
+    }
+
+    container.classList.remove('hidden');
+    container.innerHTML = `
+        <!-- Main Shield Alert Banner -->
+        <div class="bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 p-4 sm:p-5 rounded-3xl text-white shadow-xl border border-rose-500/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in duration-200">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-2xl text-yellow-300 shadow-inner shrink-0 animate-bounce">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h3 class="font-black text-base sm:text-lg flex items-center gap-2">
+                            🚨 फ्रॉड व क्वालिटी अलर्ट शिल्ड (Quality & Dispute Shield)
+                        </h3>
+                        <span id="shieldActiveBadge" class="bg-yellow-300 text-slate-950 text-xs font-black px-2.5 py-0.5 rounded-full shadow-sm animate-pulse">
+                            ${activeAlerts.length} High Attention Alerts
+                        </span>
+                    </div>
+                    <p class="text-xs text-rose-100 mt-0.5">
+                        १-२ स्टार कमी रेटिंग किंवा वादामुळे रद्द झालेल्या ऑर्डर्स. ग्राहकांशी व कामगारांशी त्वरित संवाद साधून अडचण सोडवा.
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                ${resolvedAlerts.length > 0 ? `
+                <button type="button" onclick="toggleQualityShieldHistory()" id="shieldHistoryToggleBtn" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition border border-white/20 flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-clock-rotate-left"></i> <span>सोडवलेल्या तक्रारी (${resolvedAlerts.length})</span>
+                </button>
+                ` : ''}
+            </div>
+        </div>
+
+        <!-- Active Red Alert Cards Container -->
+        <div id="shieldActiveCardsContainer" class="space-y-3">
+            ${activeAlerts.map(a => renderQualityAlertCard(a, false)).join('')}
+        </div>
+
+        <!-- Collapsible History Container -->
+        <div id="shieldHistoryContainer" class="${isQualityHistoryOpen ? '' : 'hidden'} space-y-3 pt-2">
+            <div class="flex items-center justify-between px-1">
+                <h5 class="text-xs font-bold text-slate-500 uppercase tracking-wider">सोडवलेल्या तक्रारींचा इतिहास (Resolved History):</h5>
+            </div>
+            ${resolvedAlerts.map(a => renderQualityAlertCard(a, true)).join('')}
+        </div>
+    `;
+}
+
+function toggleQualityShieldHistory() {
+    isQualityHistoryOpen = !isQualityHistoryOpen;
+    const historyContainer = document.getElementById('shieldHistoryContainer');
+    const toggleBtn = document.getElementById('shieldHistoryToggleBtn');
+    if (historyContainer) {
+        historyContainer.classList.toggle('hidden', !isQualityHistoryOpen);
+    }
+    if (toggleBtn) {
+        toggleBtn.innerHTML = isQualityHistoryOpen
+            ? '<i class="fa-solid fa-chevron-up"></i> <span>इतिहास लपवा</span>'
+            : '<i class="fa-solid fa-clock-rotate-left"></i> <span>सोडवलेल्या तक्रारी</span>';
+    }
+}
+
+function scrollToQualityShield() {
+    const el = document.getElementById('qualityDisputeShieldSection');
+    if (!el) return;
+    el.classList.remove('hidden');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('ring-4', 'ring-rose-500');
+    setTimeout(() => {
+        el.classList.remove('ring-4', 'ring-rose-500');
+    }, 2000);
+}
+
+async function resolveQualityAlert(alertId) {
+    const defaultNote = "ग्राहकाशी थेट बोलून समस्या सोडवली व समाधान केले.";
+    const note = prompt("तक्रार सोडवल्याची नोंद / रिझोल्युशन नोट टाका:", defaultNote);
+    if (note === null) return;
+
+    const now = Date.now();
+    const resolutionPayload = {
+        resolvedAt: firebase.database.ServerValue.TIMESTAMP,
+        resolvedBy: 'Super Admin',
+        resolutionNote: note.trim() || defaultNote
+    };
+
+    try {
+        await database.ref('qualityDisputeResolutions/' + alertId).set(resolutionPayload);
+        allQualityResolutions[alertId] = {
+            resolvedAt: now,
+            resolvedBy: 'Super Admin',
+            resolutionNote: note.trim() || defaultNote
+        };
+        try {
+            localStorage.setItem('gharmitra_resolved_' + alertId, JSON.stringify(resolutionPayload));
+        } catch(e) {}
+
+        alert("✅ तक्रार यशस्वीरीत्या सोडवली (Resolved) म्हणून नोंदवली गेली!");
+        renderQualityDisputeShield();
+    } catch(err) {
+        console.error("Resolve Alert Error:", err);
+        allQualityResolutions[alertId] = {
+            resolvedAt: now,
+            resolvedBy: 'Super Admin',
+            resolutionNote: note.trim() || defaultNote
+        };
+        try {
+            localStorage.setItem('gharmitra_resolved_' + alertId, JSON.stringify(resolutionPayload));
+        } catch(e) {}
+        alert("✅ तक्रार स्थानिक पातळीवर सोडवली म्हणून सेव्ह केली!");
+        renderQualityDisputeShield();
+    }
+}
+
+async function suspendWorkerFromShield(workerUid, workerMobile, workerName) {
+    const displayName = workerName || workerMobile || 'कामगार';
+    const confirmPrompt = `तुम्हाला खात्री आहे की कामगार "${displayName}" ची ड्युटी बंद करून (Duty OFF) त्याला तात्पुरते सस्पेंड करायचे आहे?\n\nयामुळे या कामगाराला नवीन कामांच्या नोटिफिकेशन्स जाणार नाहीत.`;
+    if (!confirm(confirmPrompt)) return;
+
+    try {
+        const suspendData = {
+            isDutyOn: false,
+            dutyStatus: 'OFF',
+            isSuspended: true,
+            suspendedAt: firebase.database.ServerValue.TIMESTAMP,
+            suspensionReason: 'Low Rating / Dispute Complaint'
+        };
+
+        if (workerUid && workerUid !== 'local_worker_') {
+            await database.ref('workers/' + workerUid).update(suspendData).catch(() => {});
+        }
+
+        const cleanMob = String(workerMobile).replace(/\D/g, '').slice(-10);
+        if (cleanMob) {
+            await database.ref('workers/accounts/workers/' + cleanMob).update(suspendData).catch(() => {});
+            await database.ref('workers/local_worker_' + cleanMob).update(suspendData).catch(() => {});
+        }
+
+        alert(`🚫 कामगार "${displayName}" ची ड्युटी यशस्वीरीत्या बंद केली असून त्याला सस्पेंड केले आहे.`);
+        renderWorkersTable();
+    } catch(err) {
+        console.error("Worker suspend error:", err);
+        alert("कामगाराला सस्पेंड करताना त्रुटी आली: " + (err.message || err));
+    }
+}
+
+// =========================================================
 // ⚡ 1-Click Smart Auto-Assign & Emergency Dispatch (SOS)
 // =========================================================
 
@@ -2636,3 +3100,8 @@ window.closeForceAssignModal = closeForceAssignModal;
 window.renderForceAssignWorkersList = renderForceAssignWorkersList;
 window.executeForceAssignWorker = executeForceAssignWorker;
 window.updateSosAlertBanner = updateSosAlertBanner;
+window.renderQualityDisputeShield = renderQualityDisputeShield;
+window.scrollToQualityShield = scrollToQualityShield;
+window.toggleQualityShieldHistory = toggleQualityShieldHistory;
+window.resolveQualityAlert = resolveQualityAlert;
+window.suspendWorkerFromShield = suspendWorkerFromShield;
