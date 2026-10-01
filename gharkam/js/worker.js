@@ -1593,6 +1593,7 @@ function loadWorkerEarnings(workerUid) {
         if (todayJobsCountEl) todayJobsCountEl.innerText = todayCount;
 
         renderEarningsChart(weeklyData);
+        syncApkDashboardData();
     }
 
     if (allOrdersData) {
@@ -1981,6 +1982,7 @@ function toggleDuty() {
         headerDot.className = "w-2 h-2 rounded-full bg-red-500";
         headerText.innerText = "Duty OFF";
     }
+    updateApkDutyUI();
     renderJobs();
 }
 
@@ -2240,6 +2242,22 @@ function renderJobs() {
 
     jobCountBadge.innerText = `${pendingCount} New Jobs`;
     updateDeadlineLabels();
+
+    // Sync into APK app containers
+    const apkJobsContainer = document.getElementById('apkAvailableJobsContainer');
+    const apkAcceptedContainer = document.getElementById('apkAcceptedJobsContainer');
+    const apkJobCountBadgeSub = document.getElementById('apkJobCountBadgeSub');
+    if (apkJobsContainer && jobsContainer) {
+        apkJobsContainer.innerHTML = jobsContainer.innerHTML;
+    }
+    if (apkAcceptedContainer && acceptedContainer) {
+        apkAcceptedContainer.innerHTML = acceptedContainer.innerHTML;
+    }
+    if (apkJobCountBadgeSub) {
+        apkJobCountBadgeSub.innerText = `${pendingCount} New Jobs`;
+    }
+
+    syncApkDashboardData();
 }
 
 function acceptOrder(orderId) {
@@ -2541,3 +2559,522 @@ function updateStatus(orderId, newStatus) {
         alert("स्टेटस अपडेट करताना अडचण आली.");
     });
 }
+
+// =========================================================
+// Dedicated Worker APK Mobile App Dashboard Controller
+// =========================================================
+
+function updateApkDutyUI() {
+    const apkPillDot = document.getElementById('apkHeaderDutyDot');
+    const apkPillText = document.getElementById('apkHeaderDutyText');
+    if (apkPillDot) {
+        apkPillDot.className = isDutyOn ? "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" : "w-2.5 h-2.5 rounded-full bg-rose-500";
+    }
+    if (apkPillText) {
+        apkPillText.innerText = isDutyOn ? "Duty ON" : "Duty OFF";
+    }
+
+    const apkOnlineTitle = document.getElementById('apkOnlineStatusTitle');
+    const apkOnlineSub = document.getElementById('apkOnlineStatusSub');
+    const apkSwitchBg = document.getElementById('apkDutySwitchBg');
+    const apkSwitchThumb = document.getElementById('apkDutySwitchThumb');
+    const apkOnlineCard = document.getElementById('apkOnlineStatusCard');
+
+    if (isDutyOn) {
+        if (apkOnlineTitle) apkOnlineTitle.innerHTML = 'You are <span class="text-slate-900 font-extrabold">Online</span>';
+        if (apkOnlineSub) apkOnlineSub.innerText = 'You will receive new job requests';
+        if (apkSwitchBg) apkSwitchBg.className = "w-12 h-7 bg-emerald-500 rounded-full p-1 transition-colors duration-300 flex items-center justify-end cursor-pointer shrink-0";
+        if (apkSwitchThumb) apkSwitchThumb.className = "w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300";
+        if (apkOnlineCard) apkOnlineCard.className = "bg-[#eafaf1] border border-[#c7eed8] rounded-2xl p-3.5 mx-3.5 mt-3 flex items-center justify-between shadow-xs transition cursor-pointer";
+    } else {
+        if (apkOnlineTitle) apkOnlineTitle.innerHTML = 'You are <span class="text-slate-700 font-extrabold">Offline</span>';
+        if (apkOnlineSub) apkOnlineSub.innerText = 'Turn ON duty to receive new job requests';
+        if (apkSwitchBg) apkSwitchBg.className = "w-12 h-7 bg-slate-300 rounded-full p-1 transition-colors duration-300 flex items-center justify-start cursor-pointer shrink-0";
+        if (apkSwitchThumb) apkSwitchThumb.className = "w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300";
+        if (apkOnlineCard) apkOnlineCard.className = "bg-slate-100 border border-slate-200 rounded-2xl p-3.5 mx-3.5 mt-3 flex items-center justify-between shadow-xs transition cursor-pointer";
+    }
+
+    const apkBigBtn = document.getElementById('apkBigDutyBtn');
+    if (apkBigBtn) {
+        if (isDutyOn) {
+            apkBigBtn.className = "w-full bg-[#ff4d4f] hover:bg-[#ff3538] text-white font-bold py-3.5 rounded-2xl shadow-md text-sm flex items-center justify-center gap-2 cursor-pointer transition active:scale-98";
+            apkBigBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> Go Offline';
+        } else {
+            apkBigBtn.className = "w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-2xl shadow-md text-sm flex items-center justify-center gap-2 cursor-pointer transition active:scale-98";
+            apkBigBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> Go Online';
+        }
+    }
+}
+
+function calculateApkAnalytics(timeframe = 'weekly') {
+    if (!allOrdersData) return;
+    const workerUid = currentWorkerUid || getLocalWorkerId();
+    const session = getStoredWorkerSession();
+    const workerMobile = session ? session.mobile : null;
+
+    const now = new Date();
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7)).getTime();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+    let totalJobs = 0;
+    let totalEarnings = 0;
+    const uniqueCustomers = new Set();
+    let ratingSum = 0;
+    let ratingCount = 0;
+
+    Object.values(allOrdersData).forEach(order => {
+        if (!order || order.status !== 'Completed') return;
+        const isMatch = (
+            (workerUid && (order.workerUid === workerUid || order.workerUid === ('local_worker_' + workerMobile))) ||
+            (workerMobile && (order.workerMobile === workerMobile || order.workerUid === ('local_worker_' + workerMobile)))
+        );
+        if (!isMatch) return;
+
+        let orderTime = order.completedAt || order.timestamp;
+        if (!orderTime && order.date) {
+            const p = new Date(order.date).getTime();
+            if (!isNaN(p)) orderTime = p;
+        }
+        if (!orderTime) orderTime = Date.now();
+
+        if (timeframe === 'weekly' && orderTime < startOfWeek) return;
+        if (timeframe === 'monthly' && orderTime < startOfMonth) return;
+
+        totalJobs++;
+        const amt = parseInt(order.budget ? String(order.budget).replace(/[^0-9]/g, '') : '500', 10) || 500;
+        totalEarnings += amt;
+
+        if (order.customerMobile) uniqueCustomers.add(order.customerMobile);
+        if (order.customerRating || order.rating) {
+            ratingSum += Number(order.customerRating || order.rating);
+            ratingCount++;
+        }
+    });
+
+    const jobsEl = document.getElementById('apkWeekTotalJobs');
+    const earnEl = document.getElementById('apkWeekTotalEarnings');
+    const custEl = document.getElementById('apkWeekCustomers');
+    const rateEl = document.getElementById('apkWeekAvgRating');
+
+    if (jobsEl) jobsEl.innerText = totalJobs;
+    if (earnEl) earnEl.innerText = '₹' + totalEarnings;
+    if (custEl) custEl.innerText = uniqueCustomers.size;
+    if (rateEl) {
+        const avg = ratingCount > 0 ? (ratingSum / ratingCount).toFixed(1) : (document.getElementById('workerAvgRating')?.innerText || '5.0');
+        rateEl.innerText = avg;
+    }
+}
+
+function changeApkAnalyticsFilter(val) {
+    calculateApkAnalytics(val);
+}
+
+function syncApkDashboardData() {
+    try {
+        const nameVal = document.getElementById('workerUsername')?.innerText || 'Worker';
+        const apkName = document.getElementById('apkWorkerName');
+        if (apkName && nameVal !== 'Loading...') apkName.innerText = nameVal;
+
+        const avatarSrc = document.getElementById('workerHeaderAvatar')?.src;
+        const apkAvatar = document.getElementById('apkWorkerAvatar');
+        if (apkAvatar && avatarSrc) apkAvatar.src = avatarSrc;
+
+        const idVal = document.getElementById('workerID')?.innerText || 'GK-000000';
+        const apkId = document.getElementById('apkWorkerId');
+        if (apkId) apkId.innerText = idVal;
+
+        const serviceVal = document.getElementById('workerService')?.innerText || 'Cleaning';
+        const apkService = document.getElementById('apkWorkerService');
+        if (apkService && serviceVal !== 'Loading...') apkService.innerText = serviceVal;
+
+        const ratingVal = document.getElementById('workerAvgRating')?.innerText || '5.0';
+        const revVal = document.getElementById('workerTotalReviews')?.innerText || '0';
+        const apkRating = document.getElementById('apkWorkerAvgRating');
+        const apkReviews = document.getElementById('apkWorkerTotalReviews');
+        if (apkRating) apkRating.innerText = ratingVal;
+        if (apkReviews) apkReviews.innerText = `(${revVal} Reviews)`;
+
+        const walletVal = document.getElementById('walletAmount')?.innerText || '50';
+        const apkWallet = document.getElementById('apkWalletAmount');
+        const modalWallet = document.getElementById('modalPaymentsWalletBalance');
+        if (apkWallet) apkWallet.innerText = walletVal;
+        if (modalWallet) modalWallet.innerText = walletVal;
+
+        const todayEarnVal = document.getElementById('todayEarnings')?.innerText || '0';
+        const todayJobsVal = document.getElementById('todayJobsCount')?.innerText || '0';
+        const apkTodayEarn = document.getElementById('apkTodayEarnings');
+        const apkTodayJobs = document.getElementById('apkTodayJobsCount');
+        if (apkTodayEarn) apkTodayEarn.innerText = todayEarnVal;
+        if (apkTodayJobs) apkTodayJobs.innerText = todayJobsVal;
+
+        const jobCountVal = document.getElementById('jobCount')?.innerText || '0 New Jobs';
+        const countDigits = (jobCountVal.match(/\d+/) || ['0'])[0];
+        const apkJobBadge = document.getElementById('apkJobCountBadge');
+        if (apkJobBadge) {
+            apkJobBadge.innerText = countDigits;
+            apkJobBadge.style.display = (parseInt(countDigits, 10) > 0) ? 'flex' : 'none';
+        }
+
+        const areaSelect = document.getElementById('workingAreaSelect');
+        const apkAreaSelect = document.getElementById('apkWorkingAreaSelect');
+        if (areaSelect && apkAreaSelect) {
+            const currentArea = areaSelect.value || 'Swargate';
+            if (apkAreaSelect.value !== currentArea) apkAreaSelect.value = currentArea;
+        }
+
+        updateApkDutyUI();
+
+        const apkKyc = document.getElementById('apkKycBadge');
+        if (apkKyc) {
+            if (currentWorkerVerificationStatus === 'approved') {
+                apkKyc.className = "bg-amber-100/90 text-amber-900 border border-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-md inline-flex items-center gap-1 cursor-pointer";
+                apkKyc.innerHTML = '<i class="fa-solid fa-circle-check text-blue-600"></i> Verified Partner';
+            } else if (currentWorkerVerificationStatus === 'rejected') {
+                apkKyc.className = "bg-rose-100 text-rose-800 border border-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-md inline-flex items-center gap-1 cursor-pointer";
+                apkKyc.innerHTML = '✕ KYC Rejected (Reupload)';
+            } else {
+                apkKyc.className = "bg-slate-100 text-slate-700 border border-slate-300 text-[10px] font-bold px-2 py-0.5 rounded-md inline-flex items-center gap-1 cursor-pointer";
+                apkKyc.innerHTML = '⏳ Pending Verification';
+            }
+        }
+
+        const filterSelect = document.getElementById('apkAnalyticsTimeFilter');
+        calculateApkAnalytics(filterSelect ? filterSelect.value : 'weekly');
+    } catch(e) {
+        console.warn('syncApkDashboardData error:', e);
+    }
+}
+
+function scrollToApkJobs() {
+    const el = document.getElementById('apkJobsSection');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function focusApkAreaSelect() {
+    const el = document.getElementById('apkWorkingAreaSelect');
+    if (el) {
+        el.focus();
+        if (typeof el.showPicker === 'function') {
+            try { el.showPicker(); } catch(e) {}
+        }
+    }
+}
+
+function onApkAreaSelectChanged(val) {
+    const webArea = document.getElementById('workingAreaSelect');
+    if (webArea) {
+        webArea.value = val;
+        filterAreaJobs();
+    }
+    showApkToast('📍 भाग बदलला: ' + val);
+}
+
+function copyWorkerIdToClipboard() {
+    const id = document.getElementById('apkWorkerId')?.innerText || document.getElementById('workerID')?.innerText || 'GK-846473';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(id).then(() => {
+            showApkToast('✅ Worker ID ' + id + ' Copied!');
+        }).catch(() => {
+            showApkToast('ID: ' + id);
+        });
+    } else {
+        showApkToast('ID: ' + id);
+    }
+}
+
+function showApkToast(msg) {
+    const t = document.getElementById('apkToast');
+    if (!t) return;
+    t.innerText = msg;
+    t.classList.remove('hidden');
+    t.classList.add('block');
+    t.style.opacity = '1';
+    setTimeout(() => {
+        t.style.opacity = '0';
+        setTimeout(() => {
+            t.classList.add('hidden');
+            t.classList.remove('block');
+        }, 300);
+    }, 2200);
+}
+
+// Modals: My Jobs
+function openWorkerMyJobsModal(tab = 'active') {
+    const m = document.getElementById('workerMyJobsModal');
+    if (!m) return;
+    m.classList.remove('hidden');
+    switchMyJobsTab(tab);
+    renderMyJobsModalContent();
+}
+
+function closeWorkerMyJobsModal() {
+    const m = document.getElementById('workerMyJobsModal');
+    if (m) m.classList.add('hidden');
+}
+
+function switchMyJobsTab(tab) {
+    const btnActive = document.getElementById('myJobsTabBtnActive');
+    const btnComp = document.getElementById('myJobsTabBtnCompleted');
+    const listActive = document.getElementById('myJobsActiveList');
+    const listComp = document.getElementById('myJobsCompletedList');
+
+    if (tab === 'completed') {
+        if (btnActive) btnActive.className = "pb-2 text-slate-400 hover:text-slate-700";
+        if (btnComp) btnComp.className = "pb-2 text-blue-600 border-b-2 border-blue-600";
+        if (listActive) listActive.classList.add('hidden');
+        if (listComp) listComp.classList.remove('hidden');
+    } else {
+        if (btnActive) btnActive.className = "pb-2 text-blue-600 border-b-2 border-blue-600";
+        if (btnComp) btnComp.className = "pb-2 text-slate-400 hover:text-slate-700";
+        if (listActive) listActive.classList.remove('hidden');
+        if (listComp) listComp.classList.add('hidden');
+    }
+}
+
+function renderMyJobsModalContent() {
+    const activeList = document.getElementById('myJobsActiveList');
+    const compList = document.getElementById('myJobsCompletedList');
+    const activeSrc = document.getElementById('acceptedJobsContainer');
+
+    if (activeList) {
+        if (activeSrc && activeSrc.children.length > 0 && !activeSrc.innerText.includes('You have not accepted')) {
+            activeList.innerHTML = activeSrc.innerHTML;
+        } else {
+            activeList.innerHTML = `
+                <div class="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200 p-4">
+                    <i class="fa-solid fa-briefcase text-2xl text-slate-300 mb-2"></i>
+                    <p class="text-xs font-bold text-slate-600">सध्या कोणतेही चालू काम नाही.</p>
+                    <p class="text-[11px] text-slate-400 mt-1">नवीन कामे स्वीकारण्यासाठी Duty ON ठेवा.</p>
+                </div>
+            `;
+        }
+    }
+
+    if (compList && allOrdersData) {
+        const workerUid = currentWorkerUid || getLocalWorkerId();
+        const session = getStoredWorkerSession();
+        const workerMobile = session ? session.mobile : null;
+
+        const completedOrders = Object.entries(allOrdersData).filter(([id, order]) => {
+            if (!order || order.status !== 'Completed') return false;
+            return (
+                (workerUid && (order.workerUid === workerUid || order.workerUid === ('local_worker_' + workerMobile))) ||
+                (workerMobile && (order.workerMobile === workerMobile || order.workerUid === ('local_worker_' + workerMobile)))
+            );
+        }).sort((a, b) => (b[1].completedAt || b[1].timestamp || 0) - (a[1].completedAt || a[1].timestamp || 0));
+
+        if (completedOrders.length === 0) {
+            compList.innerHTML = `
+                <div class="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200 p-4">
+                    <i class="fa-solid fa-clock-rotate-left text-2xl text-slate-300 mb-2"></i>
+                    <p class="text-xs font-bold text-slate-600">कोणतेही पूर्ण झालेले काम आढळले नाही.</p>
+                </div>
+            `;
+        } else {
+            let html = '';
+            completedOrders.forEach(([id, order]) => {
+                const timeVal = order.completedAt || order.timestamp || Date.now();
+                const dateStr = new Date(timeVal).toLocaleDateString('mr-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                const budgetVal = (order.budget || '₹500').replace('₹', '');
+                html += `
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
+                        <div class="space-y-0.5">
+                            <span class="font-bold text-slate-800 block">${order.service || 'काम'}</span>
+                            <span class="text-[10px] text-slate-500 block">${order.area || 'पुणे'} • ${dateStr}</span>
+                            <span class="text-[10px] text-emerald-600 font-bold block">✓ पूर्ण झाले</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-black text-emerald-700 block">₹${budgetVal}</span>
+                            ${order.customerRating ? `<span class="text-[10px] text-amber-500 font-bold">★ ${order.customerRating}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            compList.innerHTML = html;
+        }
+    }
+}
+
+// Modals: Payments
+function openWorkerPaymentsModal() {
+    const m = document.getElementById('workerPaymentsModal');
+    if (!m) return;
+    const curWallet = document.getElementById('walletAmount')?.innerText || '50';
+    const modalBal = document.getElementById('modalPaymentsWalletBalance');
+    if (modalBal) modalBal.innerText = curWallet;
+    m.classList.remove('hidden');
+}
+
+function closeWorkerPaymentsModal() {
+    const m = document.getElementById('workerPaymentsModal');
+    if (m) m.classList.add('hidden');
+}
+
+// Modals: Ratings
+function openWorkerRatingsModal() {
+    const m = document.getElementById('workerRatingsModal');
+    if (!m) return;
+    const avg = document.getElementById('workerAvgRating')?.innerText || '5.0';
+    const count = document.getElementById('workerTotalReviews')?.innerText || '0';
+    const scoreEl = document.getElementById('modalRatingsScore');
+    const countEl = document.getElementById('modalRatingsCount');
+    if (scoreEl) scoreEl.innerText = avg;
+    if (countEl) countEl.innerText = count.replace(/[^0-9]/g, '') || '0';
+
+    const listEl = document.getElementById('modalReviewsList');
+    if (listEl && allOrdersData) {
+        const workerUid = currentWorkerUid || getLocalWorkerId();
+        const reviews = Object.values(allOrdersData).filter(o => o && o.customerRating && (o.workerUid === workerUid || o.workerMobile === (getStoredWorkerSession()?.mobile)));
+        if (reviews.length === 0) {
+            listEl.innerHTML = '<p class="text-center py-6 text-slate-400 text-xs">अद्याप कोणताही अभिप्राय आलेला नाही.</p>';
+        } else {
+            let html = '';
+            reviews.forEach(r => {
+                html += `
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-800">${r.customerName || 'ग्राहक'}</span>
+                            <span class="text-amber-500 font-bold">★ ${r.customerRating}</span>
+                        </div>
+                        <p class="text-slate-600 text-[11px]">${r.customerReview || 'उत्कृष्ट आणि वेळेवर सेवा!'}</p>
+                    </div>
+                `;
+            });
+            listEl.innerHTML = html;
+        }
+    }
+    m.classList.remove('hidden');
+}
+
+function closeWorkerRatingsModal() {
+    const m = document.getElementById('workerRatingsModal');
+    if (m) m.classList.add('hidden');
+}
+
+// Modals: Support
+function openWorkerSupportModal() {
+    const m = document.getElementById('workerSupportModal');
+    if (m) m.classList.remove('hidden');
+}
+
+function closeWorkerSupportModal() {
+    const m = document.getElementById('workerSupportModal');
+    if (m) m.classList.add('hidden');
+}
+
+// Modals: Profile
+function openWorkerProfileModal() {
+    const m = document.getElementById('workerProfileModal');
+    if (m) m.classList.remove('hidden');
+}
+
+function closeWorkerProfileModal() {
+    const m = document.getElementById('workerProfileModal');
+    if (m) m.classList.add('hidden');
+}
+
+function workerLogout() {
+    if (confirm("तुम्हाला खात्रीने लॉगआऊट करायचे आहे का?")) {
+        try {
+            localStorage.removeItem('current_worker_session');
+            sessionStorage.removeItem('current_worker_session');
+            localStorage.removeItem('current_user_session');
+            if (firebase && firebase.auth) firebase.auth().signOut().catch(() => {});
+        } catch(e) {}
+        window.location.href = "index.html";
+    }
+}
+
+// Modals: Notifications
+function openWorkerNotificationsModal() {
+    const m = document.getElementById('workerNotificationsModal');
+    if (!m) return;
+    const list = document.getElementById('modalNotificationsList');
+    if (list && typeof database !== 'undefined') {
+        database.ref('broadcastNotifications').limitToLast(10).once('value', snap => {
+            const val = snap.val();
+            if (!val) {
+                list.innerHTML = '<p class="text-center py-8 text-slate-400 text-xs">कोणतीही नवीन सूचना नाही.</p>';
+                return;
+            }
+            let html = '';
+            Object.values(val).reverse().forEach(item => {
+                if (item.audience === 'CUSTOMERS') return;
+                const timeStr = new Date(item.createdAt || item.timestamp || Date.now()).toLocaleTimeString('mr-IN', { hour: '2-digit', minute: '2-digit' });
+                html += `
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-800">${item.title || 'सूचना'}</span>
+                            <span class="text-[10px] text-slate-400">${timeStr}</span>
+                        </div>
+                        <p class="text-slate-600 text-[11px]">${item.body || ''}</p>
+                    </div>
+                `;
+            });
+            list.innerHTML = html || '<p class="text-center py-8 text-slate-400 text-xs">कोणतीही नवीन सूचना नाही.</p>';
+        });
+    }
+    m.classList.remove('hidden');
+}
+
+function closeWorkerNotificationsModal() {
+    const m = document.getElementById('workerNotificationsModal');
+    if (m) m.classList.add('hidden');
+}
+
+// Bottom Navigation Switcher
+function apkNavSwitch(tab) {
+    const tabs = ['home', 'jobs', 'payments', 'support', 'profile'];
+    tabs.forEach(t => {
+        const btn = document.getElementById('apkNavBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (!btn) return;
+        if (t === tab) {
+            btn.className = "flex flex-col items-center justify-center text-blue-600 font-bold text-[10px] py-1 px-3 transition cursor-pointer";
+        } else {
+            btn.className = "flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 font-bold text-[10px] py-1 px-3 transition cursor-pointer";
+        }
+    });
+
+    if (tab === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (tab === 'jobs') {
+        scrollToApkJobs();
+    } else if (tab === 'payments') {
+        openWorkerPaymentsModal();
+    } else if (tab === 'support') {
+        openWorkerSupportModal();
+    } else if (tab === 'profile') {
+        openWorkerProfileModal();
+    }
+}
+
+// Initial sync on page ready
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(syncApkDashboardData, 600);
+});
+
+// Bind all to window
+window.updateApkDutyUI = updateApkDutyUI;
+window.calculateApkAnalytics = calculateApkAnalytics;
+window.changeApkAnalyticsFilter = changeApkAnalyticsFilter;
+window.syncApkDashboardData = syncApkDashboardData;
+window.scrollToApkJobs = scrollToApkJobs;
+window.focusApkAreaSelect = focusApkAreaSelect;
+window.onApkAreaSelectChanged = onApkAreaSelectChanged;
+window.copyWorkerIdToClipboard = copyWorkerIdToClipboard;
+window.showApkToast = showApkToast;
+window.openWorkerMyJobsModal = openWorkerMyJobsModal;
+window.closeWorkerMyJobsModal = closeWorkerMyJobsModal;
+window.switchMyJobsTab = switchMyJobsTab;
+window.openWorkerPaymentsModal = openWorkerPaymentsModal;
+window.closeWorkerPaymentsModal = closeWorkerPaymentsModal;
+window.openWorkerRatingsModal = openWorkerRatingsModal;
+window.closeWorkerRatingsModal = closeWorkerRatingsModal;
+window.openWorkerSupportModal = openWorkerSupportModal;
+window.closeWorkerSupportModal = closeWorkerSupportModal;
+window.openWorkerProfileModal = openWorkerProfileModal;
+window.closeWorkerProfileModal = closeWorkerProfileModal;
+window.workerLogout = workerLogout;
+window.openWorkerNotificationsModal = openWorkerNotificationsModal;
+window.closeWorkerNotificationsModal = closeWorkerNotificationsModal;
+window.apkNavSwitch = apkNavSwitch;

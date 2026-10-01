@@ -236,3 +236,41 @@ body > div:first-of-type > div > div:last-child {
     transition-duration: .01ms !important;
   }
 }
+
+/* =========================================================
+   APK App Specific Layout Rules (Active only in APK mode)
+   ========================================================= */
+#apkWorkerAppContainer {
+  display: none;
+}
+
+html.is-app-env #websiteWorkerContainer,
+html.is-mobile-app #websiteWorkerContainer {
+  display: none !important;
+}
+
+html.is-app-env #apkWorkerAppContainer,
+html.is-mobile-app #apkWorkerAppContainer {
+  display: block !important;
+}
+
+html.is-app-env,
+html.is-mobile-app {
+  background: #f8fafc !important;
+}
+
+html.is-app-env body,
+html.is-mobile-app body {
+  background: #f8fafc !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: block !important;
+  min-height: 100vh !important;
+}
+
+html.is-app-env body::before,
+html.is-app-env body::after,
+html.is-mobile-app body::before,
+html.is-mobile-app body::after {
+  display: none !important;
+}

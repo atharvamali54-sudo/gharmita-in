@@ -45,14 +45,16 @@
                 var isAndroidApp = (document.referrer && (document.referrer.indexOf('android-app://') !== -1 || document.referrer.indexOf('com.gharmitra.app') !== -1));
                 var urlParams = new URLSearchParams(window.location.search);
                 var isUrlApp = urlParams.get('app') === 'true' || urlParams.get('mode') === 'app' || urlParams.get('source') === 'app' || urlParams.get('webview') === 'true';
-                var isStoredApp = sessionStorage.getItem('gharmitra_is_app') === 'true';
+                var isStoredApp = sessionStorage.getItem('gharmitra_is_app') === 'true' || sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true' || localStorage.getItem('gharmitra_mobile_app_mode') === 'true';
                 var ua = (window.navigator && window.navigator.userAgent) ? window.navigator.userAgent.toLowerCase() : '';
                 var isUaApp = ua.indexOf('gharmitraapp') !== -1 || ua.indexOf('; wv') !== -1 || ua.indexOf(';wv') !== -1;
                 var isNativeApp = !!(window.GharmitraNative || window.Android || window.AndroidBridge);
 
                 if (isStandalone || isIosStandalone || isAndroidApp || isUrlApp || isStoredApp || isUaApp || isNativeApp) {
                     document.documentElement.classList.add('is-app-env');
+                    document.documentElement.classList.add('is-mobile-app');
                     sessionStorage.setItem('gharmitra_is_app', 'true');
+                    sessionStorage.setItem('gharmitra_mobile_app_mode', 'true');
                 }
             } catch(e) {}
         })();
@@ -60,6 +62,8 @@
 </head>
 <body class="bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-900 min-h-screen p-2 sm:p-4 md:p-8 flex items-center justify-center font-sans">
 
+<!-- WEBSITE WORKER PORTAL (Active on standard desktop / web browser) -->
+<div id="websiteWorkerContainer" class="w-full max-w-5xl flex items-center justify-center">
 <div class="w-full max-w-5xl bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-white/20">
 <header class="bg-blue-600 px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-3 shadow-md select-none">
 <div class="w-full sm:w-auto flex items-center justify-between gap-2">
@@ -288,6 +292,354 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
         </footer>
     </div>
 </div>
+</div>
+</div><!-- /#websiteWorkerContainer -->
+
+<!-- =========================================================
+     DEDICATED WORKER APK DASHBOARD (Active in APK App Only)
+     Matches custom native app mockup with full functionality
+     ========================================================= -->
+<div id="apkWorkerAppContainer" class="w-full max-w-md mx-auto min-h-screen bg-[#f8fafc] text-slate-800 relative pb-28 font-sans select-none overflow-x-hidden">
+
+    <!-- 1. Top Header with Deep Blue Curved Gradient -->
+    <div class="bg-gradient-to-b from-[#185adb] via-[#1a66ff] to-[#2575fc] rounded-b-[2.2rem] pt-3.5 pb-10 px-4 text-white shadow-md relative">
+        <div class="flex items-center justify-between">
+            <!-- Left: Logo & Slogan -->
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-2xl bg-white flex items-center justify-center p-1.5 shadow-sm shrink-0">
+                    <img src="icons/icon-192x192.png" alt="Logo" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/40x40?text=GK'">
+                </div>
+                <div class="leading-tight">
+                    <h1 class="text-base font-black tracking-wider uppercase">GHARMITRA</h1>
+                    <p class="text-[10px] text-white/80 font-medium">Gharachi Kaam, Vishwasachi Saath</p>
+                </div>
+            </div>
+
+            <!-- Right: Notification Bell & Duty Pill Button -->
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="openWorkerNotificationsModal()" class="relative p-2 text-white hover:text-blue-100 transition cursor-pointer" title="Notifications">
+                    <i class="fa-solid fa-bell text-lg"></i>
+                    <span id="apkBellBadge" class="w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-[#1a66ff] absolute top-1.5 right-1.5 animate-pulse"></span>
+                </button>
+
+                <button type="button" id="apkHeaderDutyPill" onclick="toggleDuty()" class="bg-white text-slate-800 font-bold px-3 py-1.5 rounded-full text-xs shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 transition shrink-0">
+                    <span id="apkHeaderDutyDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="apkHeaderDutyText">Duty ON</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Worker Profile Hero Card (Overlapping header) -->
+    <div class="bg-white rounded-3xl p-4 shadow-lg border border-slate-100 -mt-6 mx-3.5 relative flex items-center justify-between z-10">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+            <!-- Avatar with Online Dot -->
+            <div class="relative shrink-0 cursor-pointer" onclick="triggerWorkerDashboardPhotoChange()">
+                <div class="w-14 h-14 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 shadow-xs">
+                    <img id="apkWorkerAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231e293b'/%3E%3Ccircle cx='32' cy='24' r='12' fill='%23f59e0b'/%3E%3Cpath d='M14 54c0-9.94 8.06-18 18-18s18 8.06 18 18' fill='%23f59e0b'/%3E%3C/svg%3E" alt="Avatar" class="w-full h-full object-cover">
+                </div>
+                <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white absolute bottom-0 right-0"></span>
+            </div>
+
+            <!-- Details -->
+            <div class="min-w-0 flex-1 space-y-0.5">
+                <div class="flex items-center gap-1.5">
+                    <h2 id="apkWorkerName" class="font-extrabold text-slate-800 text-base truncate">Prathamesh</h2>
+                    <i class="fa-solid fa-circle-check text-blue-600 text-sm shrink-0"></i>
+                    <button type="button" onclick="editWorkerName()" class="text-slate-400 hover:text-blue-600 text-xs ml-0.5" title="नाव बदला"><i class="fa-solid fa-pen-to-square"></i></button>
+                </div>
+                <div>
+                    <span id="apkKycBadge" onclick="openWorkerKycModal()" class="bg-amber-100/90 text-amber-900 border border-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-md inline-flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-shield-halved text-amber-600"></i> Verified Partner
+                    </span>
+                </div>
+                <div class="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+                    <span>ID: <strong id="apkWorkerId" class="text-slate-700 font-bold">GK-846473</strong></span>
+                    <i onclick="copyWorkerIdToClipboard()" class="fa-regular fa-copy cursor-pointer text-slate-400 hover:text-blue-600 p-0.5" title="Copy ID"></i>
+                </div>
+                <div onclick="openServiceModal()" class="text-[11px] text-slate-600 font-medium flex items-center gap-1 cursor-pointer hover:text-blue-600 pt-0.5">
+                    <i class="fa-solid fa-rocket text-slate-400 text-[10px]"></i>
+                    <span>Service: <strong id="apkWorkerService" class="text-slate-800 font-bold">Cleaning</strong></span>
+                    <i class="fa-solid fa-chevron-right text-[9px] text-slate-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating Box -->
+        <div onclick="openWorkerRatingsModal()" class="cursor-pointer bg-slate-50/90 hover:bg-slate-100/90 border border-slate-100 rounded-2xl p-2.5 text-center flex items-center gap-2 transition shrink-0 ml-2">
+            <div>
+                <div class="flex items-center justify-center gap-1 text-slate-800 font-black text-base">
+                    <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                    <span id="apkWorkerAvgRating">5.0</span>
+                </div>
+                <span id="apkWorkerTotalReviews" class="text-[10px] text-slate-400 font-medium block whitespace-nowrap">(0 Reviews)</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
+        </div>
+    </div>
+
+    <!-- 3. Online / Offline Status Banner with Switch -->
+    <div id="apkOnlineStatusCard" onclick="toggleDuty()" class="bg-[#eafaf1] border border-[#c7eed8] rounded-2xl p-3.5 mx-3.5 mt-3 flex items-center justify-between shadow-xs transition cursor-pointer">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-sm shadow-xs shrink-0">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div>
+                <div id="apkOnlineStatusTitle" class="text-xs font-bold text-slate-700 leading-snug">
+                    You are <span class="text-slate-900 font-black">Online</span>
+                </div>
+                <div id="apkOnlineStatusSub" class="text-[10px] text-slate-500 font-medium mt-0.5">
+                    You will receive new job requests
+                </div>
+            </div>
+        </div>
+
+        <!-- iOS Switch -->
+        <div id="apkDutySwitchBg" class="w-12 h-7 bg-emerald-500 rounded-full p-1 transition-colors duration-300 flex items-center justify-end cursor-pointer shrink-0">
+            <div id="apkDutySwitchThumb" class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300"></div>
+        </div>
+    </div>
+
+    <!-- 4. Financial Cards (Two Columns Side-by-Side) -->
+    <div class="grid grid-cols-2 gap-3 mx-3.5 mt-3">
+        <!-- Today's Earnings -->
+        <div onclick="openWorkerMyJobsModal('today')" class="bg-gradient-to-br from-[#1a73e8] to-[#1557bf] text-white p-3.5 rounded-2xl shadow-md flex flex-col justify-between cursor-pointer hover:shadow-lg transition relative overflow-hidden h-28">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <div class="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center text-xs text-white shrink-0">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <span class="text-[11px] font-semibold text-blue-100 truncate">Today's Earnings</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-blue-200 shrink-0"></i>
+            </div>
+            <div class="text-2xl font-black tracking-tight my-auto">
+                ₹<span id="apkTodayEarnings">0</span>
+            </div>
+            <div class="text-[10px] text-blue-100 font-medium">
+                <span id="apkTodayJobsCount">0</span> Jobs Completed
+            </div>
+        </div>
+
+        <!-- Wallet Balance -->
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-28">
+            <div onclick="openWorkerPaymentsModal()" class="flex items-center justify-between cursor-pointer">
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <div class="w-7 h-7 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs shrink-0">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-slate-600 truncate">Wallet Balance</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 shrink-0"></i>
+            </div>
+            <div onclick="openWorkerPaymentsModal()" class="text-2xl font-black text-slate-800 tracking-tight my-auto cursor-pointer">
+                ₹<span id="apkWalletAmount">50</span>
+            </div>
+            <div>
+                <button type="button" onclick="openCreditModal()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-[11px] py-1 px-3 rounded-full flex items-center justify-center gap-1 transition shadow-xs cursor-pointer">
+                    <i class="fa-solid fa-circle-plus text-[11px]"></i> Buy Credits
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. 4 Quick Action Square Buttons -->
+    <div class="grid grid-cols-4 gap-2.5 mx-3.5 mt-3.5">
+        <!-- 1. Job Requests -->
+        <div onclick="scrollToApkJobs()" class="bg-[#edf4fe] hover:bg-[#e2edfd] rounded-2xl p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center relative">
+            <div class="w-10 h-10 rounded-2xl bg-white shadow-xs flex items-center justify-center relative">
+                <i class="fa-solid fa-calendar-days text-blue-600 text-lg"></i>
+                <span id="apkJobCountBadge" class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
+            </div>
+            <span class="text-[11px] font-bold text-slate-700 mt-2 block whitespace-nowrap">Job Requests</span>
+        </div>
+
+        <!-- 2. My Jobs -->
+        <div onclick="openWorkerMyJobsModal()" class="bg-[#fef5e7] hover:bg-[#fdeed6] rounded-2xl p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center">
+            <div class="w-10 h-10 rounded-2xl bg-white shadow-xs flex items-center justify-center">
+                <i class="fa-solid fa-clock-rotate-left text-amber-500 text-lg"></i>
+            </div>
+            <span class="text-[11px] font-bold text-slate-700 mt-2 block whitespace-nowrap">My Jobs</span>
+        </div>
+
+        <!-- 3. Payments -->
+        <div onclick="openWorkerPaymentsModal()" class="bg-[#eafaf1] hover:bg-[#dcf6e7] rounded-2xl p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center">
+            <div class="w-10 h-10 rounded-2xl bg-white shadow-xs flex items-center justify-center">
+                <i class="fa-solid fa-wallet text-emerald-500 text-lg"></i>
+            </div>
+            <span class="text-[11px] font-bold text-slate-700 mt-2 block whitespace-nowrap">Payments</span>
+        </div>
+
+        <!-- 4. My Ratings -->
+        <div onclick="openWorkerRatingsModal()" class="bg-[#fdebee] hover:bg-[#fad8de] rounded-2xl p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center">
+            <div class="w-10 h-10 rounded-2xl bg-white shadow-xs flex items-center justify-center">
+                <i class="fa-solid fa-star text-rose-500 text-lg"></i>
+            </div>
+            <span class="text-[11px] font-bold text-slate-700 mt-2 block whitespace-nowrap">My Ratings</span>
+        </div>
+    </div>
+
+    <!-- 6. "This Week" Analytics Card -->
+    <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 mx-3.5 mt-3.5 space-y-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-chart-simple text-blue-600 text-lg"></i>
+                <span class="font-black text-sm text-slate-800">This Week</span>
+            </div>
+            <select id="apkAnalyticsTimeFilter" onchange="changeApkAnalyticsFilter(this.value)" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-[11px] px-2.5 py-1 rounded-xl outline-none focus:border-blue-500 transition cursor-pointer">
+                <option value="weekly">Weekly ⌵</option>
+                <option value="monthly">Monthly ⌵</option>
+                <option value="all">All Time ⌵</option>
+            </select>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2">
+            <!-- 1. Total Jobs -->
+            <div class="bg-slate-50/70 p-2.5 rounded-2xl text-center">
+                <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[10px] mx-auto mb-1">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <div id="apkWeekTotalJobs" class="font-black text-slate-800 text-sm">0</div>
+                <div class="text-[10px] text-slate-400 font-medium">Total Jobs</div>
+            </div>
+
+            <!-- 2. Total Earnings -->
+            <div class="bg-slate-50/70 p-2.5 rounded-2xl text-center">
+                <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] mx-auto mb-1">
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                </div>
+                <div id="apkWeekTotalEarnings" class="font-black text-slate-800 text-sm">₹0</div>
+                <div class="text-[10px] text-slate-400 font-medium">Total Earnings</div>
+            </div>
+
+            <!-- 3. Avg Rating -->
+            <div class="bg-slate-50/70 p-2.5 rounded-2xl text-center">
+                <div class="w-6 h-6 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-[10px] mx-auto mb-1">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div id="apkWeekAvgRating" class="font-black text-slate-800 text-sm">5.0</div>
+                <div class="text-[10px] text-slate-400 font-medium">Avg. Rating</div>
+            </div>
+
+            <!-- 4. Customers -->
+            <div class="bg-slate-50/70 p-2.5 rounded-2xl text-center">
+                <div class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-[10px] mx-auto mb-1">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div id="apkWeekCustomers" class="font-black text-slate-800 text-sm">0</div>
+                <div class="text-[10px] text-slate-400 font-medium">Customers</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Working Area Selector Card -->
+    <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 mx-3.5 mt-3.5 space-y-2.5">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-location-dot text-blue-600 text-base"></i>
+                <span class="font-black text-xs text-slate-800">Working Area</span>
+            </div>
+            <button type="button" onclick="focusApkAreaSelect()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] px-3.5 py-1 rounded-full shadow-xs transition cursor-pointer">
+                Change
+            </button>
+        </div>
+
+        <div class="bg-[#f0f5fc] border border-blue-100 rounded-2xl p-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+                <i class="fa-solid fa-location-crosshairs text-slate-400 text-xs"></i>
+                <select id="apkWorkingAreaSelect" onchange="onApkAreaSelectChanged(this.value)" class="bg-transparent font-bold text-xs text-slate-800 outline-none w-full cursor-pointer">
+                    <option value="Swargate">Swargate, Pune</option>
+                    <option value="Hadapsar">Hadapsar, Pune</option>
+                    <option value="Katraj">Katraj, Pune</option>
+                    <option value="Kothrud">Kothrud, Pune</option>
+                    <option value="Baner">Baner, Pune</option>
+                    <option value="Wakad">Wakad, Pune</option>
+                    <option value="Hinjawadi">Hinjawadi, Pune</option>
+                    <option value="Viman Nagar">Viman Nagar, Pune</option>
+                    <option value="Kharadi">Kharadi, Pune</option>
+                    <option value="Aundh">Aundh, Pune</option>
+                    <option value="Shivajinagar">Shivajinagar, Pune</option>
+                    <option value="Koregaon Park">Koregaon Park, Pune</option>
+                    <option value="Kondhwa">Kondhwa, Pune</option>
+                    <option value="Bibwewadi">Bibwewadi, Pune</option>
+                    <option value="Dhankawadi">Dhankawadi, Pune</option>
+                    <option value="Pimple Saudagar">Pimple Saudagar, Pune</option>
+                    <option value="Pimpri">Pimpri, Pune</option>
+                    <option value="Chinchwad">Chinchwad, Pune</option>
+                    <option value="Yerawada">Yerawada, Pune</option>
+                    <option value="Wagholi">Wagholi, Pune</option>
+                    <option value="Dhanori">Dhanori, Pune</option>
+                    <option value="Lohegaon">Lohegaon, Pune</option>
+                    <option value="Camp">Camp, Pune</option>
+                    <option value="Deccan">Deccan, Pune</option>
+                    <option value="Sinhagad Road">Sinhagad Road, Pune</option>
+                    <option value="Warje">Warje, Pune</option>
+                    <option value="Bavdhan">Bavdhan, Pune</option>
+                    <option value="NIBM">NIBM, Pune</option>
+                    <option value="Vishrantwadi">Vishrantwadi, Pune</option>
+                    <option value="Magarpatta">Magarpatta, Pune</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Big "Go Offline" / "Go Online" Action Button -->
+    <div class="mx-3.5 mt-3.5 mb-2">
+        <button type="button" id="apkBigDutyBtn" onclick="toggleDuty()" class="w-full bg-[#ff4d4f] hover:bg-[#ff3538] text-white font-bold py-3.5 rounded-2xl shadow-md text-sm flex items-center justify-center gap-2 cursor-pointer transition active:scale-98">
+            <i class="fa-solid fa-power-off"></i> Go Offline
+        </button>
+    </div>
+
+    <!-- 9. Available Jobs & Active Task Live Section -->
+    <div id="apkJobsSection" class="mx-3.5 mt-4 space-y-4">
+        <!-- Active Tasks Container -->
+        <div id="apkAcceptedJobsContainer" class="space-y-3"></div>
+
+        <!-- Available Jobs Container -->
+        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
+                    <i class="fa-solid fa-briefcase text-blue-600"></i> Available Orders
+                </h3>
+                <span id="apkJobCountBadgeSub" class="bg-blue-50 text-blue-600 border border-blue-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                    0 New Jobs
+                </span>
+            </div>
+
+            <div id="apkAvailableJobsContainer" class="space-y-3">
+                <p class="text-slate-400 text-xs text-center py-6">सध्या एकही काम उपलब्ध नाही...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. Bottom Navigation Bar (Fixed at bottom on mobile) -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1.5 z-40 flex items-center justify-around shadow-lg">
+        <button type="button" onclick="apkNavSwitch('home')" id="apkNavBtnHome" class="flex flex-col items-center justify-center text-blue-600 font-bold text-[10px] py-1 px-3 transition cursor-pointer">
+            <i class="fa-solid fa-house text-lg"></i>
+            <span>Home</span>
+            <span class="w-6 h-0.5 bg-blue-600 rounded-full mt-0.5"></span>
+        </button>
+
+        <button type="button" onclick="apkNavSwitch('jobs')" id="apkNavBtnJobs" class="flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 font-bold text-[10px] py-1 px-3 transition cursor-pointer">
+            <i class="fa-solid fa-briefcase text-lg"></i>
+            <span>Jobs</span>
+        </button>
+
+        <button type="button" onclick="apkNavSwitch('payments')" id="apkNavBtnPayments" class="flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 font-bold text-[10px] py-1 px-3 transition cursor-pointer">
+            <i class="fa-solid fa-indian-rupee-sign text-lg"></i>
+            <span>Payments</span>
+        </button>
+
+        <button type="button" onclick="apkNavSwitch('support')" id="apkNavBtnSupport" class="flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 font-bold text-[10px] py-1 px-3 transition cursor-pointer">
+            <i class="fa-regular fa-comment-dots text-lg"></i>
+            <span>Support</span>
+        </button>
+
+        <button type="button" onclick="apkNavSwitch('profile')" id="apkNavBtnProfile" class="flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 font-bold text-[10px] py-1 px-3 transition cursor-pointer">
+            <i class="fa-regular fa-circle-user text-lg"></i>
+            <span>Profile</span>
+        </button>
+    </nav>
 </div>
 
 <!-- Service Change Modal -->
@@ -532,6 +884,245 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
             </button>
         </div>
     </div>
+</div>
+
+<!-- =========================================================
+     MODALS FOR APK QUICK ACTION BUTTONS
+     ========================================================= -->
+
+<!-- 1. My Jobs Modal (Active Tasks & Past Completed Jobs) -->
+<div id="workerMyJobsModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-100 animate-in slide-in-from-bottom duration-200">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-bold">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-800 text-sm">माझी कामे (My Jobs)</h3>
+                    <p class="text-[10px] text-slate-400">चालू आणि पूर्ण झालेल्या कामांची यादी</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeWorkerMyJobsModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">✕</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex border-b border-slate-100 px-4 pt-2 gap-4 text-xs font-bold">
+            <button type="button" onclick="switchMyJobsTab('active')" id="myJobsTabBtnActive" class="pb-2 text-blue-600 border-b-2 border-blue-600">चालू कामे (Active)</button>
+            <button type="button" onclick="switchMyJobsTab('completed')" id="myJobsTabBtnCompleted" class="pb-2 text-slate-400 hover:text-slate-700">पूर्ण झालेली कामे (Completed)</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-3">
+            <!-- Active Jobs Container in Modal -->
+            <div id="myJobsActiveList" class="space-y-3">
+                <p class="text-center py-8 text-slate-400 text-xs">सध्या कोणतेही चालू काम नाही.</p>
+            </div>
+
+            <!-- Completed Jobs Container in Modal -->
+            <div id="myJobsCompletedList" class="hidden space-y-2.5">
+                <p class="text-center py-8 text-slate-400 text-xs">पूर्ण झालेल्या कामांचा इतिहास लोड होत आहे...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Payments & Wallet Modal -->
+<div id="workerPaymentsModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-100 animate-in slide-in-from-bottom duration-200">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-800 text-sm">पेमेंट्स आणि वॉलेट (Payments)</h3>
+                    <p class="text-[10px] text-slate-400">क्रेडिट्स शिल्लक व व्यवहार तपशील</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeWorkerPaymentsModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">✕</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+            <!-- Balance Card -->
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-4 shadow-md flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] text-emerald-100 uppercase tracking-wider block font-bold">शिल्लक क्रेडिट्स (Wallet)</span>
+                    <span class="text-3xl font-black mt-1 block">₹<span id="modalPaymentsWalletBalance">50</span></span>
+                    <span class="text-[10px] text-emerald-200 mt-1 block">नवीन कामे स्वीकारण्यासाठी क्रेडिट्स लागतात.</span>
+                </div>
+                <button type="button" onclick="closeWorkerPaymentsModal(); openCreditModal();" class="bg-white text-emerald-700 font-bold text-xs py-2 px-3.5 rounded-xl shadow transition hover:bg-emerald-50 active:scale-95 shrink-0">
+                    + रिचार्ज करा
+                </button>
+            </div>
+
+            <!-- Commission Info -->
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs space-y-1.5 text-slate-600">
+                <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info text-blue-600"></i> घरमित्र कमिशन नियम:
+                </div>
+                <p>• प्रत्येक पूर्ण झालेल्या कामावर फक्त <strong>10% प्लॅटफॉर्म फी</strong> आकारली जाते.</p>
+                <p>• ग्राहकाकडून घेतलेली पूर्ण रक्कम (रोख / UPI) थेट तुमच्याकडे राहते.</p>
+            </div>
+
+            <!-- Quick Recharge Amounts -->
+            <div class="space-y-2">
+                <span class="text-xs font-bold text-slate-700 block">झटपट रिचार्ज निवडा:</span>
+                <div class="grid grid-cols-4 gap-2">
+                    <button type="button" onclick="closeWorkerPaymentsModal(); setQuickCreditAmount(50); openCreditModal();" class="p-2.5 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-center font-bold text-xs transition">₹50</button>
+                    <button type="button" onclick="closeWorkerPaymentsModal(); setQuickCreditAmount(100); openCreditModal();" class="p-2.5 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-center font-bold text-xs transition">₹100</button>
+                    <button type="button" onclick="closeWorkerPaymentsModal(); setQuickCreditAmount(200); openCreditModal();" class="p-2.5 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-center font-bold text-xs transition">₹200</button>
+                    <button type="button" onclick="closeWorkerPaymentsModal(); setQuickCreditAmount(500); openCreditModal();" class="p-2.5 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-center font-bold text-xs transition">₹500</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Ratings & Reviews Modal -->
+<div id="workerRatingsModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-100 animate-in slide-in-from-bottom duration-200">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-sm font-bold">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-800 text-sm">माझे रेटिंग्स व अभिप्राय (Reviews)</h3>
+                    <p class="text-[10px] text-slate-400">ग्राहकांनी दिलेले रेटिंग आणि प्रतिक्रिया</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeWorkerRatingsModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">✕</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+            <!-- Overall Score Box -->
+            <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 text-center">
+                <div class="text-4xl font-black text-amber-500 flex items-center justify-center gap-2">
+                    <span id="modalRatingsScore">5.0</span>
+                    <i class="fa-solid fa-star text-amber-400 text-3xl"></i>
+                </div>
+                <div class="text-xs text-slate-600 font-bold mt-1">
+                    एकूण <span id="modalRatingsCount">0</span> ग्राहकांचा विश्वास
+                </div>
+                <div class="text-[11px] text-slate-500 mt-0.5">
+                    उत्कृष्ट कामामुळे ग्राहकांचा विश्वास वाढतो आणि नवीन कामे जास्त मिळतात.
+                </div>
+            </div>
+
+            <!-- Customer Reviews List -->
+            <div class="space-y-2.5">
+                <h4 class="text-xs font-bold text-slate-700">नुकतेच आलेले अभिप्राय:</h4>
+                <div id="modalReviewsList" class="space-y-2">
+                    <p class="text-center py-6 text-slate-400 text-xs">अद्याप कोणत्याही ग्राहकाने रेटिंग दिलेली नाही.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Support Helpline Modal -->
+<div id="workerSupportModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 animate-in slide-in-from-bottom duration-200">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-800 text-sm">घरमित्र कामगार सपोर्ट (Support)</h3>
+                    <p class="text-[10px] text-slate-400">कोणत्याही अडचणीत मदत मिळवा</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeWorkerSupportModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">✕</button>
+        </div>
+
+        <div class="p-5 space-y-3.5">
+            <a href="tel:7875160724" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2.5 text-xs">
+                <i class="fa-solid fa-phone-volume text-sm"></i> थेट ॲडमिनला फोन लावा (Call 7875160724)
+            </a>
+
+            <a href="https://wa.me/917875160724?text=Hello%20Gharmitra%20Support,%20I%20am%20a%20registered%20worker%20and%20need%20assistance." target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2.5 text-xs">
+                <i class="fa-brands fa-whatsapp text-base"></i> व्हॉट्सॲपवर चॅट करा (WhatsApp)
+            </a>
+
+            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
+                <div class="font-bold text-slate-800">💡 कामगार मदत वेळ:</div>
+                <p>सकाळी ८:०० ते रात्री १०:०० (सर्व दिवस उपलब्ध)</p>
+                <p>ऑर्डर वाद किंवा पेमेंट अडचण असल्यास त्वरित संपर्क साधा.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 5. Profile & Settings Modal -->
+<div id="workerProfileModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 animate-in slide-in-from-bottom duration-200">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-sm font-bold">
+                    <i class="fa-regular fa-circle-user"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-800 text-sm">कामगार प्रोफाइल (Profile)</h3>
+                    <p class="text-[10px] text-slate-400">तुमची माहिती व सुरक्षा सेटिंग्ज</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeWorkerProfileModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">✕</button>
+        </div>
+
+        <div class="p-5 space-y-3">
+            <button type="button" onclick="closeWorkerProfileModal(); triggerWorkerDashboardPhotoChange();" class="w-full p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 flex items-center justify-between text-xs font-bold text-slate-700 transition">
+                <span class="flex items-center gap-2"><i class="fa-solid fa-camera text-blue-600"></i> प्रोफाइल फोटो बदला</span>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+            </button>
+
+            <button type="button" onclick="closeWorkerProfileModal(); editWorkerName();" class="w-full p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 flex items-center justify-between text-xs font-bold text-slate-700 transition">
+                <span class="flex items-center gap-2"><i class="fa-solid fa-pen text-amber-500"></i> तुमचे नाव बदला</span>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+            </button>
+
+            <button type="button" onclick="closeWorkerProfileModal(); openServiceModal();" class="w-full p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 flex items-center justify-between text-xs font-bold text-slate-700 transition">
+                <span class="flex items-center gap-2"><i class="fa-solid fa-tools text-emerald-600"></i> सेवेचा प्रकार बदला (Service)</span>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+            </button>
+
+            <button type="button" onclick="closeWorkerProfileModal(); openWorkerKycModal();" class="w-full p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 flex items-center justify-between text-xs font-bold text-slate-700 transition">
+                <span class="flex items-center gap-2"><i class="fa-solid fa-id-card text-purple-600"></i> आधार KYC व्हेरिफिकेशन</span>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+            </button>
+
+            <button type="button" onclick="workerLogout()" class="w-full p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 flex items-center justify-center gap-2 text-xs font-bold transition">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> लॉगआऊट (Logout)
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 6. Notifications Modal -->
+<div id="workerNotificationsModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-100 animate-in slide-in-from-bottom duration-200">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-800 text-sm">सूचना केंद्र (Notifications)</h3>
+                    <p class="text-[10px] text-slate-400">नवीन अलर्ट्स आणि संदेश</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeWorkerNotificationsModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">✕</button>
+        </div>
+
+        <div id="modalNotificationsList" class="flex-1 overflow-y-auto p-4 space-y-2.5">
+            <p class="text-center py-8 text-slate-400 text-xs">कोणतीही नवीन सूचना नाही.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Toast -->
+<div id="apkToast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-xs font-bold py-2 px-4 rounded-full shadow-2xl z-50 hidden transition-opacity pointer-events-none">
+    Copied!
 </div>
 
 <script src="js/firebase.js?v=42"></script>
