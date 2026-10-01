@@ -50,6 +50,10 @@
 </head>
 <body class="bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-900 min-h-screen p-2 sm:p-4 md:p-8 flex items-center justify-center font-sans">
 
+    <!-- =========================================================
+         WEBSITE CUSTOMER CONTAINER (Active on Website Only)
+         ========================================================= -->
+    <div id="websiteCustomerContainer" class="w-full flex items-center justify-center">
     <div id="customerMainContainer" class="w-full max-w-3xl mx-auto transition-all duration-300 bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-white/20">
         
         <header class="bg-blue-600 px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 shadow-md">
@@ -617,6 +621,396 @@
             </p>
         </footer>
     </div>
+    </div><!-- /#websiteCustomerContainer -->
+
+    <!-- =========================================================
+         DEDICATED CUSTOMER APK DASHBOARD (Active in APK App Only)
+         Matches custom native app mockup (media_1790873863847.png) with full functionality
+         ========================================================= -->
+    <div id="apkCustomerAppContainer" class="w-full max-w-2xl mx-auto min-h-screen bg-[#f8fafc] text-slate-800 relative pb-28 font-sans select-none overflow-x-hidden">
+        
+        <!-- White Header matching media_1790873863847.png -->
+        <header class="bg-white px-4 sm:px-6 py-3 border-b border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+            <div class="w-full sm:w-auto flex items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center p-1.5 shadow-sm shrink-0">
+                        <span class="text-xs font-black flex items-center gap-1">🏠 GK</span>
+                    </div>
+                    <div class="leading-tight">
+                        <h1 class="text-base font-black tracking-tight text-slate-900">GHARMITRA<span class="text-blue-600">.online</span></h1>
+                        <p class="text-[11px] text-slate-400 font-medium">Pune City Services</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full sm:w-auto flex flex-wrap items-center justify-start sm:justify-end gap-1.5 sm:gap-2">
+                <button type="button" onclick="showPwaInstallModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-1.5 px-3 rounded-xl transition shadow flex items-center gap-1.5 shrink-0 cursor-pointer">
+                    <i class="fa-solid fa-download"></i> <span>Install App</span>
+                </button>
+                <button type="button" onclick="openProfileModal()" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-1.5 px-3.5 rounded-xl transition flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer">
+                    <i class="fa-solid fa-user-pen"></i> <span>Edit Profile</span>
+                </button>
+                <button type="button" onclick="openMyOrdersModal()" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-1.5 px-3.5 rounded-xl transition flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer">
+                    <i class="fa-solid fa-box-archive"></i> <span>Your Orders</span>
+                </button>
+                <span class="text-xs bg-amber-400 text-slate-950 px-3 py-1.5 rounded-full font-bold shadow-xs shrink-0 flex items-center gap-1">
+                    📍 Pune Verified
+                </span>
+            </div>
+        </header>
+
+        <!-- Notification / Announcement Banner -->
+        <div id="apkAlertBanner" class="bg-blue-50 border-b border-blue-100 px-4 py-2.5 flex items-center justify-between text-blue-700 text-xs font-medium">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-bullhorn text-blue-600 text-sm shrink-0"></i>
+                <span>अर्ज त्या कामासाठी ऑर्डर अपलोडसाठी निवडा, कामगार मिळण्यासाठी व निर्गतीसाठी नोटिफिकेशन भेटेल.</span>
+            </div>
+            <button type="button" onclick="document.getElementById('apkAlertBanner').classList.add('hidden')" class="text-blue-500 hover:text-blue-800 text-xs px-1 cursor-pointer font-bold shrink-0 ml-2" title="Dismiss">✕</button>
+        </div>
+
+        <!-- Booking Form Container -->
+        <div class="p-3.5 sm:p-5">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-6 space-y-5">
+                
+                <!-- Appointment Header Row -->
+                <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-xs shrink-0">
+                            <i class="fa-solid fa-calendar-days"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-black text-slate-900 leading-tight">Book Your Appointment</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">तुमच्या घरी लागणाऱ्या सेवेसाठी येथे माहिती भरा.</p>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="openSocietyPassModal()" class="shrink-0 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:opacity-95 active:scale-95 text-white font-extrabold text-xs py-2 px-3.5 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-gift text-amber-300"></i>
+                        <span>सामुदायिक पास (Bulk Pass)</span>
+                    </button>
+                </div>
+
+                <form id="apkBookingForm" onsubmit="handleApkFormSubmit(event)" class="space-y-4">
+                    
+                    <!-- Step 1: Select Service -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">1</span>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-sm">Select Service</h3>
+                                <p class="text-[11px] text-slate-500">Choose the service you need</p>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <select id="apkServiceSelect" required class="w-full bg-white border border-slate-200 text-slate-800 font-semibold py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
+                                <option value="Plumbing">🔧 Plumbing</option>
+                                <option value="Electrician">⚡ Electrician</option>
+                                <option value="Carpenter">🪚 Carpenter</option>
+                                <option value="Painting">🎨 Painting</option>
+                                <option value="Cleaning">🧹 Cleaning</option>
+                                <option value="AC Repair">❄️ AC Repair</option>
+                                <option value="Appliance Repair">🔌 Appliance Repair</option>
+                                <option value="Masonry">🧱 Masonry</option>
+                                <option value="Locksmith">🔑 Locksmith</option>
+                                <option value="Pest Control">🦟 Pest Control</option>
+                                <option value="Gardening">🌿 Gardening</option>
+                                <option value="Glass & Aluminium">🪟 Glass & Aluminium</option>
+                                <option value="TV & DTH">📺 TV & DTH</option>
+                                <option value="Moving & Shifting">📦 Moving & Shifting</option>
+                                <option value="Bathroom Services">🚿 Bathroom Services</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Your Details -->
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">2</span>
+                            <h3 class="font-bold text-slate-800 text-sm">Your Details</h3>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Full Name</label>
+                                <div class="relative">
+                                    <i class="fa-regular fa-user absolute left-3.5 top-3.5 text-slate-400"></i>
+                                    <input type="text" id="apkCustomerName" placeholder="Your full name" required class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 text-slate-800 font-medium rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Mobile Number</label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-phone absolute left-3.5 top-3.5 text-slate-400"></i>
+                                    <input type="tel" id="apkCustomerMobile" pattern="[0-9]{10}" placeholder="mobile number" required class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 text-slate-800 font-medium rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Select Area (Pune) -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">3</span>
+                            <h3 class="font-bold text-slate-800 text-sm">Select Area (Pune)</h3>
+                        </div>
+                        <select id="apkAreaSelect" required class="w-full bg-white border border-slate-200 text-slate-800 font-medium py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
+                            <option value="Dhankawadi">📍 Dhankawadi</option>
+                            <option value="Swargate">📍 Swargate</option>
+                            <option value="Hadapsar">📍 Hadapsar</option>
+                            <option value="Katraj">📍 Katraj</option>
+                            <option value="Kothrud">📍 Kothrud</option>
+                            <option value="Baner">📍 Baner</option>
+                            <option value="Wakad">📍 Wakad</option>
+                            <option value="Hinjawadi">📍 Hinjawadi</option>
+                            <option value="Viman Nagar">📍 Viman Nagar</option>
+                            <option value="Kharadi">📍 Kharadi</option>
+                            <option value="Aundh">📍 Aundh</option>
+                            <option value="Shivajinagar">📍 Shivajinagar</option>
+                            <option value="Koregaon Park">📍 Koregaon Park</option>
+                            <option value="Kondhwa">📍 Kondhwa</option>
+                            <option value="Bibwewadi">📍 Bibwewadi</option>
+                            <option value="Pimple Saudagar">📍 Pimple Saudagar</option>
+                            <option value="Pimpri">📍 Pimpri</option>
+                            <option value="Chinchwad">📍 Chinchwad</option>
+                            <option value="Yerawada">📍 Yerawada</option>
+                            <option value="Wagholi">📍 Wagholi</option>
+                            <option value="Dhanori">📍 Dhanori</option>
+                            <option value="Lohegaon">📍 Lohegaon</option>
+                            <option value="Camp">📍 Camp</option>
+                            <option value="Deccan">📍 Deccan</option>
+                            <option value="Sinhagad Road">📍 Sinhagad Road</option>
+                            <option value="Warje">📍 Warje</option>
+                            <option value="Bavdhan">📍 Bavdhan</option>
+                            <option value="NIBM">📍 NIBM</option>
+                            <option value="Vishrantwadi">📍 Vishrantwadi</option>
+                            <option value="Magarpatta">📍 Magarpatta</option>
+                        </select>
+                    </div>
+
+                    <!-- Step 4: Full Address -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">4</span>
+                                <h3 class="font-bold text-slate-800 text-sm">Full Address (घर नंबर, सोसायटी, रस्ता)</h3>
+                            </div>
+                            <button type="button" id="apkDetectGpsBtn" onclick="detectCustomerExactLocation()" class="text-xs font-bold text-blue-600 bg-white hover:bg-blue-50 border border-blue-500 py-1 px-3 rounded-xl flex items-center gap-1.5 shadow-2xs cursor-pointer transition active:scale-95">
+                                <i class="fa-solid fa-crosshairs text-blue-600"></i>
+                                <span>अचूक लोकेशन मिळवा (GPS)</span>
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-house absolute left-3.5 top-3.5 text-slate-400"></i>
+                            <textarea id="apkCustomerAddress" oninput="handleApkAddressChange()" rows="2" placeholder="Singhgad Staff Quarters Road, Dhankawadi, Pune, 411046" required class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 text-slate-800 font-medium rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs pt-0.5">
+                            <div class="flex items-center gap-2">
+                                <label class="flex items-center gap-1.5 text-xs text-slate-700 font-medium cursor-pointer">
+                                    <input type="checkbox" id="apkSaveAddressCheckbox" checked class="rounded text-blue-600 focus:ring-blue-500">
+                                    <span>पत्ता सेव्ह करा (Save)</span>
+                                </label>
+                                <button type="button" onclick="focusApkAddressForEdit()" class="text-blue-600 hover:underline text-xs font-bold cursor-pointer">✏ Edit</button>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span id="apkGpsLocationBadge" class="hidden items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                                    <i class="fa-solid fa-location-dot text-emerald-600"></i>
+                                    <span id="apkGpsLocationText">अचूक स्थान शोधले (±100m)</span>
+                                    <button type="button" onclick="resetCustomerGpsLocation()" class="text-blue-600 underline font-semibold ml-1 cursor-pointer">रीसेट करा</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: नक्की अचूक स्थान (नकाशा पिन करा) -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">5</span>
+                            <h3 class="font-bold text-slate-800 text-sm">नक्की अचूक स्थान (नकाशा पिन करा)</h3>
+                        </div>
+                        <div id="apkCustomerPinMap" class="w-full h-44 rounded-xl border border-slate-200 overflow-hidden relative z-0 shadow-inner"></div>
+                        <div class="flex items-center justify-between text-xs text-slate-500 mt-1.5">
+                            <span class="flex items-center gap-1">
+                                <i class="fa-solid fa-thumbs-up text-blue-500"></i>
+                                <span id="apkPinAccuracyInfo">नकाशा सूवेत पिन अचूक ठिकाणावर ठेवा</span>
+                            </span>
+                            <span id="apkPinCoordsText" class="font-mono text-[11px] text-slate-500 font-medium">18.46317, 73.83731</span>
+                        </div>
+                    </div>
+
+                    <!-- Step 6: Your Estimated Budget (₹) -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">6</span>
+                            <h3 class="font-bold text-slate-800 text-sm">Your Estimated Budget (₹)</h3>
+                        </div>
+                        <input type="number" id="apkBudgetInput" placeholder="Enter your budget e.g., 500" min="100" required class="w-full bg-white border border-slate-200 text-slate-800 font-medium py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
+                    </div>
+
+                    <!-- Step 7 & Step 8: Date and Time -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">7</span>
+                                <h3 class="font-bold text-slate-800 text-sm">Date</h3>
+                            </div>
+                            <input type="date" id="apkBookingDate" required class="w-full bg-white border border-slate-200 text-slate-800 font-medium py-2.5 px-3.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">8</span>
+                                <h3 class="font-bold text-slate-800 text-sm">Time</h3>
+                            </div>
+                            <input type="time" id="apkBookingTime" required class="w-full bg-white border border-slate-200 text-slate-800 font-medium py-2.5 px-3.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Step 9: Photo (Optional) -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">9</span>
+                            <h3 class="font-bold text-slate-800 text-sm">Photo (Optional)</h3>
+                        </div>
+                        <input type="file" id="apkJobPhoto" accept="image/*" class="w-full text-xs text-slate-500 bg-white border border-slate-200 rounded-xl p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
+                    </div>
+
+                    <!-- Step 10: Voice Note (Optional) -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">10</span>
+                                <h3 class="font-bold text-slate-800 text-sm">Voice Note (Optional)</h3>
+                            </div>
+                            <span id="apkVoiceNoteBadge" class="hidden text-[10px] font-bold px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full items-center gap-1 shadow-2xs">
+                                <i class="fa-solid fa-check-circle text-emerald-600"></i> Attached
+                            </span>
+                        </div>
+
+                        <!-- Prompt / Inactive State -->
+                        <div id="apkVoiceRecordPrompt" class="p-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-lg shrink-0">
+                                    <i class="fa-solid fa-microphone"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800">Explain your work by voice</p>
+                                    <p class="text-[11px] text-slate-500">Record a clear voice message (up to 30 seconds)</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="startVoiceRecording()" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-2 px-3.5 rounded-xl shadow-xs transition flex items-center gap-1.5 shrink-0 cursor-pointer">
+                                <i class="fa-solid fa-microphone"></i> <span>Record Voice</span>
+                            </button>
+                        </div>
+
+                        <!-- Active Recording State -->
+                        <div id="apkVoiceRecordingActive" class="hidden p-3.5 bg-rose-50 border border-rose-200 rounded-2xl items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <span class="relative flex h-3.5 w-3.5 shrink-0">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-600"></span>
+                                </span>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-black text-rose-700 uppercase tracking-wider">Recording Voice Note...</span>
+                                        <span id="apkVoiceRecordTimer" class="font-mono text-xs font-bold text-rose-600 bg-white px-2 py-0.5 rounded border border-rose-200">00:00 / 00:30</span>
+                                    </div>
+                                    <p class="text-[11px] text-rose-500">Speak clearly. Auto-stops at 30s.</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="stopVoiceRecording()" class="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs py-2 px-3.5 rounded-xl shadow-xs transition flex items-center gap-1.5 shrink-0 cursor-pointer">
+                                <i class="fa-solid fa-stop text-[11px]"></i> Stop &amp; Save
+                            </button>
+                        </div>
+
+                        <!-- Audio Preview Player -->
+                        <div id="apkVoiceAudioPreviewCard" class="hidden p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2.5 transition">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-waveform-lines text-emerald-600 text-sm"></i>
+                                    <span class="text-xs font-bold text-emerald-900">Voice Note Attached</span>
+                                    <span id="apkVoiceAudioDurationBadge" class="text-[10px] font-mono font-bold text-emerald-800 bg-white px-1.5 py-0.5 rounded border border-emerald-200">00:00</span>
+                                </div>
+                                <button type="button" onclick="deleteVoiceNote()" class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1 hover:underline cursor-pointer">
+                                    <i class="fa-solid fa-trash-can text-[11px]"></i> Delete / Re-record
+                                </button>
+                            </div>
+
+                            <div class="bg-white p-2.5 rounded-xl border border-emerald-100 flex items-center gap-3 shadow-xs">
+                                <button type="button" onclick="togglePlayVoicePreview()" class="w-9 h-9 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center text-sm shadow transition shrink-0 cursor-pointer">
+                                    <i id="apkVoicePlayIcon" class="fa-solid fa-play ml-0.5"></i>
+                                </button>
+
+                                <div class="flex-1 space-y-1">
+                                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden cursor-pointer" onclick="seekVoicePreview(event)">
+                                        <div id="apkVoiceProgressBar" class="bg-emerald-500 h-full w-0 rounded-full transition-all duration-100"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                                        <span id="apkVoiceCurrentTime">00:00</span>
+                                        <span id="apkVoiceTotalTime">00:00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="apkSubmitBtn" class="w-full bg-[#1868fe] hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-5">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Book Appointment Now</span>
+                    </button>
+                </form>
+
+                <!-- Dedicated Live Booking Status Card in APK mode -->
+                <div id="apkCustomerLiveStatusCard" class="hidden mt-6 bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <h4 class="font-black text-slate-900 text-sm">📦 Live Booking Status</h4>
+                        </div>
+                        <span id="apkStatusBadge" class="bg-amber-100 text-amber-800 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                            ⏳ <span id="apkStatusBadgeText">Finding Worker</span>
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs bg-white p-3 rounded-xl border border-slate-100">
+                        <div><span class="text-slate-400 block text-[10px]">Service</span><strong id="apkStatusService" class="text-slate-800 font-bold">-</strong></div>
+                        <div><span class="text-slate-400 block text-[10px]">Budget</span><strong id="apkStatusBudget" class="text-emerald-600 font-bold">-</strong></div>
+                        <div><span class="text-slate-400 block text-[10px]">Assigned Worker</span><span id="apkStatusWorker" class="text-blue-600 font-bold">Finding Worker...</span></div>
+                        <div><span class="text-slate-400 block text-[10px]">Worker Rating</span><span id="apkStatusWorkerRating" class="text-amber-600 font-bold">--</span></div>
+                    </div>
+
+                    <!-- OTP Display Card -->
+                    <div id="apkCompletionOtpCard" class="hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-3.5 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-black uppercase text-emerald-200">काम पूर्ण करण्यासाठी OTP</span>
+                            <p class="text-[11px] text-white/90">काम पूर्ण झाल्यावरच कारागिराला द्या</p>
+                        </div>
+                        <div class="bg-white text-emerald-900 font-black text-xl tracking-[0.2em] px-3.5 py-1.5 rounded-lg border-2 border-emerald-300">
+                            <span id="apkOtpCodeDisplay">----</span>
+                        </div>
+                    </div>
+
+                    <!-- Worker Call & Chat Actions -->
+                    <div id="apkCommActions" class="hidden grid grid-cols-2 gap-2">
+                        <a id="apkCallWorkerBtn" href="#" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs">
+                            <i class="fa-solid fa-phone"></i> Call Worker
+                        </a>
+                        <button type="button" id="apkChatWorkerBtn" onclick="openCustomerChatModal(currentOrderId)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs">
+                            <i class="fa-solid fa-message"></i> Chat
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-200">
+                        <button type="button" onclick="closeLiveStatusView()" class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer">
+                            ✕ स्थिती लपवा (Hide)
+                        </button>
+                        <button type="button" onclick="openMyOrdersModal()" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer">
+                            सर्व ऑर्डर्स पहा <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div><!-- /#apkCustomerAppContainer -->
 
     <!-- Customer Profile Modal -->
     <div id="profileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">

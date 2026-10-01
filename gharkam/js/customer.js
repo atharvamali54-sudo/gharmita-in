@@ -200,6 +200,36 @@ function populateSavedAddress() {
         areaSelect.value = savedArea;
     }
 
+    // Populate APK Form Inputs (Active in APK App mode)
+    const apkAddressInput = document.getElementById('apkCustomerAddress');
+    const apkAreaSelect = document.getElementById('apkAreaSelect');
+    const apkNameInput = document.getElementById('apkCustomerName');
+    const apkMobileInput = document.getElementById('apkCustomerMobile');
+    const apkDateInput = document.getElementById('apkBookingDate');
+    const nameInput = document.getElementById('customerName');
+    const mobileInput = document.getElementById('customerMobile');
+
+    if (apkAddressInput && savedAddr && !apkAddressInput.value) {
+        apkAddressInput.value = savedAddr;
+    }
+    if (apkAreaSelect && savedArea && (!apkAreaSelect.value || apkAreaSelect.value === 'Dhankawadi')) {
+        apkAreaSelect.value = savedArea;
+    }
+    if (customerProfile) {
+        if (customerProfile.name) {
+            if (nameInput && !nameInput.value) nameInput.value = customerProfile.name;
+            if (apkNameInput && !apkNameInput.value) apkNameInput.value = customerProfile.name;
+        }
+        if (customerProfile.mobile) {
+            if (mobileInput && !mobileInput.value) mobileInput.value = customerProfile.mobile;
+            if (apkMobileInput && !apkMobileInput.value) apkMobileInput.value = customerProfile.mobile;
+        }
+    }
+    if (apkDateInput && !apkDateInput.value) {
+        apkDateInput.valueAsDate = new Date();
+    }
+    setupApkFieldSync();
+
     try {
         const savedLocStr = localStorage.getItem('gharmitra_saved_location');
         if (savedLocStr) {
@@ -220,6 +250,82 @@ function populateSavedAddress() {
         }
     }, 150);
 }
+
+function handleApkAddressChange() {
+    const apkAddressInput = document.getElementById('apkCustomerAddress');
+    const addressInput = document.getElementById('customerAddress');
+    if (!apkAddressInput) return;
+    const val = apkAddressInput.value.trim();
+    if (addressInput) addressInput.value = val;
+    handleAddressChange();
+}
+window.handleApkAddressChange = handleApkAddressChange;
+
+function focusApkAddressForEdit() {
+    const apkAddressInput = document.getElementById('apkCustomerAddress');
+    if (apkAddressInput) {
+        apkAddressInput.focus();
+        apkAddressInput.select();
+        apkAddressInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+window.focusApkAddressForEdit = focusApkAddressForEdit;
+
+function resetCustomerGpsLocation() {
+    try {
+        localStorage.removeItem('gharmitra_saved_location');
+    } catch(e) {}
+    currentCustomerLocation = null;
+    const badge = document.getElementById('gpsLocationBadge');
+    const apkBadge = document.getElementById('apkGpsLocationBadge');
+    if (badge) {
+        badge.classList.add('hidden');
+        badge.classList.remove('inline-flex');
+    }
+    if (apkBadge) {
+        apkBadge.classList.add('hidden');
+        apkBadge.classList.remove('inline-flex');
+    }
+    const pinCoords = document.getElementById('pinCoordsText');
+    const apkPinCoords = document.getElementById('apkPinCoordsText');
+    if (pinCoords) pinCoords.innerText = '';
+    if (apkPinCoords) apkPinCoords.innerText = '';
+}
+window.resetCustomerGpsLocation = resetCustomerGpsLocation;
+
+function setupApkFieldSync() {
+    const pairs = [
+        ['customerName', 'apkCustomerName'],
+        ['customerMobile', 'apkCustomerMobile'],
+        ['serviceSelect', 'apkServiceSelect'],
+        ['areaSelect', 'apkAreaSelect'],
+        ['customerAddress', 'apkCustomerAddress'],
+        ['budgetInput', 'apkBudgetInput'],
+        ['bookingDate', 'apkBookingDate'],
+        ['bookingTime', 'apkBookingTime']
+    ];
+
+    pairs.forEach(([pId, aId]) => {
+        const pEl = document.getElementById(pId);
+        const aEl = document.getElementById(aId);
+        if (pEl && aEl && !aEl._syncHooked) {
+            aEl._syncHooked = true;
+            aEl.addEventListener('input', () => { pEl.value = aEl.value; });
+            aEl.addEventListener('change', () => {
+                pEl.value = aEl.value;
+                if (aId === 'apkAreaSelect') {
+                    if (typeof setupAreaSelectMapSync === 'function') {
+                        const evt = new Event('change');
+                        pEl.dispatchEvent(evt);
+                    }
+                }
+            });
+            pEl.addEventListener('input', () => { aEl.value = pEl.value; });
+            pEl.addEventListener('change', () => { aEl.value = pEl.value; });
+        }
+    });
+}
+window.setupApkFieldSync = setupApkFieldSync;
 
 function handleAddressChange() {
     const addressInput = document.getElementById('customerAddress');
@@ -270,13 +376,21 @@ function renderGpsLocationBadge(lat, lng, accuracy) {
     const text = document.getElementById('gpsLocationText');
     const link = document.getElementById('gpsMapLink');
 
-    if (!badge) return;
+    const apkBadge = document.getElementById('apkGpsLocationBadge');
+    const apkText = document.getElementById('apkGpsLocationText');
 
-    badge.classList.remove('hidden');
-    badge.classList.add('inline-flex');
+    if (badge) {
+        badge.classList.remove('hidden');
+        badge.classList.add('inline-flex');
+    }
+    if (apkBadge) {
+        apkBadge.classList.remove('hidden');
+        apkBadge.classList.add('inline-flex');
+    }
 
     const accText = accuracy ? ` (±${accuracy}m)` : '';
     if (text) text.innerText = `अचूक GPS जोडले${accText}`;
+    if (apkText) apkText.innerText = `अचूक स्थान शोधले${accText}`;
     if (link) {
         link.href = `https://www.google.com/maps?q=${lat},${lng}`;
     }
@@ -288,7 +402,9 @@ let customerPinGpsCircle = null;
 let gpsWatchId = null;
 
 function initCustomerPinMap(forcedLat, forcedLng) {
-    const mapEl = document.getElementById('customerPinMap');
+    const isApp = document.documentElement.classList.contains('is-app-env');
+    const targetMapId = (isApp && document.getElementById('apkCustomerPinMap')) ? 'apkCustomerPinMap' : 'customerPinMap';
+    const mapEl = document.getElementById(targetMapId);
     if (!mapEl || typeof L === 'undefined') return;
 
     if (customerPinMap) {
@@ -323,7 +439,7 @@ function initCustomerPinMap(forcedLat, forcedLng) {
     }
 
     try {
-        customerPinMap = L.map('customerPinMap', {
+        customerPinMap = L.map(targetMapId, {
             zoomControl: true,
             attributionControl: false
         }).setView([startLat, startLng], startZoom);
@@ -366,9 +482,9 @@ function initCustomerPinMap(forcedLat, forcedLng) {
             } catch(e) {}
 
             const coordsSpan = document.getElementById('pinCoordsText');
-            if (coordsSpan) {
-                coordsSpan.innerText = `${lat}, ${lng}`;
-            }
+            const apkCoordsSpan = document.getElementById('apkPinCoordsText');
+            if (coordsSpan) coordsSpan.innerText = `${lat}, ${lng}`;
+            if (apkCoordsSpan) apkCoordsSpan.innerText = `${lat}, ${lng}`;
 
             renderGpsLocationBadge(lat, lng, 5);
 
@@ -393,8 +509,10 @@ function initCustomerPinMap(forcedLat, forcedLng) {
                 }
             }
             const areaSelect = document.getElementById('areaSelect');
+            const apkAreaSelect = document.getElementById('apkAreaSelect');
             if (areaSelect && closestArea && minDistance < 10) {
                 areaSelect.value = closestArea;
+                if (apkAreaSelect) apkAreaSelect.value = closestArea;
                 try {
                     localStorage.setItem('gharmitra_saved_area', closestArea);
                 } catch(e) {}
@@ -454,9 +572,9 @@ function updateCustomerPinMapLocation(lat, lng, flyTo = true) {
         }, 200);
     }
     const coordsSpan = document.getElementById('pinCoordsText');
-    if (coordsSpan) {
-        coordsSpan.innerText = `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}`;
-    }
+    const apkCoordsSpan = document.getElementById('apkPinCoordsText');
+    if (coordsSpan) coordsSpan.innerText = `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}`;
+    if (apkCoordsSpan) apkCoordsSpan.innerText = `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}`;
 }
 
 function setupAreaSelectMapSync() {
@@ -486,8 +604,11 @@ async function detectCustomerExactLocation() {
         triggerHapticFeedback(60);
     }
     const btn = document.getElementById('detectGpsBtn');
+    const apkBtn = document.getElementById('apkDetectGpsBtn');
     const originalBtnHtml = btn ? btn.innerHTML : '';
+    const originalApkBtnHtml = apkBtn ? apkBtn.innerHTML : '';
     const pinInfo = document.getElementById('pinAccuracyInfo');
+    const apkPinInfo = document.getElementById('apkPinAccuracyInfo');
 
     if (!navigator.geolocation) {
         alert("आपल्या डिव्हाइसवर Geolocation (GPS) सपोर्ट उपलब्ध नाही.");
@@ -498,8 +619,15 @@ async function detectCustomerExactLocation() {
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-satellite-dish fa-spin text-blue-600"></i> <span>GPS अचूक शोधत आहे...</span>';
     }
+    if (apkBtn) {
+        apkBtn.disabled = true;
+        apkBtn.innerHTML = '<i class="fa-solid fa-satellite-dish fa-spin text-blue-600"></i> <span>GPS शोधत आहे...</span>';
+    }
     if (pinInfo) {
         pinInfo.innerHTML = '<span class="text-blue-600 font-semibold"><i class="fa-solid fa-satellite-dish fa-spin"></i> सॅटेलाइट GPS सिग्नल शोधत आहे...</span>';
+    }
+    if (apkPinInfo) {
+        apkPinInfo.innerHTML = '<span class="text-blue-600 font-semibold"><i class="fa-solid fa-satellite-dish fa-spin"></i> सॅटेलाइट GPS शोधत आहे...</span>';
     }
 
     let bestFix = null;
@@ -625,6 +753,10 @@ async function detectCustomerExactLocation() {
                 btn.disabled = false;
                 btn.innerHTML = originalBtnHtml;
             }
+            if (apkBtn) {
+                apkBtn.disabled = false;
+                apkBtn.innerHTML = originalApkBtnHtml;
+            }
         }
     };
 
@@ -647,6 +779,10 @@ async function detectCustomerExactLocation() {
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = originalBtnHtml;
+            }
+            if (apkBtn) {
+                apkBtn.disabled = false;
+                apkBtn.innerHTML = originalApkBtnHtml;
             }
             if (pinInfo) {
                 pinInfo.innerHTML = '<i class="fa-solid fa-hand-pointer text-blue-500"></i> मॅपवर कुठेही टॅप करा किंवा लाल पिन ड्रॅग करा';
@@ -1427,6 +1563,21 @@ populateBookingProfile();
             }
             if (previewEl) previewEl.classList.remove('hidden');
 
+            const apkPromptEl = document.getElementById('apkVoiceRecordPrompt');
+            const apkActiveEl = document.getElementById('apkVoiceRecordingActive');
+            const apkBadgeEl = document.getElementById('apkVoiceNoteBadge');
+            const apkPreviewEl = document.getElementById('apkVoiceAudioPreviewCard');
+            if (apkActiveEl) {
+                apkActiveEl.classList.add('hidden');
+                apkActiveEl.classList.remove('flex');
+            }
+            if (apkPromptEl) apkPromptEl.classList.add('hidden');
+            if (apkBadgeEl) {
+                apkBadgeEl.classList.remove('hidden');
+                apkBadgeEl.classList.add('inline-flex');
+            }
+            if (apkPreviewEl) apkPreviewEl.classList.remove('hidden');
+
             if (audioEl) {
                 audioEl.src = audioSrc;
                 audioEl.load();
@@ -1521,6 +1672,25 @@ populateBookingProfile();
             }
             if (badgeEl) badgeEl.classList.add('hidden');
             if (promptEl) promptEl.classList.remove('hidden');
+
+            const apkPromptEl = document.getElementById('apkVoiceRecordPrompt');
+            const apkActiveEl = document.getElementById('apkVoiceRecordingActive');
+            const apkBadgeEl = document.getElementById('apkVoiceNoteBadge');
+            const apkPreviewEl = document.getElementById('apkVoiceAudioPreviewCard');
+            const apkPlayIcon = document.getElementById('apkVoicePlayIcon');
+            const apkProgressBar = document.getElementById('apkVoiceProgressBar');
+            const apkCurrentTime = document.getElementById('apkVoiceCurrentTime');
+
+            if (apkPlayIcon) apkPlayIcon.className = 'fa-solid fa-play ml-0.5';
+            if (apkProgressBar) apkProgressBar.style.width = '0%';
+            if (apkCurrentTime) apkCurrentTime.innerText = '00:00';
+            if (apkPreviewEl) apkPreviewEl.classList.add('hidden');
+            if (apkActiveEl) {
+                apkActiveEl.classList.add('hidden');
+                apkActiveEl.classList.remove('flex');
+            }
+            if (apkBadgeEl) apkBadgeEl.classList.add('hidden');
+            if (apkPromptEl) apkPromptEl.classList.remove('hidden');
         }
 
         window.startVoiceRecording = startVoiceRecording;
@@ -1530,21 +1700,46 @@ populateBookingProfile();
         window.deleteVoiceNote = deleteVoiceNote;
         window.triggerHapticFeedback = triggerHapticFeedback;
 
+        async function handleApkFormSubmit(e) {
+            if (e) e.preventDefault();
+            const apkBtn = document.getElementById('apkSubmitBtn');
+            if (apkBtn) {
+                apkBtn.disabled = true;
+                apkBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Booking in progress...</span>';
+            }
+            try {
+                await handleFormSubmit(e);
+                const apkLiveCard = document.getElementById('apkCustomerLiveStatusCard');
+                if (apkLiveCard) {
+                    apkLiveCard.classList.remove('hidden');
+                    apkLiveCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            } finally {
+                if (apkBtn) {
+                    apkBtn.disabled = false;
+                    apkBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now</span>';
+                }
+            }
+        }
+        window.handleApkFormSubmit = handleApkFormSubmit;
+
         async function handleFormSubmit(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Booking in progress...';
 
-            const service = document.getElementById('serviceSelect').value;
-            const name = document.getElementById('customerName').value;
-            const mobile = document.getElementById('customerMobile').value;
-            const area = document.getElementById('areaSelect').value;
-            const address = document.getElementById('customerAddress').value;
-            const budget = document.getElementById('budgetInput').value;
-            const date = document.getElementById('bookingDate').value;
-            const time = document.getElementById('bookingTime').value;
-            const photoInput = document.getElementById('jobPhoto');
+            const service = document.getElementById('apkServiceSelect')?.value || document.getElementById('serviceSelect')?.value;
+            const name = document.getElementById('apkCustomerName')?.value || document.getElementById('customerName')?.value;
+            const mobile = document.getElementById('apkCustomerMobile')?.value || document.getElementById('customerMobile')?.value;
+            const area = document.getElementById('apkAreaSelect')?.value || document.getElementById('areaSelect')?.value;
+            const address = document.getElementById('apkCustomerAddress')?.value || document.getElementById('customerAddress')?.value;
+            const budget = document.getElementById('apkBudgetInput')?.value || document.getElementById('budgetInput')?.value;
+            const date = document.getElementById('apkBookingDate')?.value || document.getElementById('bookingDate')?.value;
+            const time = document.getElementById('apkBookingTime')?.value || document.getElementById('bookingTime')?.value;
+            const photoInput = (document.getElementById('apkJobPhoto')?.files?.length)
+                ? document.getElementById('apkJobPhoto')
+                : document.getElementById('jobPhoto');
 
             let photoUrl = "";
 
@@ -1814,6 +2009,43 @@ _Sent securely via Gharmitra Family Safety Shield._`;
                 lastTrackedCustomerOrderStatus[orderId] = data.status;
 
                 currentTrackedOrderData = data;
+
+                // Sync APK Live Status Card
+                const apkLiveCard = document.getElementById('apkCustomerLiveStatusCard');
+                if (apkLiveCard) {
+                    apkLiveCard.classList.remove('hidden');
+                    const apkSrv = document.getElementById('apkStatusService');
+                    const apkBud = document.getElementById('apkStatusBudget');
+                    const apkWork = document.getElementById('apkStatusWorker');
+                    const apkRating = document.getElementById('apkStatusWorkerRating');
+                    const apkBadgeText = document.getElementById('apkStatusBadgeText');
+                    const apkOtpCard = document.getElementById('apkCompletionOtpCard');
+                    const apkOtpCode = document.getElementById('apkOtpCodeDisplay');
+                    const apkCommActions = document.getElementById('apkCommActions');
+                    const apkCallBtn = document.getElementById('apkCallWorkerBtn');
+
+                    if (apkSrv) apkSrv.innerText = data.service || "-";
+                    if (apkBud) apkBud.innerText = data.budget || "-";
+                    if (apkWork) apkWork.innerText = data.workerName || "Finding Worker...";
+                    if (apkBadgeText) apkBadgeText.innerText = data.status || "Pending";
+
+                    if (apkOtpCard && apkOtpCode && data.completionOtp && data.status !== 'Completed' && data.status !== 'Cancelled') {
+                        apkOtpCard.classList.remove('hidden');
+                        apkOtpCode.innerText = data.completionOtp;
+                    } else if (apkOtpCard) {
+                        apkOtpCard.classList.add('hidden');
+                    }
+
+                    const canComm = data.status === 'Accepted' || data.status === 'On The Way' || data.status === 'In Progress';
+                    if (apkCommActions) {
+                        apkCommActions.classList.toggle('hidden', !canComm);
+                        apkCommActions.classList.toggle('grid', canComm);
+                    }
+                    if (apkCallBtn && data.workerMobile) {
+                        const cleanNum = String(data.workerMobile).replace(/[^\d+]/g, '');
+                        apkCallBtn.href = cleanNum.startsWith('+') ? `tel:${cleanNum}` : `tel:+91${cleanNum.slice(-10)}`;
+                    }
+                }
 
                 document.getElementById('statusService').innerText = data.service || "-";
                 document.getElementById('statusBudget').innerText = data.budget ? data.budget.replace('₹', '') : "-";

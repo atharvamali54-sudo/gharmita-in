@@ -341,13 +341,53 @@ body > div:first-of-type > div > div:last-child > div:last-child {
     border: none !important;
 }
 
-#customerPinMap {
+#customerPinMap,
+#apkCustomerPinMap {
     z-index: 10 !important;
 }
 
-#customerPinMap .leaflet-control-zoom {
+#customerPinMap .leaflet-control-zoom,
+#apkCustomerPinMap .leaflet-control-zoom {
     border-radius: 0.5rem;
     overflow: hidden;
     border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* =========================================================
+   APK App Specific Layout Rules (Active only in APK mode)
+   ========================================================= */
+#apkCustomerAppContainer {
+    display: none;
+}
+
+html.is-app-env #websiteCustomerContainer,
+html.is-mobile-app #websiteCustomerContainer {
+    display: none !important;
+}
+
+html.is-app-env #apkCustomerAppContainer,
+html.is-mobile-app #apkCustomerAppContainer {
+    display: block !important;
+}
+
+html.is-app-env,
+html.is-mobile-app {
+    background: #f8fafc !important;
+}
+
+html.is-app-env body,
+html.is-mobile-app body {
+    background: #f8fafc !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    min-height: 100vh !important;
+}
+
+html.is-app-env body::before,
+html.is-app-env body::after,
+html.is-mobile-app body::before,
+html.is-mobile-app body::after {
+    display: none !important;
 }
 
