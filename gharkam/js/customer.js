@@ -1944,6 +1944,7 @@ populateBookingProfile();
                 customerMapsUrl: custMapsUrl,
                 hasExactGps: !!(currentCustomerLocation && currentCustomerLocation.lat),
                 budget: isEmergency ? ("₹" + (budget || 500) + " (₹50 ॲडव्हान्स प्राप्त)") : ("₹" + (budget || 500)),
+                orderAmount: parseInt(String(budget || '').replace(/\D/g, '')) || 500,
                 walletDeduction: appliedWalletDeduction,
                 walletUsed: appliedWalletDeduction > 0,
                 date: date || new Date().toISOString().split('T')[0],
@@ -3284,20 +3285,30 @@ function loadCustomerWalletAndVip(cleanMobile) {
         });
     }
 
-    // 2. Query completed orders to calculate VIP Stamps (1, 2, 3)
+    // 2. Query completed orders to calculate VIP Stamps (1, 2, 3) and evaluate 5k threshold
     database.ref('orders').once('value', (snapshot) => {
         const all = snapshot.val() || {};
-        let completed = 0;
+        const completedList = [];
         Object.keys(all).forEach(k => {
             const ord = all[k];
             if (ord && ord.status === 'Completed' && String(ord.customerMobile || '').replace(/\D/g, '').slice(-10) === cleanMobile) {
-                completed++;
+                completedList.push({ id: k, ...ord });
             }
         });
 
-        customerCompletedOrdersCount = completed;
+        completedList.sort((a, b) => (Number(a.completedAt || a.timestamp) || 0) - (Number(b.completedAt || b.timestamp) || 0));
+        customerCompletedOrders = completedList;
+        customerCompletedOrdersCount = completedList.length;
         updateCustomerVipStampsUI();
     }).catch(err => console.warn('Customer VIP load error:', err));
+}
+
+function getOrderBillAmount(ord) {
+    if (!ord) return 0;
+    if (typeof ord.orderAmount === 'number' && ord.orderAmount > 0) return ord.orderAmount;
+    const raw = String(ord.budget || '').split('(')[0];
+    const match = raw.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 500;
 }
 
 function updateCustomerWalletUI() {
@@ -3329,8 +3340,12 @@ function updateCustomerWalletUI() {
 
 function updateCustomerVipStampsUI() {
     const cycle = customerCompletedOrdersCount % 3;
+    const cycleStartIdx = Math.floor(customerCompletedOrdersCount / 3) * 3;
+    const currentCycleOrders = (typeof customerCompletedOrders !== 'undefined' && customerCompletedOrders)
+        ? customerCompletedOrders.slice(cycleStartIdx)
+        : [];
 
-    // Web Stamps
+    // Web Stamps Elements
     const webStamp1 = document.getElementById('webStamp1');
     const webStamp1Icon = document.getElementById('webStamp1Icon');
     const webStamp2 = document.getElementById('webStamp2');
@@ -3339,7 +3354,7 @@ function updateCustomerVipStampsUI() {
     const webStamp3Icon = document.getElementById('webStamp3Icon');
     const webStatusText = document.getElementById('webVipStatusText');
 
-    // APK Stamps
+    // APK Stamps Elements
     const apkStamp1 = document.getElementById('apkStamp1');
     const apkStamp1Icon = document.getElementById('apkStamp1Icon');
     const apkStamp2 = document.getElementById('apkStamp2');
@@ -3348,65 +3363,116 @@ function updateCustomerVipStampsUI() {
     const apkStamp3Icon = document.getElementById('apkStamp3Icon');
     const apkStatusText = document.getElementById('apkVipStatusText');
 
-    // Modal
+    // Modal Elements
     const modalMilestone = document.getElementById('modalVipMilestoneText');
     const modalProgress = document.getElementById('modalVipProgressBar');
     const modalSub = document.getElementById('modalVipSubText');
 
-    // Stamp 1
-    if (cycle >= 1) {
-        if (webStamp1) { webStamp1.className = 'w-12 h-14 rounded-xl border-2 border-emerald-500 bg-emerald-50 flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
-        if (webStamp1Icon) { webStamp1Icon.innerText = '✅'; }
-        if (apkStamp1) { apkStamp1.className = 'flex-1 rounded-xl border-2 border-emerald-500 bg-emerald-50 p-2 text-center transition shadow-xs'; }
-        if (apkStamp1Icon) { apkStamp1Icon.innerText = '✅'; }
-    } else {
+    let statusMsg = '';
+    let percent = 0;
+    let isCycleEligible = false;
+
+    if (cycle === 0 && customerCompletedOrdersCount === 0) {
+        // Fresh customer
         if (webStamp1) { webStamp1.className = 'w-12 h-14 rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
         if (webStamp1Icon) { webStamp1Icon.innerText = '⚪'; }
         if (apkStamp1) { apkStamp1.className = 'flex-1 rounded-xl border-2 border-dashed border-slate-300 bg-white p-2 text-center transition'; }
         if (apkStamp1Icon) { apkStamp1Icon.innerText = '⚪'; }
-    }
 
-    // Stamp 2
-    if (cycle >= 2) {
-        if (webStamp2) { webStamp2.className = 'w-12 h-14 rounded-xl border-2 border-emerald-500 bg-emerald-50 flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
-        if (webStamp2Icon) { webStamp2Icon.innerText = '✅'; }
-        if (apkStamp2) { apkStamp2.className = 'flex-1 rounded-xl border-2 border-emerald-500 bg-emerald-50 p-2 text-center transition shadow-xs'; }
-        if (apkStamp2Icon) { apkStamp2Icon.innerText = '✅'; }
-    } else {
         if (webStamp2) { webStamp2.className = 'w-12 h-14 rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
         if (webStamp2Icon) { webStamp2Icon.innerText = '⚪'; }
         if (apkStamp2) { apkStamp2.className = 'flex-1 rounded-xl border-2 border-dashed border-slate-300 bg-white p-2 text-center transition'; }
         if (apkStamp2Icon) { apkStamp2Icon.innerText = '⚪'; }
-    }
 
-    // Stamp 3 (Reward)
-    if (cycle === 0 && customerCompletedOrdersCount > 0) {
-        if (webStamp3) { webStamp3.className = 'w-14 h-14 rounded-xl border-2 border-emerald-500 bg-emerald-100 flex flex-col items-center justify-center p-1 text-center shadow-xs relative'; }
-        if (webStamp3Icon) { webStamp3Icon.innerText = '🎉'; }
-        if (apkStamp3) { apkStamp3.className = 'flex-1 rounded-xl border-2 border-emerald-500 bg-emerald-100 p-2 text-center relative shadow-xs'; }
-        if (apkStamp3Icon) { apkStamp3Icon.innerText = '🎉'; }
-    } else {
         if (webStamp3) { webStamp3.className = 'w-14 h-14 rounded-xl border-2 border-amber-400 bg-amber-50 flex flex-col items-center justify-center p-1 text-center shadow-xs relative'; }
         if (webStamp3Icon) { webStamp3Icon.innerText = '🎁'; }
         if (apkStamp3) { apkStamp3.className = 'flex-1 rounded-xl border-2 border-amber-400 bg-amber-50 p-2 text-center relative shadow-xs'; }
         if (apkStamp3Icon) { apkStamp3Icon.innerText = '🎁'; }
-    }
 
-    // Dynamic Texts
-    let statusMsg = '';
-    let percent = 0;
-    if (cycle === 0 && customerCompletedOrdersCount === 0) {
-        statusMsg = 'तुम्ही नवीन सायकलमध्ये आहात. ३ कामे पूर्ण केल्यावर बिलाचे १०% थेट वॉलेट कॅशबॅक मिळेल!';
+        statusMsg = '⭐ पात्रता अट: पहिल्या २ ऑर्डर्सचे एकूण बिल किमान ₹५,००० (उदा. ₹३k + ₹३k) असणे आवश्यक आहे. ३ ऱ्या ऑर्डरवर १०% कॅशबॅक मिळेल!';
         percent = 0;
-    } else if (cycle === 0 && customerCompletedOrdersCount > 0) {
-        statusMsg = '🎉 अभिनंदन! तुम्ही मागील सायकल पूर्ण केली. पुढील ३ कामे पूर्ण केल्यावर पुन्हा १०% कॅशबॅक मिळेल!';
-        percent = 100;
     } else if (cycle === 1) {
-        statusMsg = '१ ऑर्डर पूर्ण झाली! आणखी २ ऑर्डर्स आणि १०% थेट वॉलेट कॅशबॅक अनलॉक!';
+        // Order 1 is completed
+        const ord1Amt = getOrderBillAmount(currentCycleOrders[0]);
+        const needed = Math.max(0, 5000 - ord1Amt);
+
+        if (webStamp1) { webStamp1.className = 'w-12 h-14 rounded-xl border-2 border-emerald-500 bg-emerald-50 flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
+        if (webStamp1Icon) { webStamp1Icon.innerText = '✅'; }
+        if (apkStamp1) { apkStamp1.className = 'flex-1 rounded-xl border-2 border-emerald-500 bg-emerald-50 p-2 text-center transition shadow-xs'; }
+        if (apkStamp1Icon) { apkStamp1Icon.innerText = '✅'; }
+
+        if (webStamp2) { webStamp2.className = 'w-12 h-14 rounded-xl border-2 border-dashed border-blue-400 bg-blue-50/50 flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
+        if (webStamp2Icon) { webStamp2Icon.innerText = '⚪'; }
+        if (apkStamp2) { apkStamp2.className = 'flex-1 rounded-xl border-2 border-dashed border-blue-400 bg-blue-50/50 p-2 text-center transition'; }
+        if (apkStamp2Icon) { apkStamp2Icon.innerText = '⚪'; }
+
+        if (webStamp3) { webStamp3.className = 'w-14 h-14 rounded-xl border-2 border-amber-400 bg-amber-50 flex flex-col items-center justify-center p-1 text-center shadow-xs relative'; }
+        if (webStamp3Icon) { webStamp3Icon.innerText = '🎁'; }
+        if (apkStamp3) { apkStamp3.className = 'flex-1 rounded-xl border-2 border-amber-400 bg-amber-50 p-2 text-center relative shadow-xs'; }
+        if (apkStamp3Icon) { apkStamp3Icon.innerText = '🎁'; }
+
+        statusMsg = `ऑर्डर १ (₹${ord1Amt}) पूर्ण! १०% कॅशबॅक पात्रतेसाठी ऑर्डर २ चे बिल किमान ₹${needed} असावे लागेल (२ ऑर्डर्स एकूण ≥ ₹५,००० आवश्यक).`;
         percent = 33;
     } else if (cycle === 2) {
-        statusMsg = '🔥 जबरदस्त! फक्त १ ऑर्डर बाकी! ३ री ऑर्डर पूर्ण होताच बिलाचे १०% कॅशबॅक अनलॉक होईल!';
-        percent = 66;
+        // Orders 1 & 2 are completed! Check threshold!
+        const ord1Amt = getOrderBillAmount(currentCycleOrders[0]);
+        const ord2Amt = getOrderBillAmount(currentCycleOrders[1]);
+        const twoTotal = ord1Amt + ord2Amt;
+        isCycleEligible = twoTotal >= 5000;
+
+        if (webStamp1) { webStamp1.className = 'w-12 h-14 rounded-xl border-2 border-emerald-500 bg-emerald-50 flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
+        if (webStamp1Icon) { webStamp1Icon.innerText = '✅'; }
+        if (apkStamp1) { apkStamp1.className = 'flex-1 rounded-xl border-2 border-emerald-500 bg-emerald-50 p-2 text-center transition shadow-xs'; }
+        if (apkStamp1Icon) { apkStamp1Icon.innerText = '✅'; }
+
+        if (isCycleEligible) {
+            // Qualified!
+            if (webStamp2) { webStamp2.className = 'w-12 h-14 rounded-xl border-2 border-emerald-500 bg-emerald-50 flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
+            if (webStamp2Icon) { webStamp2Icon.innerText = '✅'; }
+            if (apkStamp2) { apkStamp2.className = 'flex-1 rounded-xl border-2 border-emerald-500 bg-emerald-50 p-2 text-center transition shadow-xs'; }
+            if (apkStamp2Icon) { apkStamp2Icon.innerText = '✅'; }
+
+            if (webStamp3) { webStamp3.className = 'w-14 h-14 rounded-xl border-2 border-amber-500 bg-amber-100 flex flex-col items-center justify-center p-1 text-center shadow-md relative animate-pulse'; }
+            if (webStamp3Icon) { webStamp3Icon.innerText = '🎁'; }
+            if (apkStamp3) { apkStamp3.className = 'flex-1 rounded-xl border-2 border-amber-500 bg-amber-100 p-2 text-center relative shadow-md animate-pulse'; }
+            if (apkStamp3Icon) { apkStamp3Icon.innerText = '🎁'; }
+
+            statusMsg = `🎉 अभिनंदन! पहिल्या २ ऑर्डर्सचे एकूण बिल ₹${twoTotal} झाले (किमान ₹५,००० पात्रता पूर्ण)! आता ३ री ऑर्डर पूर्ण करा आणि १०% थेट कॅशबॅक मिळवा!`;
+            percent = 66;
+        } else {
+            // Not qualified (< 5000)
+            if (webStamp2) { webStamp2.className = 'w-12 h-14 rounded-xl border-2 border-amber-500 bg-amber-50 flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
+            if (webStamp2Icon) { webStamp2Icon.innerText = '⚠️'; }
+            if (apkStamp2) { apkStamp2.className = 'flex-1 rounded-xl border-2 border-amber-500 bg-amber-50 p-2 text-center transition shadow-xs'; }
+            if (apkStamp2Icon) { apkStamp2Icon.innerText = '⚠️'; }
+
+            if (webStamp3) { webStamp3.className = 'w-14 h-14 rounded-xl border-2 border-slate-300 bg-slate-100 opacity-60 flex flex-col items-center justify-center p-1 text-center shadow-xs relative'; }
+            if (webStamp3Icon) { webStamp3Icon.innerText = '🔒'; }
+            if (apkStamp3) { apkStamp3.className = 'flex-1 rounded-xl border-2 border-slate-300 bg-slate-100 opacity-60 p-2 text-center relative shadow-xs'; }
+            if (apkStamp3Icon) { apkStamp3Icon.innerText = '🔒'; }
+
+            statusMsg = `⚠️ पहिल्या २ ऑर्डर्सचे एकूण बिल ₹${twoTotal} झाले (किमान ₹५,००० आवश्यक होते, उदा. ₹३k + ₹३k). त्यामुळे या सायकलसाठी १०% कॅशबॅक ऑफर लागू नाही.`;
+            percent = 66;
+        }
+    } else if (cycle === 0 && customerCompletedOrdersCount > 0) {
+        // Cycle just completed!
+        const lastCycleOrders = (typeof customerCompletedOrders !== 'undefined' && customerCompletedOrders)
+            ? customerCompletedOrders.slice(-3)
+            : [];
+        const ord1Amt = getOrderBillAmount(lastCycleOrders[0]);
+        const ord2Amt = getOrderBillAmount(lastCycleOrders[1]);
+        const wasEligible = (ord1Amt + ord2Amt) >= 5000;
+
+        if (wasEligible) {
+            if (webStamp3) { webStamp3.className = 'w-14 h-14 rounded-xl border-2 border-emerald-500 bg-emerald-100 flex flex-col items-center justify-center p-1 text-center shadow-xs relative'; }
+            if (webStamp3Icon) { webStamp3Icon.innerText = '🎉'; }
+            if (apkStamp3) { apkStamp3.className = 'flex-1 rounded-xl border-2 border-emerald-500 bg-emerald-100 p-2 text-center relative shadow-xs'; }
+            if (apkStamp3Icon) { apkStamp3Icon.innerText = '🎉'; }
+            statusMsg = '🎉 अभिनंदन! मागील सायकलमध्ये तुम्ही १०% कॅशबॅक मिळवला आहे! पुढील ३ ऑर्डर्ससाठी नवीन सायकल सुरू झाली आहे (पहिल्या २ ऑर्डर्स ≥ ₹५k).';
+        } else {
+            statusMsg = 'मागील सायकल पूर्ण झाली. पुढील ३ ऑर्डर्ससाठी नवीन सायकल सुरू झाली आहे. पहिल्या २ ऑर्डर्सचे एकूण बिल किमान ₹५,००० ठेवा!';
+        }
+        percent = 100;
     }
 
     if (webStatusText) webStatusText.innerText = statusMsg;
@@ -3414,9 +3480,11 @@ function updateCustomerVipStampsUI() {
     if (modalMilestone) modalMilestone.innerText = `${cycle} / ३ पूर्ण (${customerCompletedOrdersCount} एकूण)`;
     if (modalProgress) modalProgress.style.width = `${percent}%`;
     if (modalSub) {
-        modalSub.innerText = (cycle === 2)
-            ? '🔥 फक्त १ ऑर्डर बाकी आहे! पुढचे काम पूर्ण होताच १०% कॅशबॅक जमा होईल.'
-            : 'प्रत्येक ३ ऑर्डर्स पूर्ण केल्यावर त्या ३ ऱ्या ऑर्डरच्या बिलाचे १०% थेट तुमच्या वॉलेटमध्ये जमा होतात.';
+        modalSub.innerText = (cycle === 2 && !isCycleEligible)
+            ? '⚠️ पहिल्या २ ऑर्डर्सचे एकूण बिल ₹५,००० पेक्षा कमी असल्याने या ३ ऱ्या ऑर्डरवर कॅशबॅक लागू होणार नाही.'
+            : (cycle === 2 && isCycleEligible)
+            ? '🎉 तुमची पात्रता पूर्ण झाली आहे! ३ री ऑर्डर पूर्ण होताच १०% कॅशबॅक थेट वॉलेटमध्ये जमा होईल.'
+            : 'पात्रता अट: पहिल्या २ ऑर्डर्सचे एकूण बिल किमान ₹५,००० (उदा. ₹३,००० + ₹३,०००) असणे आवश्यक आहे. २ ऑर्डर्स ₹५,००० पेक्षा कमी असल्यास ऑफर लागू होणार नाही.';
     }
 }
 

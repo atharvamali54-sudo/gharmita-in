@@ -2617,23 +2617,63 @@ function finalizeOrderCompletion(orderId) {
 
                     // If this completion marks the 3rd, 6th, 9th, etc. completed order for customer!
                     if (completedCount > 0 && completedCount % 3 === 0) {
-                        const budgetNum = parseInt(String(ordData.budget || '').replace(/\D/g, '')) || 500;
-                        const cashbackAmount = Math.max(30, Math.round(budgetNum * 0.10));
+                        // Sort completed orders to accurately check the previous 2 orders in this cycle
+                        const custCompletedOrders = [];
+                        Object.keys(allOrders).forEach(k => {
+                            const o = allOrders[k];
+                            if (o && o.status === 'Completed' && String(o.customerMobile || '').replace(/\D/g, '').slice(-10) === custMob) {
+                                custCompletedOrders.push({ id: k, ...o });
+                            }
+                        });
+                        custCompletedOrders.sort((a, b) => (Number(a.completedAt || a.timestamp) || 0) - (Number(b.completedAt || b.timestamp) || 0));
 
-                        database.ref('customers/' + custMob + '/walletBalance').transaction((b) => (b || 0) + cashbackAmount);
-                        database.ref('customers/' + custMob + '/walletTransactions').push({
-                            type: 'CREDIT',
-                            amount: cashbackAmount,
-                            reason: '👑 VIP क्लब ३-ऑर्डर रिवॉर्ड (१०% कॅशबॅक)',
-                            orderId: orderId,
-                            timestamp: firebase.database.ServerValue.TIMESTAMP
-                        });
-                        database.ref('orders/' + orderId).update({
-                            vipCashbackAwarded: true,
-                            vipCashbackAmount: cashbackAmount
-                        });
-                        if (typeof showApkToast === 'function') {
-                            showApkToast('🎉 ग्राहकाला ३-ऑर्डर VIP रिवॉर्ड अंतर्गत ₹' + cashbackAmount + ' कॅशबॅक मिळाला!');
+                        // Get previous 2 orders in this cycle
+                        const len = custCompletedOrders.length;
+                        const ord1 = custCompletedOrders[len - 3];
+                        const ord2 = custCompletedOrders[len - 2];
+
+                        const getAmt = (o) => {
+                            if (!o) return 0;
+                            if (typeof o.orderAmount === 'number' && o.orderAmount > 0) return o.orderAmount;
+                            const r = String(o.budget || '').split('(')[0];
+                            const m = r.match(/\d+/);
+                            return m ? parseInt(m[0], 10) : 500;
+                        };
+
+                        const amt1 = getAmt(ord1);
+                        const amt2 = getAmt(ord2);
+                        const prevTwoTotal = amt1 + amt2;
+
+                        // Condition: First 2 orders MUST total at least ₹5,000 (e.g. 3k + 3k = 6k >= 5k; if 2k + 2k = 4k < 5k -> not eligible)
+                        if (prevTwoTotal >= 5000) {
+                            const budgetNum = getAmt(ordData);
+                            const cashbackAmount = Math.max(30, Math.round(budgetNum * 0.10));
+
+                            database.ref('customers/' + custMob + '/walletBalance').transaction((b) => (b || 0) + cashbackAmount);
+                            database.ref('customers/' + custMob + '/walletTransactions').push({
+                                type: 'CREDIT',
+                                amount: cashbackAmount,
+                                reason: `👑 VIP क्लब ३-ऑर्डर रिवॉर्ड (१०% कॅशबॅक - मागील २ ऑर्डर्स एकूण ₹${prevTwoTotal})`,
+                                orderId: orderId,
+                                timestamp: firebase.database.ServerValue.TIMESTAMP
+                            });
+                            database.ref('orders/' + orderId).update({
+                                vipCashbackAwarded: true,
+                                vipCashbackAmount: cashbackAmount,
+                                vipCycleTwoOrdersTotal: prevTwoTotal
+                            });
+                            if (typeof showApkToast === 'function') {
+                                showApkToast(`🎉 ग्राहकाला ३-ऑर्डर VIP रिवॉर्ड अंतर्गत ₹${cashbackAmount} कॅशबॅक जमा झाला!`);
+                            }
+                        } else {
+                            database.ref('orders/' + orderId).update({
+                                vipCashbackAwarded: false,
+                                vipCashbackReason: `पहिल्या २ ऑर्डर्सचे एकूण बिल ₹${prevTwoTotal} (किमान ₹५,००० पेक्षा कमी)`,
+                                vipCycleTwoOrdersTotal: prevTwoTotal
+                            });
+                            if (typeof showApkToast === 'function') {
+                                showApkToast(`मागील २ ऑर्डर्स ₹५,००० पेक्षा कमी असल्याने (₹${prevTwoTotal}) कॅशबॅक लागू झाला नाही.`);
+                            }
                         }
                     }
                 }).catch(err => console.warn('Customer VIP check error:', err));
