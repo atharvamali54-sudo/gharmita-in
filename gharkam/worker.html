@@ -237,6 +237,35 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
 
 <hr class="border-slate-100 mb-6">
 
+<!-- 10-Minute SOS Emergency Alert Banner (Website Worker) -->
+<div id="websiteSosEmergencyCard" class="hidden mb-4 p-4 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 text-white shadow-xl border-2 border-white/40 animate-pulse">
+    <div class="flex items-start justify-between gap-2 pb-2 border-b border-white/20">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl animate-bounce">🚨</span>
+            <div>
+                <h4 class="font-black text-sm text-white uppercase tracking-wider">१०-मिनिट तातडीची इमर्जन्सी ऑर्डर!</h4>
+                <span class="inline-block bg-yellow-300 text-slate-950 font-black text-xs px-2.5 py-0.5 rounded-full shadow-xs mt-0.5">
+                    🎁 You get an emergency order and get ₹30 extra!
+                </span>
+            </div>
+        </div>
+        <button type="button" onclick="stopEmergencySirenAlert()" class="text-white/80 hover:text-white text-xs bg-white/20 px-2 py-1 rounded-lg shrink-0">
+            <i class="fa-solid fa-volume-xmark"></i> Mute
+        </button>
+    </div>
+    <div class="mt-2 space-y-1 text-xs">
+        <p><strong>समस्या:</strong> <span id="webSosProblemText">-</span></p>
+        <p><strong>पत्ता:</strong> <span id="webSosAddressText">-</span></p>
+        <p><strong>ग्राहक:</strong> <span id="webSosCustomerText">-</span></p>
+    </div>
+    <div class="mt-3 flex items-center gap-2">
+        <button type="button" id="webAcceptSosBtn" onclick="acceptEmergencySosOrder()" class="w-full bg-white hover:bg-emerald-50 text-emerald-700 font-black text-xs py-2.5 px-3 rounded-xl shadow transition flex items-center justify-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-bolt-lightning text-amber-500"></i>
+            <span>त्वरित स्वीकारा (+₹३० एक्स्ट्रा बोनस)</span>
+        </button>
+    </div>
+</div>
+
 <div class="flex items-center justify-between mb-4">
 <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
 <i class="fa-solid fa-briefcase text-blue-600"></i> Available Jobs
@@ -376,6 +405,35 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
                 <span id="apkWorkerTotalReviews" class="text-[10px] text-slate-400 font-medium block whitespace-nowrap">(0 Reviews)</span>
             </div>
             <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
+        </div>
+    </div>
+
+    <!-- Dedicated 10-Minute SOS Emergency Alert Banner (Worker App) -->
+    <div id="workerSosEmergencyCard" class="hidden mx-3.5 mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 text-white shadow-xl border-2 border-white/40 animate-pulse relative overflow-hidden">
+        <div class="flex items-start justify-between gap-2 pb-2 border-b border-white/20">
+            <div class="flex items-center gap-2">
+                <span class="text-xl animate-bounce">🚨</span>
+                <div>
+                    <h4 class="font-black text-xs text-white uppercase tracking-wider">१०-मिनिट तातडीची इमर्जन्सी ऑर्डर!</h4>
+                    <span class="inline-block bg-yellow-300 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full shadow-xs mt-0.5">
+                        🎁 You get an emergency order and get ₹30 extra!
+                    </span>
+                </div>
+            </div>
+            <button type="button" onclick="stopEmergencySirenAlert()" class="text-white/80 hover:text-white text-xs bg-white/20 px-2 py-1 rounded-lg shrink-0">
+                <i class="fa-solid fa-volume-xmark"></i> Mute
+            </button>
+        </div>
+        <div class="mt-2 space-y-0.5 text-[11px]">
+            <p><strong>समस्या:</strong> <span id="apkSosProblemText">-</span></p>
+            <p><strong>पत्ता:</strong> <span id="apkSosAddressText">-</span></p>
+            <p><strong>ग्राहक:</strong> <span id="apkSosCustomerText">-</span></p>
+        </div>
+        <div class="mt-2.5 flex items-center gap-2">
+            <button type="button" id="apkAcceptSosBtn" onclick="acceptEmergencySosOrder()" class="w-full bg-white hover:bg-emerald-50 text-emerald-700 font-black text-xs py-2.5 px-3 rounded-xl shadow transition flex items-center justify-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-bolt-lightning text-amber-500"></i>
+                <span>त्वरित स्वीकारा (+₹३० एक्स्ट्रा बोनस)</span>
+            </button>
         </div>
     </div>
 

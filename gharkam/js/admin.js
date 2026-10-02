@@ -1203,10 +1203,11 @@ function renderOrdersTable() {
     // Sort descending by timestamp
     orderList.sort((a, b) => (Number(b.timestamp || 0)) - (Number(a.timestamp || 0)));
 
-    // ⚡ Calculate SOS Orders (Pending >= 2 minutes) & update banner
+    // ⚡ Calculate SOS Orders (Emergency SOS orders OR Pending >= 2 minutes) & update banner
     const now = Date.now();
     const sosOrders = orderList.filter(item => {
         if (item.status !== 'Pending') return false;
+        if (item.isEmergency || item.orderType === 'emergency_sos') return true;
         const oTime = Number(item.timestamp || item.createdAt || 0);
         const elapsedMins = oTime > 0 ? (now - oTime) / 60000 : 0;
         return elapsedMins >= 2;
@@ -1238,9 +1239,10 @@ function renderOrdersTable() {
         if (item.status === 'Completed') statusBadgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-200";
         if (item.status === 'Cancelled') statusBadgeClass = "bg-rose-100 text-rose-800 border border-rose-200";
 
+        const isEmergencyOrder = Boolean(item.isEmergency || item.orderType === 'emergency_sos');
         const itemTime = Number(item.timestamp || item.createdAt || 0);
         const elapsedMins = itemTime > 0 ? Math.floor((now - itemTime) / 60000) : 0;
-        const isSos = (item.status === 'Pending' && elapsedMins >= 2);
+        const isSos = isEmergencyOrder || (item.status === 'Pending' && elapsedMins >= 2);
 
         const orderDateStr = item.timestamp
             ? new Date(Number(item.timestamp)).toLocaleString('mr-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -1264,11 +1266,20 @@ function renderOrdersTable() {
                 </div>
             </td>
             <td class="p-3.5">
-                <span class="font-bold text-slate-800 block">⚡ ${escapeHtml(item.service || '-')}</span>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-slate-800 block">⚡ ${escapeHtml(item.service || '-')}</span>
+                    ${isEmergencyOrder ? `<span class="bg-red-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full inline-flex items-center gap-1 animate-pulse shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i> 🚨 १०-MIN SOS</span>` : ''}
+                </div>
+                ${isEmergencyOrder ? `
+                <div class="flex items-center gap-1 mt-1">
+                    <span class="bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs">₹50 Admin Paid</span>
+                    <span class="bg-amber-400 text-slate-950 text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs">+₹30 Worker Bonus</span>
+                </div>` : ''}
                 <span class="text-slate-500 text-[11px] block truncate max-w-[180px]" title="${escapeHtml(item.address)}">${escapeHtml(item.area || 'Pune')} - ${escapeHtml(item.address || '')}</span>
             </td>
             <td class="p-3.5">
                 <span class="font-black text-emerald-600">${escapeHtml(item.budget || '₹500')}</span>
+                ${isEmergencyOrder && item.advancePaidToAdmin ? `<span class="block text-[10px] text-emerald-600 font-bold mt-0.5">(₹${item.advancePaidToAdmin} ॲडव्हान्स प्राप्त)</span>` : ''}
             </td>
             <td class="p-3.5">
                 ${workerDisplay}
@@ -1808,7 +1819,22 @@ function openAdminOrderModal(orderId) {
            </div>`
         : '';
 
+    const isEmergency = Boolean(order.isEmergency || order.orderType === 'emergency_sos');
+    const emergencyInfoHtml = isEmergency ? `
+        <div class="p-3 rounded-xl bg-red-50 border-2 border-red-500 mb-3 space-y-1">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-red-700 uppercase flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation animate-pulse text-sm"></i> 🚨 १०-मिनिट इमर्जन्सी SOS ऑर्डर</span>
+                <span class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">PRIORITY SOS</span>
+            </div>
+            <div class="text-[11px] text-slate-700 flex flex-wrap gap-2 pt-1 font-semibold">
+                <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300">💰 ॲडमिन ॲडव्हान्स: ₹${order.advancePaidToAdmin || 50} (Razorpay: ${order.paymentId || 'Paid'})</span>
+                <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded border border-amber-300">🎁 कारागीर पूर्णता बोनस: ₹${order.emergencyBonusToWorker || 30}</span>
+            </div>
+        </div>
+    ` : '';
+
     container.innerHTML = `
+        ${emergencyInfoHtml}
         <div class="grid grid-cols-2 gap-2 pb-2 border-b">
             <p><strong>ग्राहक नाव:</strong> ${order.customerName || '-'}</p>
             <p><strong>मोबाईल:</strong> <a href="tel:${order.customerMobile}" class="text-blue-600 font-bold">${order.customerMobile || '-'}</a></p>

@@ -2030,6 +2030,26 @@ function renderJobs() {
 
     jobsContainer.innerHTML = "";
     const keys = Object.keys(allOrdersData).reverse();
+
+    // 10-Minute Emergency SOS Alert Check
+    let pendingEmergencyOrder = null;
+    let pendingEmergencyKey = null;
+    keys.forEach(k => {
+        const ord = allOrdersData[k];
+        if (ord && ord.isEmergency && ord.status === 'Pending') {
+            const isAreaMatch = (ord.area === selectedArea || !ord.area);
+            if (isAreaMatch && !pendingEmergencyOrder) {
+                pendingEmergencyOrder = ord;
+                pendingEmergencyKey = k;
+            }
+        }
+    });
+
+    if (pendingEmergencyOrder && isDutyOn && currentWorkerVerificationStatus === 'approved') {
+        showEmergencySosAlert(pendingEmergencyKey, pendingEmergencyOrder);
+    } else {
+        hideEmergencySosAlert();
+    }
     const activeOrderEntry = getActiveOrderForCurrentWorker();
     const activeOrderId = activeOrderEntry ? activeOrderEntry.orderId : null;
     let pendingCount = 0;
@@ -2507,6 +2527,35 @@ function finalizeOrderCompletion(orderId) {
     }).then(() => {
         stopOrderAlert();
         closeCompletionOtpModal();
+
+        // Check if this was a 10-Minute Emergency SOS Order: Credit ₹30 extra bonus!
+        database.ref("orders/" + orderId).once("value").then((snap) => {
+            const ordData = snap.val();
+            if (ordData && ordData.isEmergency && ordData.emergencyBonusToWorker === 30 && !ordData.bonusCredited) {
+                const bonusAmount = 30;
+                const workerId = (workerProfile && workerProfile.uid) || currentWorkerUid || ('local_worker_' + currentWorkerMobile);
+                if (workerId) {
+                    database.ref('workers/' + workerId + '/walletBalance').transaction((curr) => {
+                        return (curr || 0) + bonusAmount;
+                    });
+                    database.ref('walletTransactions/' + workerId).push({
+                        type: 'CREDIT',
+                        amount: bonusAmount,
+                        reason: 'Emergency SOS Extra Bonus (१०-मिनिट काम पूर्ण)',
+                        orderId: orderId,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    database.ref('orders/' + orderId).update({
+                        bonusCredited: true,
+                        bonusCreditedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    if (typeof showApkToast === 'function') {
+                        showApkToast("🎉 ₹३० इमर्जन्सी एक्स्ट्रा बोनस तुमच्या वॉलेटमध्ये जमा झाला!");
+                    }
+                }
+            }
+        }).catch(err => console.error('Bonus credit error:', err));
+
         loadWorkerEarnings();
         alert("🎉 OTP यशस्वीरीत्या व्हेरिफाय झाला! काम पूर्ण झाले आहे.");
         renderJobs();
@@ -3078,3 +3127,125 @@ window.workerLogout = workerLogout;
 window.openWorkerNotificationsModal = openWorkerNotificationsModal;
 window.closeWorkerNotificationsModal = closeWorkerNotificationsModal;
 window.apkNavSwitch = apkNavSwitch;
+
+
+// ==========================================
+// 10-MINUTE EMERGENCY SOS ALERT & SIREN SYSTEM (+₹30 WORKER BONUS)
+// ==========================================
+let sirenOscillator = null;
+let sirenGainNode = null;
+let sirenAudioCtx = null;
+let isSirenPlaying = false;
+let activeSosOrderId = null;
+
+function playEmergencySirenAlert() {
+    if (isSirenPlaying) return;
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        sirenAudioCtx = new AudioContext();
+        isSirenPlaying = true;
+        
+        let freq = 600;
+        let goingUp = true;
+        const osc = sirenAudioCtx.createOscillator();
+        const gain = sirenAudioCtx.createGain();
+        osc.type = 'sawtooth';
+        gain.gain.setValueAtTime(0.25, sirenAudioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(sirenAudioCtx.destination);
+        osc.start();
+        sirenOscillator = osc;
+        sirenGainNode = gain;
+
+        const sirenInterval = setInterval(() => {
+            if (!isSirenPlaying || !sirenAudioCtx || !sirenOscillator) {
+                clearInterval(sirenInterval);
+                return;
+            }
+            if (goingUp) {
+                freq += 35;
+                if (freq >= 950) goingUp = false;
+            } else {
+                freq -= 35;
+                if (freq <= 550) goingUp = true;
+            }
+            try {
+                osc.frequency.setValueAtTime(freq, sirenAudioCtx.currentTime);
+            } catch(e) {}
+        }, 50);
+
+        if (navigator.vibrate) {
+            navigator.vibrate([400, 200, 400, 200, 800]);
+        }
+    } catch(e) {
+        console.warn('Audio siren error:', e);
+    }
+}
+
+function stopEmergencySirenAlert() {
+    isSirenPlaying = false;
+    if (sirenOscillator) {
+        try { sirenOscillator.stop(); } catch(e) {}
+        sirenOscillator = null;
+    }
+    if (sirenAudioCtx) {
+        try { sirenAudioCtx.close(); } catch(e) {}
+        sirenAudioCtx = null;
+    }
+}
+window.playEmergencySirenAlert = playEmergencySirenAlert;
+window.stopEmergencySirenAlert = stopEmergencySirenAlert;
+
+function showEmergencySosAlert(key, order) {
+    activeSosOrderId = key;
+    playEmergencySirenAlert();
+
+    const apkCard = document.getElementById('workerSosEmergencyCard');
+    const webCard = document.getElementById('websiteSosEmergencyCard');
+
+    const probText = order.service || 'तात्काळ इमर्जन्सी मदत';
+    const addrText = (order.address || '') + (order.area ? ' (' + order.area + ')' : '');
+    const custText = order.customerName || 'ग्राहक';
+
+    if (apkCard) {
+        apkCard.classList.remove('hidden');
+        const p = document.getElementById('apkSosProblemText');
+        const a = document.getElementById('apkSosAddressText');
+        const c = document.getElementById('apkSosCustomerText');
+        if (p) p.innerText = probText;
+        if (a) a.innerText = addrText;
+        if (c) c.innerText = custText;
+    }
+    if (webCard) {
+        webCard.classList.remove('hidden');
+        const p = document.getElementById('webSosProblemText');
+        const a = document.getElementById('webSosAddressText');
+        const c = document.getElementById('webSosCustomerText');
+        if (p) p.innerText = probText;
+        if (a) a.innerText = addrText;
+        if (c) c.innerText = custText;
+    }
+}
+
+function hideEmergencySosAlert() {
+    stopEmergencySirenAlert();
+    activeSosOrderId = null;
+    const apkCard = document.getElementById('workerSosEmergencyCard');
+    const webCard = document.getElementById('websiteSosEmergencyCard');
+    if (apkCard) apkCard.classList.add('hidden');
+    if (webCard) webCard.classList.add('hidden');
+}
+
+async function acceptEmergencySosOrder() {
+    if (!activeSosOrderId) {
+        alert("सध्या कोणतीही इमर्जन्सी ऑर्डर उपलब्ध नाही.");
+        return;
+    }
+    const orderToAccept = activeSosOrderId;
+    hideEmergencySosAlert();
+    if (typeof acceptJob === 'function') {
+        acceptJob(orderToAccept);
+    }
+}
+window.acceptEmergencySosOrder = acceptEmergencySosOrder;

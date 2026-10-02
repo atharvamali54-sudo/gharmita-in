@@ -2724,3 +2724,244 @@ if (typeof document !== 'undefined') {
     }
 }
 
+
+// ==========================================
+// 10-MINUTE EMERGENCY SOS BREAKDOWN SYSTEM (₹50 ADVANCE TO ADMIN)
+// ==========================================
+
+function openEmergencySosModal() {
+    const modal = document.getElementById('emergencySosModal');
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    const nameInput = document.getElementById('sosCustomerName');
+    const mobileInput = document.getElementById('sosCustomerMobile');
+    const areaSelect = document.getElementById('sosAreaSelect');
+    const addressInput = document.getElementById('sosAddress');
+
+    const curName = document.getElementById('apkCustomerName')?.value || document.getElementById('customerName')?.value || (customerProfile && customerProfile.name) || '';
+    const curMobile = document.getElementById('apkCustomerMobile')?.value || document.getElementById('customerMobile')?.value || (customerProfile && customerProfile.mobile) || '';
+    const curArea = document.getElementById('apkAreaSelect')?.value || document.getElementById('areaSelect')?.value || (customerProfile && customerProfile.area) || 'Dhankawadi';
+    const curAddress = document.getElementById('apkCustomerAddress')?.value || document.getElementById('customerAddress')?.value || (customerProfile && customerProfile.address) || '';
+
+    if (nameInput && !nameInput.value) nameInput.value = curName;
+    if (mobileInput && !mobileInput.value) mobileInput.value = curMobile;
+    if (areaSelect && curArea) areaSelect.value = curArea;
+    if (addressInput && !addressInput.value) addressInput.value = curAddress;
+}
+window.openEmergencySosModal = openEmergencySosModal;
+
+function closeEmergencySosModal() {
+    const modal = document.getElementById('emergencySosModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+window.closeEmergencySosModal = closeEmergencySosModal;
+
+function detectSosGpsLocation() {
+    const btn = document.getElementById('sosGpsBtn');
+    const text = document.getElementById('sosGpsText');
+    const addr = document.getElementById('sosAddress');
+    const area = document.getElementById('sosAreaSelect');
+
+    if (!navigator.geolocation) {
+        alert("आपल्या डिव्हाइसवर GPS उपलब्ध नाही.");
+        return;
+    }
+    if (btn) {
+        btn.disabled = true;
+        if (text) text.innerText = "GPS शोधत आहे...";
+    }
+    navigator.geolocation.getCurrentPosition((pos) => {
+        if (btn) {
+            btn.disabled = false;
+            if (text) text.innerText = "✓ GPS स्थान मिळाले";
+        }
+        const lat = Number(pos.coords.latitude.toFixed(6));
+        const lng = Number(pos.coords.longitude.toFixed(6));
+        currentCustomerLocation = {
+            lat: lat,
+            lng: lng,
+            accuracy: Math.round(pos.coords.accuracy || 10),
+            timestamp: Date.now()
+        };
+        let closestArea = null;
+        let minDistance = Infinity;
+        if (typeof PUNE_AREA_COORDINATES === 'object') {
+            for (const [areaName, coords] of Object.entries(PUNE_AREA_COORDINATES)) {
+                const d = calculateDistanceKm(lat, lng, coords.lat, coords.lng);
+                if (d < minDistance) {
+                    minDistance = d;
+                    closestArea = areaName;
+                }
+            }
+        }
+        if (area && closestArea) {
+            area.value = closestArea;
+        }
+        if (addr && (!addr.value.trim() || addr.value.startsWith('GPS:'))) {
+            addr.value = `GPS: ${lat}, ${lng} (${closestArea || 'Pune'})`;
+        }
+    }, (err) => {
+        if (btn) {
+            btn.disabled = false;
+            if (text) text.innerText = "GPS स्थान घ्या";
+        }
+        alert("GPS स्थान मिळवता आले नाही. कृपया पत्ता मॅन्युअली टाईप करा.");
+    }, { enableHighAccuracy: true, timeout: 8000 });
+}
+window.detectSosGpsLocation = detectSosGpsLocation;
+
+async function handleEmergencySosSubmit(e) {
+    if (e) e.preventDefault();
+    const submitBtn = document.getElementById('sosSubmitBtn');
+    const categoryEl = document.querySelector('input[name="sosCategory"]:checked');
+    const category = categoryEl ? categoryEl.value : 'Emergency SOS Breakdown';
+
+    const name = document.getElementById('sosCustomerName')?.value.trim();
+    const mobile = document.getElementById('sosCustomerMobile')?.value.trim();
+    const area = document.getElementById('sosAreaSelect')?.value;
+    const address = document.getElementById('sosAddress')?.value.trim();
+
+    if (!name || !mobile || mobile.length !== 10 || !address) {
+        alert("कृपया सर्व माहिती आणि अचूक १० अंकी मोबाईल नंबर भरा!");
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>₹५० पेमेंट गेटवे उघडत आहे...</span>';
+    }
+
+    const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_live_TfQXrLjDz1z9nO';
+    const amountInPaise = 5000;
+
+    const options = {
+        key: RAZORPAY_KEY,
+        amount: amountInPaise,
+        currency: 'INR',
+        name: 'Gharmitra Online',
+        description: `10-Min Emergency SOS Advance (₹50) - ${category}`,
+        prefill: {
+            name: name,
+            contact: mobile,
+            email: (customerProfile && customerProfile.email) || 'customer@gharmitra.online'
+        },
+        theme: { color: '#dc2626' },
+        config: {
+            display: {
+                blocks: {
+                    upi: {
+                        name: "Pay via UPI / QR (GPay, PhonePe, Paytm)",
+                        instruments: [{ method: "upi" }]
+                    }
+                },
+                sequence: ["block.upi", "block.other"],
+                preferences: { show_default_blocks: true }
+            }
+        },
+        handler: async function (resp) {
+            console.log('[Emergency SOS Razorpay Success]', resp);
+            try {
+                const paymentId = resp.razorpay_payment_id || ('PAY_SOS_' + Date.now());
+                const custLat = (currentCustomerLocation && currentCustomerLocation.lat) ? Number(currentCustomerLocation.lat) : (PUNE_AREA_COORDINATES[area] ? PUNE_AREA_COORDINATES[area].lat : 18.5204);
+                const custLng = (currentCustomerLocation && currentCustomerLocation.lng) ? Number(currentCustomerLocation.lng) : (PUNE_AREA_COORDINATES[area] ? PUNE_AREA_COORDINATES[area].lng : 73.8567);
+
+                const newOrderRef = database.ref("orders").push();
+                currentOrderId = newOrderRef.key;
+
+                const payload = {
+                    service: "🚨 " + category,
+                    customerName: name,
+                    customerMobile: mobile,
+                    customerEmail: (customerProfile && customerProfile.email) || "",
+                    area: area,
+                    address: address,
+                    customerLat: custLat,
+                    customerLng: custLng,
+                    hasExactGps: !!(currentCustomerLocation && currentCustomerLocation.lat),
+                    customerMapsUrl: `https://www.google.com/maps?q=${custLat},${custLng}`,
+                    budget: "₹५० ॲडव्हान्स जमा + कामाचा अंदाज",
+                    date: new Date().toISOString().split('T')[0],
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    isEmergency: true,
+                    orderType: "emergency_sos",
+                    priority: "SOS_CRITICAL",
+                    advancePaidToAdmin: 50,
+                    emergencyBonusToWorker: 30,
+                    bonusCredited: false,
+                    paymentId: paymentId,
+                    paymentStatus: "Captured",
+                    status: "Pending",
+                    completionOtp: String(Math.floor(1000 + Math.random() * 9000)),
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                await newOrderRef.set(payload);
+
+                closeEmergencySosModal();
+                alert("🎉 ₹५० ॲडव्हान्स यशस्वीरित्या जमा झाला!\n\n🚨 १०-मिनिट इमर्जन्सी सायरन वाजवला गेला आहे! पुण्यातील जवळच्या उपलब्ध कारागिराला तातडीने पाठवले जात आहे.");
+                
+                trackLiveStatus(currentOrderId);
+
+                const apkLiveCard = document.getElementById('apkCustomerLiveStatusCard');
+                if (apkLiveCard) {
+                    apkLiveCard.classList.remove('hidden');
+                    apkLiveCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            } catch(saveErr) {
+                console.error('[SOS Save Error]', saveErr);
+                alert("ऑर्डर सेव्ह करताना अडचण आली: " + saveErr.message);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> <span>₹५० भरा आणि १०-मिनिट सायरन वाजवा</span>';
+                }
+            }
+        },
+        modal: {
+            ondismiss: function () {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> <span>₹५० भरा आणि १०-मिनिट सायरन वाजवा</span>';
+                }
+            }
+        }
+    };
+
+    try {
+        if (typeof Razorpay !== 'undefined') {
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function (failResp) {
+                console.error('[Emergency SOS Payment Failed]', failResp);
+                alert("पेमेंट अयशस्वी झाले: " + (failResp.error ? failResp.error.description : 'कृपया पुन्हा प्रयत्न करा'));
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> <span>₹५० भरा आणि १०-मिनिट सायरन वाजवा</span>';
+                }
+            });
+            rzp.open();
+        } else {
+            const proceed = confirm("Razorpay थेट पेमेंट: ₹५० ॲडव्हान्स घरमित्र खात्यात जमा करून १०-मिनिट सायरन सुरू करायचा का?");
+            if (proceed) {
+                await options.handler({ razorpay_payment_id: 'PAY_SOS_TEST_' + Date.now() });
+            } else {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> <span>₹५० भरा आणि १०-मिनिट सायरन वाजवा</span>';
+                }
+            }
+        }
+    } catch(err) {
+        console.error('[SOS Checkout Error]', err);
+        alert("पेमेंट सुरू करताना अडचण आली: " + err.message);
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> <span>₹५० भरा आणि १०-मिनिट सायरन वाजवा</span>';
+        }
+    }
+}
+window.handleEmergencySosSubmit = handleEmergencySosSubmit;
