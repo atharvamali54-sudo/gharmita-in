@@ -1889,6 +1889,16 @@ populateBookingProfile();
                 }
             }
 
+            
+            // Check if customer elected to use wallet balance
+            const isWalletChecked = (document.getElementById('useWalletBalanceCheckbox')?.checked) ||
+                                    (document.getElementById('apkUseWalletCheckbox')?.checked);
+            let appliedWalletDeduction = 0;
+            if (isWalletChecked && customerWalletBalance > 0) {
+                const estBudget = parseInt(String(budget || '').replace(/\D/g, '')) || 500;
+                appliedWalletDeduction = Math.min(customerWalletBalance, estBudget);
+            }
+
             const newOrderRef = database.ref("orders").push();
             currentOrderId = newOrderRef.key;
 
@@ -1934,6 +1944,8 @@ populateBookingProfile();
                 customerMapsUrl: custMapsUrl,
                 hasExactGps: !!(currentCustomerLocation && currentCustomerLocation.lat),
                 budget: isEmergency ? ("₹" + (budget || 500) + " (₹50 ॲडव्हान्स प्राप्त)") : ("₹" + (budget || 500)),
+                walletDeduction: appliedWalletDeduction,
+                walletUsed: appliedWalletDeduction > 0,
                 date: date || new Date().toISOString().split('T')[0],
                 time: time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 photoUrl: photoUrl,
@@ -1957,6 +1969,17 @@ populateBookingProfile();
             }
 
             await newOrderRef.set(payload);
+            if (appliedWalletDeduction > 0 && mobile) {
+                const cleanMob = String(mobile).replace(/\D/g, '').slice(-10);
+                database.ref('customers/' + cleanMob + '/walletBalance').transaction(b => Math.max(0, (b || 0) - appliedWalletDeduction));
+                database.ref('customers/' + cleanMob + '/walletTransactions').push({
+                    type: 'DEBIT',
+                    amount: appliedWalletDeduction,
+                    reason: 'ऑर्डरसाठी वॉलेट बॅलन्स वजा केले',
+                    orderId: currentOrderId,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
             deleteVoiceNote();
 
             if (isEmergency) {
@@ -3204,3 +3227,281 @@ window.openEmergencySosModal = function() {
 window.closeEmergencySosModal = function() {};
 window.detectSosGpsLocation = function() { if (typeof detectCustomerExactLocation === 'function') detectCustomerExactLocation(); };
 window.handleEmergencySosSubmit = function(e) { if (e) e.preventDefault(); handleFormSubmit(e); };
+
+// =========================================================
+// GharMitra VIP Club (3 Orders = 10% Cashback) & Wallet Engine
+// =========================================================
+
+let customerWalletBalance = 0;
+let customerCompletedOrdersCount = 0;
+let customerWalletTransactions = [];
+let customerWalletMobileListener = null;
+
+function getActiveCustomerMobileForWallet() {
+    let mob = '';
+    if (typeof customerProfile !== 'undefined' && customerProfile && customerProfile.mobile) {
+        mob = customerProfile.mobile;
+    }
+    if (!mob) {
+        const apkMob = document.getElementById('apkCustomerMobile')?.value;
+        const webMob = document.getElementById('customerMobile')?.value;
+        const searchMob = document.getElementById('searchMobileInput')?.value;
+        mob = apkMob || webMob || searchMob || localStorage.getItem('gharmitra_customer_mobile') || '';
+    }
+    return String(mob).replace(/\D/g, '').slice(-10);
+}
+
+function initCustomerWalletAndVip() {
+    const mob = getActiveCustomerMobileForWallet();
+    if (mob && mob.length === 10) {
+        loadCustomerWalletAndVip(mob);
+    }
+}
+
+function loadCustomerWalletAndVip(cleanMobile) {
+    if (!cleanMobile || cleanMobile.length !== 10) return;
+    if (typeof database === 'undefined') return;
+
+    localStorage.setItem('gharmitra_customer_mobile', cleanMobile);
+
+    // 1. Listen to customer wallet balance
+    if (customerWalletMobileListener !== cleanMobile) {
+        if (customerWalletMobileListener) {
+            database.ref('customers/' + customerWalletMobileListener + '/walletBalance').off();
+            database.ref('customers/' + customerWalletMobileListener + '/walletTransactions').off();
+        }
+        customerWalletMobileListener = cleanMobile;
+
+        database.ref('customers/' + cleanMobile + '/walletBalance').on('value', (snap) => {
+            customerWalletBalance = Number(snap.val()) || 0;
+            updateCustomerWalletUI();
+        });
+
+        database.ref('customers/' + cleanMobile + '/walletTransactions').on('value', (snap) => {
+            const data = snap.val() || {};
+            customerWalletTransactions = Object.keys(data).map(k => ({ id: k, ...data[k] })).reverse();
+            renderCustomerWalletTransactions();
+        });
+    }
+
+    // 2. Query completed orders to calculate VIP Stamps (1, 2, 3)
+    database.ref('orders').once('value', (snapshot) => {
+        const all = snapshot.val() || {};
+        let completed = 0;
+        Object.keys(all).forEach(k => {
+            const ord = all[k];
+            if (ord && ord.status === 'Completed' && String(ord.customerMobile || '').replace(/\D/g, '').slice(-10) === cleanMobile) {
+                completed++;
+            }
+        });
+
+        customerCompletedOrdersCount = completed;
+        updateCustomerVipStampsUI();
+    }).catch(err => console.warn('Customer VIP load error:', err));
+}
+
+function updateCustomerWalletUI() {
+    const webBal = document.getElementById('webWalletBalance');
+    const apkBal = document.getElementById('apkWalletBalance');
+    const modalBal = document.getElementById('modalWalletBalance');
+    const apkVipCardBal = document.getElementById('apkVipCardWalletBal');
+    const webDeductBal = document.getElementById('walletAvailableDeductAmount');
+    const apkDeductBal = document.getElementById('apkWalletAvailableDeductAmount');
+    const webDeductBox = document.getElementById('walletDeductionBox');
+    const apkDeductBox = document.getElementById('apkWalletDeductionBox');
+
+    const balText = customerWalletBalance.toLocaleString('en-IN');
+    if (webBal) webBal.innerText = balText;
+    if (apkBal) apkBal.innerText = balText;
+    if (modalBal) modalBal.innerText = balText;
+    if (apkVipCardBal) apkVipCardBal.innerText = balText;
+    if (webDeductBal) webDeductBal.innerText = balText;
+    if (apkDeductBal) apkDeductBal.innerText = balText;
+
+    if (customerWalletBalance > 0) {
+        if (webDeductBox) webDeductBox.classList.remove('hidden');
+        if (apkDeductBox) apkDeductBox.classList.remove('hidden');
+    } else {
+        if (webDeductBox) webDeductBox.classList.add('hidden');
+        if (apkDeductBox) apkDeductBox.classList.add('hidden');
+    }
+}
+
+function updateCustomerVipStampsUI() {
+    const cycle = customerCompletedOrdersCount % 3;
+
+    // Web Stamps
+    const webStamp1 = document.getElementById('webStamp1');
+    const webStamp1Icon = document.getElementById('webStamp1Icon');
+    const webStamp2 = document.getElementById('webStamp2');
+    const webStamp2Icon = document.getElementById('webStamp2Icon');
+    const webStamp3 = document.getElementById('webStamp3');
+    const webStamp3Icon = document.getElementById('webStamp3Icon');
+    const webStatusText = document.getElementById('webVipStatusText');
+
+    // APK Stamps
+    const apkStamp1 = document.getElementById('apkStamp1');
+    const apkStamp1Icon = document.getElementById('apkStamp1Icon');
+    const apkStamp2 = document.getElementById('apkStamp2');
+    const apkStamp2Icon = document.getElementById('apkStamp2Icon');
+    const apkStamp3 = document.getElementById('apkStamp3');
+    const apkStamp3Icon = document.getElementById('apkStamp3Icon');
+    const apkStatusText = document.getElementById('apkVipStatusText');
+
+    // Modal
+    const modalMilestone = document.getElementById('modalVipMilestoneText');
+    const modalProgress = document.getElementById('modalVipProgressBar');
+    const modalSub = document.getElementById('modalVipSubText');
+
+    // Stamp 1
+    if (cycle >= 1) {
+        if (webStamp1) { webStamp1.className = 'w-12 h-14 rounded-xl border-2 border-emerald-500 bg-emerald-50 flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
+        if (webStamp1Icon) { webStamp1Icon.innerText = '✅'; }
+        if (apkStamp1) { apkStamp1.className = 'flex-1 rounded-xl border-2 border-emerald-500 bg-emerald-50 p-2 text-center transition shadow-xs'; }
+        if (apkStamp1Icon) { apkStamp1Icon.innerText = '✅'; }
+    } else {
+        if (webStamp1) { webStamp1.className = 'w-12 h-14 rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
+        if (webStamp1Icon) { webStamp1Icon.innerText = '⚪'; }
+        if (apkStamp1) { apkStamp1.className = 'flex-1 rounded-xl border-2 border-dashed border-slate-300 bg-white p-2 text-center transition'; }
+        if (apkStamp1Icon) { apkStamp1Icon.innerText = '⚪'; }
+    }
+
+    // Stamp 2
+    if (cycle >= 2) {
+        if (webStamp2) { webStamp2.className = 'w-12 h-14 rounded-xl border-2 border-emerald-500 bg-emerald-50 flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
+        if (webStamp2Icon) { webStamp2Icon.innerText = '✅'; }
+        if (apkStamp2) { apkStamp2.className = 'flex-1 rounded-xl border-2 border-emerald-500 bg-emerald-50 p-2 text-center transition shadow-xs'; }
+        if (apkStamp2Icon) { apkStamp2Icon.innerText = '✅'; }
+    } else {
+        if (webStamp2) { webStamp2.className = 'w-12 h-14 rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-1 text-center transition shadow-xs'; }
+        if (webStamp2Icon) { webStamp2Icon.innerText = '⚪'; }
+        if (apkStamp2) { apkStamp2.className = 'flex-1 rounded-xl border-2 border-dashed border-slate-300 bg-white p-2 text-center transition'; }
+        if (apkStamp2Icon) { apkStamp2Icon.innerText = '⚪'; }
+    }
+
+    // Stamp 3 (Reward)
+    if (cycle === 0 && customerCompletedOrdersCount > 0) {
+        if (webStamp3) { webStamp3.className = 'w-14 h-14 rounded-xl border-2 border-emerald-500 bg-emerald-100 flex flex-col items-center justify-center p-1 text-center shadow-xs relative'; }
+        if (webStamp3Icon) { webStamp3Icon.innerText = '🎉'; }
+        if (apkStamp3) { apkStamp3.className = 'flex-1 rounded-xl border-2 border-emerald-500 bg-emerald-100 p-2 text-center relative shadow-xs'; }
+        if (apkStamp3Icon) { apkStamp3Icon.innerText = '🎉'; }
+    } else {
+        if (webStamp3) { webStamp3.className = 'w-14 h-14 rounded-xl border-2 border-amber-400 bg-amber-50 flex flex-col items-center justify-center p-1 text-center shadow-xs relative'; }
+        if (webStamp3Icon) { webStamp3Icon.innerText = '🎁'; }
+        if (apkStamp3) { apkStamp3.className = 'flex-1 rounded-xl border-2 border-amber-400 bg-amber-50 p-2 text-center relative shadow-xs'; }
+        if (apkStamp3Icon) { apkStamp3Icon.innerText = '🎁'; }
+    }
+
+    // Dynamic Texts
+    let statusMsg = '';
+    let percent = 0;
+    if (cycle === 0 && customerCompletedOrdersCount === 0) {
+        statusMsg = 'तुम्ही नवीन सायकलमध्ये आहात. ३ कामे पूर्ण केल्यावर बिलाचे १०% थेट वॉलेट कॅशबॅक मिळेल!';
+        percent = 0;
+    } else if (cycle === 0 && customerCompletedOrdersCount > 0) {
+        statusMsg = '🎉 अभिनंदन! तुम्ही मागील सायकल पूर्ण केली. पुढील ३ कामे पूर्ण केल्यावर पुन्हा १०% कॅशबॅक मिळेल!';
+        percent = 100;
+    } else if (cycle === 1) {
+        statusMsg = '१ ऑर्डर पूर्ण झाली! आणखी २ ऑर्डर्स आणि १०% थेट वॉलेट कॅशबॅक अनलॉक!';
+        percent = 33;
+    } else if (cycle === 2) {
+        statusMsg = '🔥 जबरदस्त! फक्त १ ऑर्डर बाकी! ३ री ऑर्डर पूर्ण होताच बिलाचे १०% कॅशबॅक अनलॉक होईल!';
+        percent = 66;
+    }
+
+    if (webStatusText) webStatusText.innerText = statusMsg;
+    if (apkStatusText) apkStatusText.innerText = statusMsg;
+    if (modalMilestone) modalMilestone.innerText = `${cycle} / ३ पूर्ण (${customerCompletedOrdersCount} एकूण)`;
+    if (modalProgress) modalProgress.style.width = `${percent}%`;
+    if (modalSub) {
+        modalSub.innerText = (cycle === 2)
+            ? '🔥 फक्त १ ऑर्डर बाकी आहे! पुढचे काम पूर्ण होताच १०% कॅशबॅक जमा होईल.'
+            : 'प्रत्येक ३ ऑर्डर्स पूर्ण केल्यावर त्या ३ ऱ्या ऑर्डरच्या बिलाचे १०% थेट तुमच्या वॉलेटमध्ये जमा होतात.';
+    }
+}
+
+function renderCustomerWalletTransactions() {
+    const container = document.getElementById('modalWalletTransactionsList');
+    if (!container) return;
+
+    if (!customerWalletTransactions || customerWalletTransactions.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">कोणताही व्यवहार आढळला नाही.</p>';
+        return;
+    }
+
+    container.innerHTML = customerWalletTransactions.slice(0, 15).map(t => {
+        const isCredit = t.type === 'CREDIT';
+        const dateStr = t.timestamp ? new Date(t.timestamp).toLocaleDateString('mr-IN', { day: 'numeric', month: 'short' }) : '';
+        return `
+            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-white text-xs shadow-2xs">
+                <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg ${isCredit ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'} flex items-center justify-center text-xs font-black shrink-0">
+                        ${isCredit ? '↓' : '↑'}
+                    </span>
+                    <div>
+                        <strong class="font-bold text-slate-800 block leading-tight">${escapeHtml(t.reason || (isCredit ? 'कॅशबॅक जमा' : 'वॉलेट वापर'))}</strong>
+                        <span class="text-[10px] text-slate-400">${dateStr}</span>
+                    </div>
+                </div>
+                <span class="font-black ${isCredit ? 'text-emerald-600' : 'text-slate-800'} text-sm">
+                    ${isCredit ? '+' : '-'}₹${t.amount || 0}
+                </span>
+            </div>
+        `;
+    }).join('');
+}
+
+function openCustomerWalletModal() {
+    initCustomerWalletAndVip();
+    const modal = document.getElementById('customerWalletModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+window.openCustomerWalletModal = openCustomerWalletModal;
+
+function closeCustomerWalletModal() {
+    const modal = document.getElementById('customerWalletModal');
+    if (modal) {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+}
+window.closeCustomerWalletModal = closeCustomerWalletModal;
+
+function toggleWalletDeduction() {
+    const webCheck = document.getElementById('useWalletBalanceCheckbox');
+    const apkCheck = document.getElementById('apkUseWalletCheckbox');
+    if (webCheck && apkCheck) {
+        apkCheck.checked = webCheck.checked;
+    }
+}
+window.toggleWalletDeduction = toggleWalletDeduction;
+
+function toggleApkWalletDeduction() {
+    const webCheck = document.getElementById('useWalletBalanceCheckbox');
+    const apkCheck = document.getElementById('apkUseWalletCheckbox');
+    if (webCheck && apkCheck) {
+        webCheck.checked = apkCheck.checked;
+    }
+}
+window.toggleApkWalletDeduction = toggleApkWalletDeduction;
+
+// Listen to mobile input events to automatically bind wallet & VIP
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initCustomerWalletAndVip, 500);
+
+    const inputs = ['customerMobile', 'apkCustomerMobile', 'searchMobileInput'];
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', (e) => {
+                const clean = String(e.target.value).replace(/\D/g, '').slice(-10);
+                if (clean.length === 10) {
+                    loadCustomerWalletAndVip(clean);
+                }
+            });
+        }
+    });
+});

@@ -2599,6 +2599,47 @@ function finalizeOrderCompletion(orderId) {
             }
         }).catch(err => console.error('Bonus credit error:', err));
 
+        // Check for Customer GharMitra VIP Club Reward (10% Cashback on 3rd Order milestone)
+        database.ref("orders/" + orderId).once("value").then((snap) => {
+            const ordData = snap.val();
+            if (!ordData) return;
+            const custMob = String(ordData.customerMobile || '').replace(/\D/g, '').slice(-10);
+            if (custMob && custMob.length === 10 && !ordData.vipCashbackAwarded) {
+                database.ref("orders").once("value").then((allOrdersSnap) => {
+                    const allOrders = allOrdersSnap.val() || {};
+                    let completedCount = 0;
+                    Object.keys(allOrders).forEach(k => {
+                        const o = allOrders[k];
+                        if (o && o.status === 'Completed' && String(o.customerMobile || '').replace(/\D/g, '').slice(-10) === custMob) {
+                            completedCount++;
+                        }
+                    });
+
+                    // If this completion marks the 3rd, 6th, 9th, etc. completed order for customer!
+                    if (completedCount > 0 && completedCount % 3 === 0) {
+                        const budgetNum = parseInt(String(ordData.budget || '').replace(/\D/g, '')) || 500;
+                        const cashbackAmount = Math.max(30, Math.round(budgetNum * 0.10));
+
+                        database.ref('customers/' + custMob + '/walletBalance').transaction((b) => (b || 0) + cashbackAmount);
+                        database.ref('customers/' + custMob + '/walletTransactions').push({
+                            type: 'CREDIT',
+                            amount: cashbackAmount,
+                            reason: '👑 VIP क्लब ३-ऑर्डर रिवॉर्ड (१०% कॅशबॅक)',
+                            orderId: orderId,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP
+                        });
+                        database.ref('orders/' + orderId).update({
+                            vipCashbackAwarded: true,
+                            vipCashbackAmount: cashbackAmount
+                        });
+                        if (typeof showApkToast === 'function') {
+                            showApkToast('🎉 ग्राहकाला ३-ऑर्डर VIP रिवॉर्ड अंतर्गत ₹' + cashbackAmount + ' कॅशबॅक मिळाला!');
+                        }
+                    }
+                }).catch(err => console.warn('Customer VIP check error:', err));
+            }
+        }).catch(err => console.error('Order read error for VIP:', err));
+
         loadWorkerEarnings();
         alert("🎉 OTP यशस्वीरीत्या व्हेरिफाय झाला! काम पूर्ण झाले आहे.");
         renderJobs();
