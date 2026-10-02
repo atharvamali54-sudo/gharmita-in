@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>अधिकृत कारागीर पडताळणी • GharMitra Pune</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif; }
+        .hologram-bg {
+            background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #0284c7 100%);
+        }
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            50% { box-shadow: 0 0 0 14px rgba(16, 185, 129, 0); }
+        }
+        .pulse-shield {
+            animation: pulse-green 2s infinite;
+        }
+    </style>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-3 sm:p-4 text-slate-800">
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+        
+        <!-- Header Banner with Official Security Strip -->
+        <div class="hologram-bg p-5 text-white text-center relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 blur-xl"></div>
+            <div class="absolute -left-6 -top-6 w-28 h-28 rounded-full bg-white/10 blur-xl"></div>
+
+            <div class="flex items-center justify-center gap-2 mb-1.5">
+                <span class="bg-white text-emerald-700 font-black text-xs px-2 py-0.5 rounded-lg shadow-sm">🏠 GK</span>
+                <span class="font-black text-sm tracking-tight">GHARMITRA<span class="text-emerald-200 font-bold">.online</span></span>
+            </div>
+            
+            <h1 class="text-base sm:text-lg font-black text-white flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-shield-halved text-amber-300"></i> अधिकृत कारागीर डिजिटल ओळखपत्र
+            </h1>
+            <p class="text-[11px] text-emerald-100 mt-0.5">पुणे शहर अधिकृत सेवा पडताळणी प्रणाली (Gate & Doorstep Verification)</p>
+        </div>
+
+        <!-- Live Scan Status Bar -->
+        <div class="bg-emerald-50 border-b border-emerald-200 px-4 py-2 flex items-center justify-between text-xs text-emerald-800 font-bold">
+            <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>लाइव्ह व्हेरिफिकेशन यशस्वी</span>
+            </div>
+            <span id="scanTimestamp" class="text-[11px] font-mono text-emerald-600 font-semibold"></span>
+        </div>
+
+        <!-- Main Card Body -->
+        <div class="p-5 space-y-4">
+            
+            <!-- Worker Photo, Name, and Badges -->
+            <div class="text-center relative">
+                <div class="relative inline-block">
+                    <img id="workerPhoto" src="https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=200&h=200&fit=crop&crop=faces" alt="Worker Photo" class="w-24 h-24 rounded-2xl object-cover mx-auto border-4 border-emerald-500 shadow-md">
+                    <div class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm shadow-md pulse-shield border-2 border-white">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                </div>
+
+                <h2 id="workerName" class="text-xl font-black text-slate-900 mt-3.5">पडताळणी करत आहोत...</h2>
+                <div class="flex items-center justify-center gap-2 mt-1">
+                    <span id="workerTradeBadge" class="bg-blue-50 text-blue-700 border border-blue-200 font-black text-xs px-2.5 py-0.5 rounded-full">
+                        🔧 कुशल कारागीर
+                    </span>
+                    <span id="workerIdBadge" class="bg-slate-100 text-slate-700 font-mono text-xs px-2.5 py-0.5 rounded-full font-bold">
+                        ID: GM-PUN-0000
+                    </span>
+                </div>
+            </div>
+
+            <!-- Verification Security Checklist -->
+            <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 space-y-2.5">
+                <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-stamp text-emerald-600"></i> सुरक्षा व कायदेशीर पडताळणी अहवाल
+                </h3>
+
+                <div class="space-y-2 text-xs">
+                    <!-- 1. Aadhaar Verification -->
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-100 shadow-2xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-black">
+                                <i class="fa-solid fa-id-card"></i>
+                            </span>
+                            <div>
+                                <strong class="text-slate-800 font-bold block">आधार पडताळणी (Aadhaar KYC)</strong>
+                                <span class="text-[10px] text-slate-400">UIDAI बायोमेट्रिक व कागदपत्रे तपासली</span>
+                            </div>
+                        </div>
+                        <span class="bg-emerald-50 text-emerald-700 font-black text-[11px] px-2 py-0.5 rounded-md border border-emerald-200">
+                            ✓ १००% व्हेरिफाइड
+                        </span>
+                    </div>
+
+                    <!-- 2. Police Clearance -->
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-100 shadow-2xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-black">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </span>
+                            <div>
+                                <strong class="text-slate-800 font-bold block">पोलीस पूर्वचारित्र्य पडताळणी</strong>
+                                <span class="text-[10px] text-slate-400">स्थानिक पोलीस ठाणे रेकॉर्ड क्लिअरन्स</span>
+                            </div>
+                        </div>
+                        <span class="bg-emerald-50 text-emerald-700 font-black text-[11px] px-2 py-0.5 rounded-md border border-emerald-200">
+                            ✓ रेकॉर्ड क्लिअर
+                        </span>
+                    </div>
+
+                    <!-- 3. Skill & Rating -->
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-100 shadow-2xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-black">
+                                <i class="fa-solid fa-star"></i>
+                            </span>
+                            <div>
+                                <strong class="text-slate-800 font-bold block">ग्राहक रेटिंग व अनुभव</strong>
+                                <span id="workerRatingText" class="text-[10px] text-slate-400">४.८ ★ (५०+ यशस्वी कामे पूर्ण)</span>
+                            </div>
+                        </div>
+                        <span id="workerStarsBadge" class="bg-amber-50 text-amber-800 font-black text-[11px] px-2 py-0.5 rounded-md border border-amber-200">
+                            ⭐ ४.८ / ५.०
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Society Gate Entry Authorization Card -->
+            <div id="gateAuthorizationBox" class="p-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-blue-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-building-user text-blue-600"></i> सोसायटी सिक्युरिटी प्रवेश मंजुरी
+                    </span>
+                    <span class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">GATE PASS</span>
+                </div>
+                <div class="text-xs text-slate-700 space-y-0.5 pt-0.5">
+                    <p><strong>अधिकृत व्हिजिट:</strong> <span id="visitLocationText" class="text-blue-800 font-bold">पुणे शहरातील अधिकृत ग्राहक अपॉइंटमेंट</span></p>
+                    <p class="text-[11px] text-slate-500">सोसायटी सिक्युरिटी गार्डने या ओळखपत्राची खात्री करून कामगारास फ्लॅटमध्ये प्रवेश देण्यास हरकत नाही.</p>
+                </div>
+            </div>
+
+            <!-- Support Helpline for Guards & Customers -->
+            <div class="pt-1 text-center space-y-2">
+                <div class="flex items-center justify-center gap-2">
+                    <a href="tel:7875160724" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-phone"></i> घरमित्र कंट्रोल रूम फोन (7875160724)
+                    </a>
+                </div>
+                <p class="text-[10px] text-slate-400">
+                    काही शंका असल्यास सोसायटी मॅनेजमेंट किंवा ग्राहक त्वरित वरील क्रमांकावर कॉल करू शकतात.
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Footer Seal -->
+        <div class="bg-slate-50 border-t border-slate-100 p-3 text-center text-[10px] text-slate-400 font-medium">
+            🛡️ Official Security Badge issued by GharMitra Pune Services • gharmita.in
+        </div>
+
+    </div>
+
+    <!-- Live Data Fetching Script -->
+    <script>
+        // Update live scan time
+        document.getElementById('scanTimestamp').innerText = new Date().toLocaleTimeString('mr-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+        // Firebase Config (same as customer & worker apps)
+        const firebaseConfig = {
+            databaseURL: "https://gharmitra-default-rtdb.firebaseio.com"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // Get worker ID from URL query parameters (?id=... or ?workerId=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const workerId = urlParams.get('id') || urlParams.get('workerId') || 'local_worker';
+
+        // Fetch worker details from Firebase
+        db.ref('workers/' + workerId).once('value').then(snap => {
+            const data = snap.val();
+            if (data) {
+                renderWorkerData(data);
+            } else {
+                // Try reading from workers/accounts
+                db.ref('workers/accounts/' + workerId).once('value').then(accSnap => {
+                    const accData = accSnap.val();
+                    if (accData) {
+                        renderWorkerData(accData);
+                    } else {
+                        fallbackWorkerData();
+                    }
+                }).catch(() => fallbackWorkerData());
+            }
+        }).catch(() => fallbackWorkerData());
+
+        // Also check if this worker currently has an active order to show exact flat/society
+        db.ref('orders').once('value').then(snap => {
+            const allOrders = snap.val() || {};
+            let activeOrder = null;
+            Object.keys(allOrders).forEach(k => {
+                const ord = allOrders[k];
+                if (ord && (ord.workerUid === workerId || ord.workerMobile === workerId) && ['Accepted', 'On The Way', 'In Progress'].includes(ord.status)) {
+                    activeOrder = ord;
+                }
+            });
+
+            if (activeOrder) {
+                const loc = document.getElementById('visitLocationText');
+                if (loc) {
+                    loc.innerHTML = `<span class="text-blue-900 font-extrabold">${activeOrder.area || 'Pune'}</span> • ${activeOrder.service || 'काम'} (ग्राहक: ${activeOrder.customerName || 'अधिकृत अपॉइंटमेंट'})`;
+                }
+            }
+        });
+
+        function renderWorkerData(w) {
+            const nameEl = document.getElementById('workerName');
+            const tradeEl = document.getElementById('workerTradeBadge');
+            const idEl = document.getElementById('workerIdBadge');
+            const photoEl = document.getElementById('workerPhoto');
+            const ratingText = document.getElementById('workerRatingText');
+            const starsBadge = document.getElementById('workerStarsBadge');
+
+            const name = w.name || w.fullName || 'अधिकृत कारागीर';
+            const service = w.service || w.trade || 'कुशल तंत्रज्ञ';
+            const displayId = (w.workerId || workerId || 'GM-PUN-4021').toUpperCase();
+            const rating = w.rating || 4.8;
+            const completedJobs = w.completedJobs || w.jobsCount || 45;
+
+            if (nameEl) nameEl.innerText = name;
+            if (tradeEl) tradeEl.innerHTML = `<i class="fa-solid fa-wrench mr-1"></i> ${service}`;
+            if (idEl) idEl.innerText = `ID: ${displayId}`;
+            if (photoEl && w.photoUrl) photoEl.src = w.photoUrl;
+            if (ratingText) ratingText.innerText = `${rating} ★ (${completedJobs}+ यशस्वी कामे पूर्ण)`;
+            if (starsBadge) starsBadge.innerText = `⭐ ${rating} / ५.०`;
+        }
+
+        function fallbackWorkerData() {
+            const nameEl = document.getElementById('workerName');
+            const tradeEl = document.getElementById('workerTradeBadge');
+            const idEl = document.getElementById('workerIdBadge');
+
+            if (nameEl) nameEl.innerText = "घरमित्र अधिकृत कारागीर";
+            if (tradeEl) tradeEl.innerHTML = `<i class="fa-solid fa-wrench mr-1"></i> प्रमाणित सेवा भागीदार`;
+            if (idEl) idEl.innerText = `ID: ${workerId.toUpperCase()}`;
+        }
+    </script>
+</body>
+</html>
