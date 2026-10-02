@@ -1922,7 +1922,7 @@ populateBookingProfile();
                 : `https://maps.google.com/?q=${encodeURIComponent(address + ', ' + area + ', Pune')}`;
 
             const payload = {
-                service: (isEmergency ? "🚨 " : "⚡ ") + service,
+                service: service,
                 customerName: name,
                 customerMobile: mobile,
                 customerEmail: customerEmail,

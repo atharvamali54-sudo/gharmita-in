@@ -366,11 +366,28 @@ function queueNotification(orderId, type, data) {
     }).catch(error => console.warn('Notification event could not be queued:', error));
 }
 
+function normalizeServiceName(s) {
+    if (!s) return '';
+    return String(s)
+        .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}⚡🚨🚰🔧🔨🧹🪚🎨❄️🔌🧱🔑🦟🌿🪟📺📦🚿]/gu, '')
+        .replace(/^\/+/, '')
+        .trim()
+        .toLowerCase();
+}
+
+function isAreaMatching(orderArea, workerArea) {
+    if (!orderArea || !workerArea) return true;
+    const a1 = String(orderArea).trim().toLowerCase().replace(/,\s*pune/g, '');
+    const a2 = String(workerArea).trim().toLowerCase().replace(/,\s*pune/g, '');
+    return a1 === a2 || a1.includes(a2) || a2.includes(a1);
+}
+
 function isMatchingPendingOrder(order, selectedArea) {
     if (!order || order.status !== 'Pending') return false;
-    const jobService = (order.service || '').replace(/^\/+/, '').trim().toLowerCase();
-    const workerService = (currentWorkerService || '').replace(/^\/+/, '').trim().toLowerCase();
-    return (order.area === selectedArea || !order.area) && jobService === workerService;
+    const jobService = normalizeServiceName(order.service);
+    const workerService = normalizeServiceName(currentWorkerService);
+    const areaMatch = isAreaMatching(order.area, selectedArea);
+    return areaMatch && (jobService === workerService || !jobService || !workerService);
 }
 
 function getActiveOfferForCurrentWorker() {
@@ -2037,8 +2054,9 @@ function renderJobs() {
     keys.forEach(k => {
         const ord = allOrdersData[k];
         if (ord && ord.isEmergency && ord.status === 'Pending') {
-            const isAreaMatch = (ord.area === selectedArea || !ord.area);
-            if (isAreaMatch && !pendingEmergencyOrder) {
+            const isAreaMatch = isAreaMatching(ord.area, selectedArea);
+            const isServiceMatch = (normalizeServiceName(ord.service) === normalizeServiceName(currentWorkerService));
+            if (isAreaMatch && isServiceMatch && !pendingEmergencyOrder) {
                 pendingEmergencyOrder = ord;
                 pendingEmergencyKey = k;
             }
@@ -2064,11 +2082,11 @@ function renderJobs() {
         const item = allOrdersData[key];
         const imgUrl = item.photoUrl || item.imageUrl || item.photo || item.image || null;
         const voiceUrl = item.voiceNoteUrl || item.voiceNote || item.audioUrl || null;
-        const isAreaMatch = (item.area === selectedArea || !item.area);
+        const isAreaMatch = isAreaMatching(item.area, selectedArea);
 
-        const jobService = (item.service || "").replace(/^\/+/, '').trim().toLowerCase();
-        const workerService = (currentWorkerService || "").replace(/^\/+/, '').trim().toLowerCase();
-        const isServiceMatch = (jobService === workerService);
+        const jobService = normalizeServiceName(item.service);
+        const workerService = normalizeServiceName(currentWorkerService);
+        const isServiceMatch = (jobService === workerService || !jobService || !workerService);
 
         const photoHtml = imgUrl ? `<div class="my-2"><div class="relative cursor-pointer group rounded-xl overflow-hidden border border-slate-200" onclick="openImagePreview('${imgUrl}')"><img src="${imgUrl}" class="w-full h-44 object-cover"></div></div>` : '';
         const voiceHtml = voiceUrl ? `
@@ -2095,7 +2113,7 @@ function renderJobs() {
         // An assigned worker must finish the active order before seeing any
         // other pending order.  A pending job is visible only during this
         // worker's exclusive 30-second offer window.
-        const isCurrentWorkersOffer = item.offerWorkerUid === currentWorkerUid && Number(item.offerExpiresAt) > orderNow();
+        const isCurrentWorkersOffer = (!item.offerWorkerUid || (item.offerWorkerUid === currentWorkerUid && Number(item.offerExpiresAt) > orderNow()));
         // STTRICTLY ONE ORDER AT A TIME: Only render if pendingCount === 0
         if (pendingCount === 0 && !activeOrderId && item.status === 'Pending' && isAreaMatch && isServiceMatch && isCurrentWorkersOffer) {
             pendingCount++;
