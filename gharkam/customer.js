@@ -1700,40 +1700,64 @@ populateBookingProfile();
         window.deleteVoiceNote = deleteVoiceNote;
         window.triggerHapticFeedback = triggerHapticFeedback;
 
+        function resetSubmitButtons(isEmergency = false) {
+            const submitBtn = document.getElementById('submitBtn');
+            const apkSubmitBtn = document.getElementById('apkSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                if (isEmergency) {
+                    submitBtn.className = 'w-full bg-red-600 hover:bg-red-700 text-white font-black py-3.5 rounded-xl shadow-lg shadow-red-500/25 transition text-sm flex items-center justify-center gap-2 mt-4 cursor-pointer';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-bolt text-yellow-300"></i> <span>₹५० भरा आणि १०-मिनिट इमर्जन्सी बुक करा</span>';
+                } else {
+                    submitBtn.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mt-4 cursor-pointer';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now</span>';
+                }
+            }
+            if (apkSubmitBtn) {
+                apkSubmitBtn.disabled = false;
+                if (isEmergency) {
+                    apkSubmitBtn.className = 'w-full bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-black text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-red-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-5';
+                    apkSubmitBtn.innerHTML = '<i class="fa-solid fa-bolt text-yellow-300"></i> <span>₹५० भरा आणि १०-मिनिट इमर्जन्सी बुक करा</span>';
+                } else {
+                    apkSubmitBtn.className = 'w-full bg-[#1868fe] hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-5';
+                    apkSubmitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now</span>';
+                }
+            }
+        }
+        window.resetSubmitButtons = resetSubmitButtons;
+
         async function handleApkFormSubmit(e) {
             if (e) e.preventDefault();
-            const apkBtn = document.getElementById('apkSubmitBtn');
-            if (apkBtn) {
-                apkBtn.disabled = true;
-                apkBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Booking in progress...</span>';
-            }
-            try {
-                await handleFormSubmit(e);
-                const apkLiveCard = document.getElementById('apkCustomerLiveStatusCard');
-                if (apkLiveCard) {
-                    apkLiveCard.classList.remove('hidden');
-                    apkLiveCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            } finally {
-                if (apkBtn) {
-                    apkBtn.disabled = false;
-                    apkBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now</span>';
-                }
-            }
+            await handleFormSubmit(e);
         }
         window.handleApkFormSubmit = handleApkFormSubmit;
 
         async function handleFormSubmit(e) {
-            e.preventDefault();
+            if (e) e.preventDefault();
             const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Booking in progress...';
+            const apkSubmitBtn = document.getElementById('apkSubmitBtn');
+            
+            const isEmergency = (document.querySelector('input[name="bookingType"]:checked')?.value === 'emergency') ||
+                                (document.querySelector('input[name="apkBookingType"]:checked')?.value === 'emergency');
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = isEmergency
+                    ? '<i class="fa-solid fa-spinner fa-spin"></i> <span>₹५० पेमेंट गेटवे उघडत आहे...</span>'
+                    : '<i class="fa-solid fa-spinner fa-spin"></i> <span>Booking in progress...</span>';
+            }
+            if (apkSubmitBtn) {
+                apkSubmitBtn.disabled = true;
+                apkSubmitBtn.innerHTML = isEmergency
+                    ? '<i class="fa-solid fa-spinner fa-spin"></i> <span>₹५० पेमेंट गेटवे उघडत आहे...</span>'
+                    : '<i class="fa-solid fa-spinner fa-spin"></i> <span>Booking in progress...</span>';
+            }
 
             const service = document.getElementById('apkServiceSelect')?.value || document.getElementById('serviceSelect')?.value;
-            const name = document.getElementById('apkCustomerName')?.value || document.getElementById('customerName')?.value;
-            const mobile = document.getElementById('apkCustomerMobile')?.value || document.getElementById('customerMobile')?.value;
+            const name = (document.getElementById('apkCustomerName')?.value || document.getElementById('customerName')?.value || '').trim();
+            const mobile = (document.getElementById('apkCustomerMobile')?.value || document.getElementById('customerMobile')?.value || '').trim();
             const area = document.getElementById('apkAreaSelect')?.value || document.getElementById('areaSelect')?.value;
-            const address = document.getElementById('apkCustomerAddress')?.value || document.getElementById('customerAddress')?.value;
+            const address = (document.getElementById('apkCustomerAddress')?.value || document.getElementById('customerAddress')?.value || '').trim();
             const budget = document.getElementById('apkBudgetInput')?.value || document.getElementById('budgetInput')?.value;
             const date = document.getElementById('apkBookingDate')?.value || document.getElementById('bookingDate')?.value;
             const time = document.getElementById('apkBookingTime')?.value || document.getElementById('bookingTime')?.value;
@@ -1741,112 +1765,222 @@ populateBookingProfile();
                 ? document.getElementById('apkJobPhoto')
                 : document.getElementById('jobPhoto');
 
-            let photoUrl = "";
+            if (!service || !name || !mobile || mobile.length !== 10 || !area || !address) {
+                alert("कृपया सर्व आवश्यक माहिती आणि अचूक १० अंकी मोबाईल नंबर भरा!");
+                resetSubmitButtons(isEmergency);
+                return;
+            }
 
-            try {
-                if (photoInput.files && photoInput.files.length > 0) {
-                    const file = photoInput.files[0];
-                    // Validate file size (max 5MB)
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert("कृपया ५ MB पेक्षा लहान फोटो निवडा.");
-                        return;
+            if (isEmergency) {
+                const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_live_TfQXrLjDz1z9nO';
+                const amountInPaise = 5000;
+
+                const options = {
+                    key: RAZORPAY_KEY,
+                    amount: amountInPaise,
+                    currency: 'INR',
+                    name: 'घरमित्र (Gharmitra) Pune',
+                    description: `१०-मिनिट इमर्जन्सी SOS (₹५० ॲडव्हान्स) - ${service}`,
+                    prefill: {
+                        name: name,
+                        contact: mobile,
+                        email: (customerProfile && customerProfile.email) || 'customer@gharmitra.online'
+                    },
+                    theme: { color: '#dc2626' },
+                    config: {
+                        display: {
+                            blocks: {
+                                upi: {
+                                    name: "Pay via UPI / QR (GPay, PhonePe, Paytm)",
+                                    instruments: [{ method: "upi" }]
+                                }
+                            },
+                            sequence: ["block.upi", "block.other"],
+                            preferences: { show_default_blocks: true }
+                        }
+                    },
+                    handler: async function (resp) {
+                        try {
+                            const paymentId = resp.razorpay_payment_id || ('PAY_SOS_' + Date.now());
+                            await executeOrderCreation({
+                                isEmergency: true,
+                                paymentId: paymentId,
+                                service, name, mobile, area, address, budget, date, time, photoInput
+                            });
+                        } catch (err) {
+                            console.error('[SOS Save Error]', err);
+                            alert("ऑर्डर सेव्ह करताना अडचण आली: " + err.message);
+                        } finally {
+                            resetSubmitButtons(isEmergency);
+                        }
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            resetSubmitButtons(isEmergency);
+                            alert("पेमेंट रद्द झाले. १०-मिनिट इमर्जन्सी सेवेसाठी ₹५० ॲडव्हान्स भरणे आवश्यक आहे.");
+                        }
                     }
-                    // Validate file MIME type
-                    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-                    if (!allowedMimes.includes(file.type.toLowerCase())) {
-                        alert("कृपया केवळ वैध फोटो फाइल निवडा (JPG, PNG किंवा WEBP).");
-                        return;
-                    }
-                    const formData = new FormData();
-                    formData.append("image", file);
-
-                    const apiKey = "d541e208822d67e4ed1fc4244d04c0c3"; 
-                    const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-                        method: "POST",
-                        body: formData
-                    });
-
-                    const result = await response.json();
-                    if (result.success) {
-                        photoUrl = result.data.url; 
-                    }
-                }
-
-                const newOrderRef = database.ref("orders").push();
-                currentOrderId = newOrderRef.key;
-
-                let customerEmail = (customerProfile && customerProfile.email) ? customerProfile.email : "";
-                if (!customerEmail) {
-                    const savedUser = localStorage.getItem('gharmitra_user_customer_' + mobile) || localStorage.getItem('gharmitra_user_' + mobile);
-                    if (savedUser) {
-                        try { customerEmail = JSON.parse(savedUser).email || ""; } catch(e) {}
-                    }
-                }
-
-                // Persist address and area to localStorage so customer never loses it
-                try {
-                    if (address) {
-                        localStorage.setItem('gharmitra_saved_address', address.trim());
-                        localStorage.setItem('gharmitra_customer_address', address.trim());
-                    }
-                    if (area) {
-                        localStorage.setItem('gharmitra_saved_area', area);
-                    }
-                    if (customerProfile) {
-                        customerProfile.address = address.trim();
-                        customerProfile.area = area;
-                        localStorage.setItem('current_user_session', JSON.stringify(customerProfile));
-                    }
-                } catch(e) {}
-
-                const custLat = (currentCustomerLocation && currentCustomerLocation.lat) ? Number(currentCustomerLocation.lat) : (PUNE_AREA_COORDINATES[area] ? PUNE_AREA_COORDINATES[area].lat : 18.5204);
-                const custLng = (currentCustomerLocation && currentCustomerLocation.lng) ? Number(currentCustomerLocation.lng) : (PUNE_AREA_COORDINATES[area] ? PUNE_AREA_COORDINATES[area].lng : 73.8567);
-                const custMapsUrl = (currentCustomerLocation && currentCustomerLocation.lat)
-                    ? `https://www.google.com/maps?q=${currentCustomerLocation.lat},${currentCustomerLocation.lng}`
-                    : `https://maps.google.com/?q=${encodeURIComponent(address + ', ' + area + ', Pune')}`;
-
-                const payload = {
-                    service: service,
-                    customerName: name,
-                    customerMobile: mobile,
-                    customerEmail: customerEmail,
-                    area: area,
-                    address: address,
-                    customerLat: custLat,
-                    customerLng: custLng,
-                    customerLocationAccuracy: (currentCustomerLocation && currentCustomerLocation.accuracy) ? currentCustomerLocation.accuracy : null,
-                    customerMapsUrl: custMapsUrl,
-                    hasExactGps: !!(currentCustomerLocation && currentCustomerLocation.lat),
-                    budget: "₹" + budget,
-                    date: date,
-                    time: time,
-                    photoUrl: photoUrl,
-                    voiceNoteUrl: currentVoiceNoteDataUrl || "",
-                    hasVoiceNote: !!currentVoiceNoteDataUrl,
-                    status: "Pending",
-                    completionOtp: String(Math.floor(1000 + Math.random() * 9000)),
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
 
-                await newOrderRef.set(payload);
-                deleteVoiceNote();
-                alert("तुमची अपॉइंटमेंट यशस्वीरीत्या बुक झाली आहे!");
-                trackLiveStatus(currentOrderId);
-                setTimeout(() => {
-                    const liveCol = document.getElementById('customerLiveStatusColumn');
-                    if (liveCol) {
-                        liveCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                try {
+                    if (typeof Razorpay !== 'undefined') {
+                        const rzp = new Razorpay(options);
+                        rzp.on('payment.failed', function (failResp) {
+                            alert("पेमेंट अयशस्वी झाले: " + (failResp.error ? failResp.error.description : 'कृपया पुन्हा प्रयत्न करा'));
+                            resetSubmitButtons(isEmergency);
+                        });
+                        rzp.open();
+                    } else {
+                        const proceed = confirm("Razorpay थेट पेमेंट: ₹५० ॲडव्हान्स घरमित्र खात्यात जमा करून १०-मिनिट सायरन सुरू करायचा का?");
+                        if (proceed) {
+                            await options.handler({ razorpay_payment_id: 'PAY_SOS_TEST_' + Date.now() });
+                        } else {
+                            resetSubmitButtons(isEmergency);
+                        }
                     }
-                }, 200);
+                } catch(err) {
+                    console.error('[SOS Checkout Error]', err);
+                    alert("पेमेंट सुरू करताना अडचण आली: " + err.message);
+                    resetSubmitButtons(isEmergency);
+                }
+                return;
+            }
 
+            // Normal Booking Flow
+            try {
+                await executeOrderCreation({
+                    isEmergency: false,
+                    service, name, mobile, area, address, budget, date, time, photoInput
+                });
             } catch (err) {
                 console.error("Booking Error:", err);
                 alert("बुकिंग करताना अडचण आली: " + err.message);
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Book Appointment Now';
+                resetSubmitButtons(false);
             }
         }
+        window.handleFormSubmit = handleFormSubmit;
+
+        async function executeOrderCreation(params) {
+            const { isEmergency, paymentId, service, name, mobile, area, address, budget, date, time, photoInput } = params;
+            let photoUrl = "";
+
+            if (photoInput && photoInput.files && photoInput.files.length > 0) {
+                const file = photoInput.files[0];
+                if (file.size <= 5 * 1024 * 1024) {
+                    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+                    if (allowedMimes.includes(file.type.toLowerCase())) {
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        const apiKey = "d541e208822d67e4ed1fc4244d04c0c3"; 
+                        try {
+                            const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+                                method: "POST",
+                                body: formData
+                            });
+                            const result = await response.json();
+                            if (result.success) {
+                                photoUrl = result.data.url; 
+                            }
+                        } catch(e) {
+                            console.warn("Photo upload skipped:", e);
+                        }
+                    }
+                }
+            }
+
+            const newOrderRef = database.ref("orders").push();
+            currentOrderId = newOrderRef.key;
+
+            let customerEmail = (customerProfile && customerProfile.email) ? customerProfile.email : "";
+            if (!customerEmail) {
+                const savedUser = localStorage.getItem('gharmitra_user_customer_' + mobile) || localStorage.getItem('gharmitra_user_' + mobile);
+                if (savedUser) {
+                    try { customerEmail = JSON.parse(savedUser).email || ""; } catch(e) {}
+                }
+            }
+
+            try {
+                if (address) {
+                    localStorage.setItem('gharmitra_saved_address', address.trim());
+                    localStorage.setItem('gharmitra_customer_address', address.trim());
+                }
+                if (area) {
+                    localStorage.setItem('gharmitra_saved_area', area);
+                }
+                if (customerProfile) {
+                    customerProfile.address = address.trim();
+                    customerProfile.area = area;
+                    localStorage.setItem('current_user_session', JSON.stringify(customerProfile));
+                }
+            } catch(e) {}
+
+            const custLat = (currentCustomerLocation && currentCustomerLocation.lat) ? Number(currentCustomerLocation.lat) : (PUNE_AREA_COORDINATES[area] ? PUNE_AREA_COORDINATES[area].lat : 18.5204);
+            const custLng = (currentCustomerLocation && currentCustomerLocation.lng) ? Number(currentCustomerLocation.lng) : (PUNE_AREA_COORDINATES[area] ? PUNE_AREA_COORDINATES[area].lng : 73.8567);
+            const custMapsUrl = (currentCustomerLocation && currentCustomerLocation.lat)
+                ? `https://www.google.com/maps?q=${currentCustomerLocation.lat},${currentCustomerLocation.lng}`
+                : `https://maps.google.com/?q=${encodeURIComponent(address + ', ' + area + ', Pune')}`;
+
+            const payload = {
+                service: (isEmergency ? "🚨 " : "⚡ ") + service,
+                customerName: name,
+                customerMobile: mobile,
+                customerEmail: customerEmail,
+                area: area,
+                address: address,
+                customerLat: custLat,
+                customerLng: custLng,
+                customerLocationAccuracy: (currentCustomerLocation && currentCustomerLocation.accuracy) ? currentCustomerLocation.accuracy : null,
+                customerMapsUrl: custMapsUrl,
+                hasExactGps: !!(currentCustomerLocation && currentCustomerLocation.lat),
+                budget: isEmergency ? ("₹" + (budget || 500) + " (₹50 ॲडव्हान्स प्राप्त)") : ("₹" + (budget || 500)),
+                date: date || new Date().toISOString().split('T')[0],
+                time: time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                photoUrl: photoUrl,
+                voiceNoteUrl: currentVoiceNoteDataUrl || "",
+                hasVoiceNote: !!currentVoiceNoteDataUrl,
+                status: "Pending",
+                completionOtp: String(Math.floor(1000 + Math.random() * 9000)),
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            if (isEmergency) {
+                payload.isEmergency = true;
+                payload.orderType = "emergency_sos";
+                payload.priority = "SOS_CRITICAL";
+                payload.advancePaidToAdmin = 50;
+                payload.emergencyBonusToWorker = 30;
+                payload.bonusCredited = false;
+                payload.paymentId = paymentId || ("PAY_SOS_" + Date.now());
+                payload.paymentStatus = "Captured";
+                payload.paidToAdminAt = firebase.database.ServerValue.TIMESTAMP;
+            }
+
+            await newOrderRef.set(payload);
+            deleteVoiceNote();
+
+            if (isEmergency) {
+                alert("🎉 ₹५० ॲडव्हान्स यशस्वीरित्या जमा झाला!\n\n🚨 १०-मिनिट इमर्जन्सी ऑर्डर नोंदवली गेली आहे! जवळच्या कारागिराला तात्काळ सायरन अलर्ट पाठवला गेला आहे.");
+            } else {
+                alert("तुमची अपॉइंटमेंट यशस्वीरीत्या बुक झाली आहे!");
+            }
+
+            trackLiveStatus(currentOrderId);
+
+            setTimeout(() => {
+                const liveCol = document.getElementById('customerLiveStatusColumn');
+                if (liveCol) {
+                    liveCol.classList.remove('hidden');
+                    liveCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                const apkLiveCard = document.getElementById('apkCustomerLiveStatusCard');
+                if (apkLiveCard) {
+                    apkLiveCard.classList.remove('hidden');
+                    apkLiveCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 200);
+        }
+        window.executeOrderCreation = executeOrderCreation;
 
         // ==========================================
         // FAMILY SAFETY SHARE CARD LOGIC
@@ -2965,3 +3099,110 @@ async function handleEmergencySosSubmit(e) {
     }
 }
 window.handleEmergencySosSubmit = handleEmergencySosSubmit;
+
+// ==========================================
+// 🚨 BOOKING TYPE TOGGLES & HELPERS (Normal vs Emergency)
+// ==========================================
+
+function toggleBookingType(type) {
+    const isEmergency = (type === 'emergency');
+    const normalLabel = document.getElementById('normalBookingLabel');
+    const emergencyLabel = document.getElementById('emergencyBookingLabel');
+    const notice = document.getElementById('emergencyBookingNotice');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (normalLabel && emergencyLabel) {
+        if (isEmergency) {
+            normalLabel.className = 'cursor-pointer border-2 border-slate-200 bg-white hover:border-blue-400 p-3.5 rounded-2xl flex items-start gap-3 transition shadow-xs';
+            emergencyLabel.className = 'cursor-pointer border-2 border-red-600 bg-red-50/60 p-3.5 rounded-2xl flex items-start gap-3 transition shadow-xs';
+        } else {
+            normalLabel.className = 'cursor-pointer border-2 border-blue-600 bg-blue-50/50 p-3.5 rounded-2xl flex items-start gap-3 transition shadow-xs';
+            emergencyLabel.className = 'cursor-pointer border-2 border-slate-200 bg-white hover:border-red-400 p-3.5 rounded-2xl flex items-start gap-3 transition shadow-xs';
+        }
+    }
+    if (notice) {
+        if (isEmergency) notice.classList.remove('hidden');
+        else notice.classList.add('hidden');
+    }
+    if (submitBtn) {
+        if (isEmergency) {
+            submitBtn.className = 'w-full bg-red-600 hover:bg-red-700 text-white font-black py-3.5 rounded-xl shadow-lg shadow-red-500/25 transition text-sm flex items-center justify-center gap-2 mt-4 cursor-pointer';
+            submitBtn.innerHTML = '<i class="fa-solid fa-bolt text-yellow-300"></i> <span>₹५० भरा आणि १०-मिनिट इमर्जन्सी बुक करा</span>';
+        } else {
+            submitBtn.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mt-4 cursor-pointer';
+            submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now</span>';
+        }
+    }
+
+    // Sync with APK inputs
+    const apkNormalRadio = document.querySelector('input[name="apkBookingType"][value="normal"]');
+    const apkEmergencyRadio = document.querySelector('input[name="apkBookingType"][value="emergency"]');
+    if (apkNormalRadio && apkEmergencyRadio) {
+        if (isEmergency) apkEmergencyRadio.checked = true;
+        else apkNormalRadio.checked = true;
+        syncApkBookingTypeUI(isEmergency);
+    }
+}
+window.toggleBookingType = toggleBookingType;
+
+function toggleApkBookingType(type) {
+    const isEmergency = (type === 'emergency');
+    const apkNormalRadio = document.querySelector('input[name="apkBookingType"][value="normal"]');
+    const apkEmergencyRadio = document.querySelector('input[name="apkBookingType"][value="emergency"]');
+    if (apkNormalRadio && apkEmergencyRadio) {
+        if (isEmergency) apkEmergencyRadio.checked = true;
+        else apkNormalRadio.checked = true;
+    }
+    syncApkBookingTypeUI(isEmergency);
+
+    // Sync with Website inputs
+    const webNormalRadio = document.querySelector('input[name="bookingType"][value="normal"]');
+    const webEmergencyRadio = document.querySelector('input[name="bookingType"][value="emergency"]');
+    if (webNormalRadio && webEmergencyRadio) {
+        if (isEmergency) webEmergencyRadio.checked = true;
+        else webNormalRadio.checked = true;
+        toggleBookingType(isEmergency ? 'emergency' : 'normal');
+    }
+}
+window.toggleApkBookingType = toggleApkBookingType;
+
+function syncApkBookingTypeUI(isEmergency) {
+    const apkNormalLabel = document.getElementById('apkNormalBookingLabel');
+    const apkEmergencyLabel = document.getElementById('apkEmergencyBookingLabel');
+    const apkNotice = document.getElementById('apkEmergencyBookingNotice');
+    const apkSubmitBtn = document.getElementById('apkSubmitBtn');
+
+    if (apkNormalLabel && apkEmergencyLabel) {
+        if (isEmergency) {
+            apkNormalLabel.className = 'cursor-pointer border-2 border-slate-200 bg-white hover:border-blue-400 p-3 rounded-xl flex items-start gap-2.5 transition shadow-xs';
+            apkEmergencyLabel.className = 'cursor-pointer border-2 border-red-600 bg-red-50/60 p-3 rounded-xl flex items-start gap-2.5 transition shadow-xs';
+        } else {
+            apkNormalLabel.className = 'cursor-pointer border-2 border-blue-600 bg-blue-50/50 p-3 rounded-xl flex items-start gap-2.5 transition shadow-xs';
+            apkEmergencyLabel.className = 'cursor-pointer border-2 border-slate-200 bg-white hover:border-red-400 p-3 rounded-xl flex items-start gap-2.5 transition shadow-xs';
+        }
+    }
+    if (apkNotice) {
+        if (isEmergency) apkNotice.classList.remove('hidden');
+        else apkNotice.classList.add('hidden');
+    }
+    if (apkSubmitBtn) {
+        if (isEmergency) {
+            apkSubmitBtn.className = 'w-full bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-black text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-red-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-5';
+            apkSubmitBtn.innerHTML = '<i class="fa-solid fa-bolt text-yellow-300"></i> <span>₹५० भरा आणि १०-मिनिट इमर्जन्सी बुक करा</span>';
+        } else {
+            apkSubmitBtn.className = 'w-full bg-[#1868fe] hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-5';
+            apkSubmitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now</span>';
+        }
+    }
+}
+window.syncApkBookingTypeUI = syncApkBookingTypeUI;
+
+// Keep safe stubs for backward-compatibility
+window.openEmergencySosModal = function() {
+    toggleBookingType('emergency');
+    const f = document.getElementById('bookingForm') || document.getElementById('apkBookingForm');
+    if (f) f.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+window.closeEmergencySosModal = function() {};
+window.detectSosGpsLocation = function() { if (typeof detectCustomerExactLocation === 'function') detectCustomerExactLocation(); };
+window.handleEmergencySosSubmit = function(e) { if (e) e.preventDefault(); handleFormSubmit(e); };
