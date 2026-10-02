@@ -1174,31 +1174,40 @@ function getActiveOrderForCurrentWorker() {
 }
 
 function ensureWorkerTripMap() {
+    // Find visible map container (in APK app or Web portal)
     const mapElement = document.getElementById('workerTripMap');
     if (!mapElement) return;
 
     if (workerTripMap) {
-        setTimeout(() => workerTripMap.invalidateSize(), 50);
+        setTimeout(() => workerTripMap?.invalidateSize(), 50);
+        setTimeout(() => workerTripMap?.invalidateSize(), 250);
         return;
     }
 
-    workerTripMap = L.map(mapElement, {
-        zoomControl: true,
-        attributionControl: true
-    }).setView([18.5204, 73.8567], 13);
+    try {
+        workerTripMap = L.map(mapElement, {
+            zoomControl: true,
+            attributionControl: true
+        }).setView([18.5204, 73.8567], 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(workerTripMap);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            subdomains: ['a', 'b', 'c'],
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(workerTripMap);
 
-    workerTripPath = L.polyline(workerTripPathPoints, {
-        color: '#6366f1',
-        weight: 4,
-        opacity: 0.72
-    }).addTo(workerTripMap);
+        workerTripPath = L.polyline(workerTripPathPoints, {
+            color: '#6366f1',
+            weight: 4,
+            opacity: 0.72
+        }).addTo(workerTripMap);
 
-    setTimeout(() => workerTripMap?.invalidateSize(), 100);
+        setTimeout(() => workerTripMap?.invalidateSize(), 100);
+        setTimeout(() => workerTripMap?.invalidateSize(), 350);
+        setTimeout(() => workerTripMap?.invalidateSize(), 700);
+    } catch(mapErr) {
+        console.warn('Map initialization error:', mapErr);
+    }
 }
 
 function destroyWorkerTripMap() {
@@ -1309,6 +1318,8 @@ function updateWorkerTripMap(orderId, location) {
             padding: [45, 45],
             maxZoom: 16
         });
+        setTimeout(() => workerTripMap?.invalidateSize(), 150);
+        setTimeout(() => workerTripMap?.invalidateSize(), 500);
     } catch(e) {}
 
     // Distance & ETA calculation
@@ -2251,7 +2262,22 @@ function renderJobs() {
                 </button>
             </div>
             `}`;
-            acceptedContainer.appendChild(activeCard);
+            // Determine if running in APK mobile app environment
+            const isAppMode = document.documentElement.classList.contains('is-app-env') ||
+                              document.documentElement.classList.contains('is-mobile-app') ||
+                              sessionStorage.getItem('gharmitra_is_app') === 'true' ||
+                              sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true';
+
+            const apkAcceptedContainer = document.getElementById('apkAcceptedJobsContainer');
+            if (apkAcceptedContainer) apkAcceptedContainer.innerHTML = '';
+            acceptedContainer.innerHTML = '';
+
+            // Mount activeCard directly into the active/visible container so Leaflet binds to real DOM!
+            if (isAppMode && apkAcceptedContainer) {
+                apkAcceptedContainer.appendChild(activeCard);
+            } else {
+                acceptedContainer.appendChild(activeCard);
+            }
 
             workerTripMapOrderId = key;
             ensureWorkerTripMap();
@@ -2281,15 +2307,11 @@ function renderJobs() {
     jobCountBadge.innerText = `${pendingCount} New Jobs`;
     updateDeadlineLabels();
 
-    // Sync into APK app containers
+    // Sync available jobs into APK app container (DO NOT overwrite acceptedContainer with innerHTML!)
     const apkJobsContainer = document.getElementById('apkAvailableJobsContainer');
-    const apkAcceptedContainer = document.getElementById('apkAcceptedJobsContainer');
     const apkJobCountBadgeSub = document.getElementById('apkJobCountBadgeSub');
     if (apkJobsContainer && jobsContainer) {
         apkJobsContainer.innerHTML = jobsContainer.innerHTML;
-    }
-    if (apkAcceptedContainer && acceptedContainer) {
-        apkAcceptedContainer.innerHTML = acceptedContainer.innerHTML;
     }
     if (apkJobCountBadgeSub) {
         apkJobCountBadgeSub.innerText = `${pendingCount} New Jobs`;
@@ -2331,8 +2353,11 @@ function acceptOrder(orderId) {
 
             database.ref("orders/" + orderId).transaction(
                 order => {
-                    if (!order || order.status !== 'Pending' || order.workerUid ||
-                        order.offerWorkerUid !== currentWorkerUid || Number(order.offerExpiresAt) <= orderNow()) {
+                    if (!order || order.status !== 'Pending' || order.workerUid) {
+                        return;
+                    }
+                    // If currently reserved exclusively by ANOTHER worker and not expired, cannot accept
+                    if (order.offerWorkerUid && order.offerWorkerUid !== currentWorkerUid && Number(order.offerExpiresAt) > orderNow()) {
                         return;
                     }
 
