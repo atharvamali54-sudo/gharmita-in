@@ -59,40 +59,57 @@ body::after {
     50% { box-shadow: 0 0 0 8px rgba(99, 230, 244, 0); }
 }
 
-body > div:first-of-type {
+#websiteCustomerContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#customerMainContainer {
     margin: 1.5rem auto !important;
     width: 100% !important;
     max-width: 72rem !important;
-    background: linear-gradient(145deg, rgba(255,255,255,.84), rgba(255,255,255,.55)) !important;
+    background: linear-gradient(145deg, rgba(255,255,255,.95), rgba(255,255,255,.82)) !important;
     backdrop-filter: blur(28px) saturate(155%);
     -webkit-backdrop-filter: blur(28px) saturate(155%);
     border: 1px solid rgba(255,255,255,.72) !important;
+    border-radius: 1.5rem !important;
     box-shadow:
         0 32px 90px rgba(4, 14, 51, .32),
         inset 0 1px 0 rgba(255,255,255,.9);
+    overflow: hidden !important;
 }
 
-body > div:first-of-type > header {
+#customerMainContainer > header {
     background: linear-gradient(110deg, rgba(24, 55, 133, .94), rgba(63, 76, 170, .82)) !important;
     box-shadow: 0 1px 0 rgba(255,255,255,.18), 0 12px 28px rgba(18, 35, 91, .18);
 }
 
-body > div:first-of-type > header > div:first-child span:first-child {
+#customerMainContainer > header > div:first-child span:first-child {
     background: linear-gradient(145deg, #fff, #d7f8ff) !important;
     box-shadow: 0 8px 20px rgba(4, 23, 80, .2), inset 0 1px 0 white;
 }
 
-body > div:first-of-type > header button {
+#customerMainContainer > header button {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.2);
 }
 
-body > div:first-of-type > div > div:first-child {
+#customerMainContainer #customerBookingColumn {
     background: rgba(255,255,255,.42) !important;
 }
 
-body > div:first-of-type > div > div:last-child {
+#customerMainContainer #customerLiveStatusColumn {
     background: rgba(226, 237, 255, .44) !important;
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
@@ -143,8 +160,8 @@ body > div:first-of-type > div > div:last-child {
 
 #statusBadge { animation: softPulse 2.8s ease-in-out infinite; }
 
-body > div:first-of-type > div > div:last-child > div > div,
-body > div:first-of-type > div > div:last-child > div:last-child {
+#customerMainContainer #customerLiveStatusColumn > div > div,
+#customerMainContainer #customerLiveStatusColumn > div:last-child {
     background: rgba(255,255,255,.62) !important;
     border-color: rgba(255,255,255,.72) !important;
     box-shadow: 0 14px 30px rgba(53, 74, 131, .08), inset 0 1px 0 rgba(255,255,255,.75);
@@ -271,9 +288,9 @@ body > div:first-of-type > div > div:last-child > div:last-child {
 
 @media (max-width: 640px) {
     body { padding: .7rem !important; }
-    body > div:first-of-type { border-radius: 1.5rem !important; }
-    body > div:first-of-type > header { padding: 1rem !important; }
-    body > div:first-of-type > header > div:first-child > span:last-child {
+    #customerMainContainer { border-radius: 1.5rem !important; }
+    #customerMainContainer > header { padding: 1rem !important; }
+    #customerMainContainer > header > div:first-child > span:last-child {
         font-size: 1rem;
     }
 }

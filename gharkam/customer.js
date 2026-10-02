@@ -2039,7 +2039,6 @@ _Sent securely via Gharmitra Family Safety Shield._`;
             if (isVisible) {
                 liveCol.classList.remove('hidden');
                 if (mainContainer) {
-                    mainContainer.classList.remove('max-w-3xl');
                     mainContainer.classList.add('max-w-6xl');
                 }
                 if (bookingCol) {
@@ -2049,8 +2048,7 @@ _Sent securely via Gharmitra Family Safety Shield._`;
             } else {
                 liveCol.classList.add('hidden');
                 if (mainContainer) {
-                    mainContainer.classList.remove('max-w-6xl');
-                    mainContainer.classList.add('max-w-3xl');
+                    mainContainer.classList.add('max-w-6xl');
                 }
                 if (bookingCol) {
                     bookingCol.classList.remove('lg:col-span-7');
