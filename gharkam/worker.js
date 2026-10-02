@@ -3379,57 +3379,87 @@ window.acceptEmergencySosOrder = acceptEmergencySosOrder;
 // =========================================================
 
 function openWorkerIdCardModal() {
-    const modal = document.getElementById('workerIdCardModal');
-    if (!modal) return;
-
-    const wName = (workerProfile && (workerProfile.name || workerProfile.fullName)) || currentWorkerName || 'Prathamesh';
-    const wService = (workerProfile && (workerProfile.service || workerProfile.trade)) || currentWorkerService || 'Electrician';
-    const wId = (workerProfile && workerProfile.workerId) || currentWorkerUid || ('GM-PUN-' + (currentWorkerMobile ? currentWorkerMobile.slice(-4) : '4021'));
-    const wPhoto = (workerProfile && workerProfile.photoUrl) || 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=160&h=160&fit=crop';
-
-    const nameEl = document.getElementById('idCardWorkerName');
-    const serviceEl = document.getElementById('idCardService');
-    const idEl = document.getElementById('idCardWorkerId');
-    const photoEl = document.getElementById('idCardPhoto');
-    const qrImgEl = document.getElementById('idCardQrImg');
-    const activePassBox = document.getElementById('idCardActiveJobPass');
-    const activePassText = document.getElementById('idCardActiveJobText');
-
-    if (nameEl) nameEl.innerText = wName;
-    if (serviceEl) serviceEl.innerText = '⚡ ' + wService;
-    if (idEl) idEl.innerText = 'ID: ' + String(wId).toUpperCase();
-    if (photoEl) photoEl.src = wPhoto;
-
-    // Check if worker currently has an active order
-    const activeOrder = getActiveOrderForCurrentWorker();
-    if (activeOrder && activeOrder.order) {
-        if (activePassBox) activePassBox.classList.remove('hidden');
-        if (activePassText) {
-            const ord = activeOrder.order;
-            activePassText.innerText = (ord.area ? ord.area + ', ' : '') + (ord.address ? ord.address + ' ' : '') + '• ग्राहक: ' + (ord.customerName || 'Customer');
+    try {
+        const modal = document.getElementById('workerIdCardModal');
+        if (!modal) {
+            console.warn('workerIdCardModal not found');
+            return;
         }
-    } else {
-        if (activePassBox) activePassBox.classList.add('hidden');
+
+        const wName = document.getElementById('workerUsername')?.innerText || 
+                      document.getElementById('apkWorkerName')?.innerText || 
+                      'Prathamesh';
+
+        const wService = document.getElementById('workerService')?.innerText || 
+                         document.getElementById('apkWorkerService')?.innerText || 
+                         (typeof currentWorkerService !== 'undefined' ? currentWorkerService : '') || 
+                         'Electrician';
+
+        const wId = document.getElementById('workerIdText')?.innerText || 
+                    document.getElementById('apkWorkerId')?.innerText || 
+                    (typeof currentWorkerUid !== 'undefined' && currentWorkerUid ? currentWorkerUid : '') || 
+                    'GM-PUN-4021';
+
+        const photoElSrc = document.getElementById('workerProfileImg')?.src || 
+                           document.getElementById('apkWorkerAvatarImg')?.src || 
+                           'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=160&h=160&fit=crop';
+
+        const nameEl = document.getElementById('idCardWorkerName');
+        const serviceEl = document.getElementById('idCardService');
+        const idEl = document.getElementById('idCardWorkerId');
+        const photoEl = document.getElementById('idCardPhoto');
+        const qrImgEl = document.getElementById('idCardQrImg');
+        const activePassBox = document.getElementById('idCardActiveJobPass');
+        const activePassText = document.getElementById('idCardActiveJobText');
+
+        if (nameEl) nameEl.innerText = wName;
+        if (serviceEl) serviceEl.innerText = '⚡ ' + wService.replace(/^⚡\s*/, '');
+        if (idEl) {
+            const cleanIdStr = String(wId).trim();
+            idEl.innerText = cleanIdStr.startsWith('ID:') ? cleanIdStr : ('ID: ' + cleanIdStr);
+        }
+        if (photoEl && photoElSrc) photoEl.src = photoElSrc;
+
+        // Check if worker currently has an active order
+        if (typeof getActiveOrderForCurrentWorker === 'function') {
+            const activeOrder = getActiveOrderForCurrentWorker();
+            if (activeOrder && activeOrder.order) {
+                if (activePassBox) activePassBox.classList.remove('hidden');
+                if (activePassText) {
+                    const ord = activeOrder.order;
+                    activePassText.innerText = (ord.area ? ord.area + ', ' : '') + (ord.address ? ord.address + ' ' : '') + '• ग्राहक: ' + (ord.customerName || 'Customer');
+                }
+            } else {
+                if (activePassBox) activePassBox.classList.add('hidden');
+            }
+        }
+
+        // Generate dynamic QR Code pointing to verify.html
+        const verifyBase = (window.location && window.location.origin) ? window.location.origin : 'https://gharmita.in';
+        const rawWorkerId = (typeof currentWorkerUid !== 'undefined' && currentWorkerUid) || 
+                            (typeof getCurrentWorkerMobile === 'function' ? getCurrentWorkerMobile() : 'local_worker');
+        const verifyUrl = verifyBase + '/verify.html?id=' + encodeURIComponent(rawWorkerId);
+        const qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(verifyUrl);
+
+        if (qrImgEl) {
+            qrImgEl.src = qrApiUrl;
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '9999';
+    } catch(err) {
+        console.error('Error opening ID card modal:', err);
+        alert('ओळखपत्र उघडताना अडचण आली: ' + err.message);
     }
-
-    // Generate dynamic QR Code pointing to verify.html
-    const verifyBase = window.location.origin ? window.location.origin : 'https://gharmita.in';
-    const workerKey = (workerProfile && workerProfile.uid) || currentWorkerUid || ('local_worker_' + currentWorkerMobile);
-    const verifyUrl = verifyBase + '/verify.html?id=' + encodeURIComponent(workerKey);
-    const qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(verifyUrl);
-
-    if (qrImgEl) {
-        qrImgEl.src = qrApiUrl;
-    }
-
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
 }
 window.openWorkerIdCardModal = openWorkerIdCardModal;
 
 function closeWorkerIdCardModal() {
     const modal = document.getElementById('workerIdCardModal');
     if (modal) {
+        modal.style.display = 'none';
         modal.classList.remove('flex');
         modal.classList.add('hidden');
     }
