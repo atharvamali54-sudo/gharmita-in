@@ -1084,10 +1084,13 @@ function loadLocalWorkerSession() {
             ]).then(([lwSnap, accSnap]) => {
                 const lw = lwSnap.val() || {};
                 const acc = accSnap.val() || {};
-                const b1 = lw.wallet !== undefined ? Number(lw.wallet) : (lw.walletBalance !== undefined ? Number(lw.walletBalance) : Number(lw.balance || 0));
-                const b2 = acc.wallet !== undefined ? Number(acc.wallet) : (acc.walletBalance !== undefined ? Number(acc.walletBalance) : Number(acc.balance || 0));
-                const bestBal = Math.max(b1 || 0, b2 || 0);
-                updateWorkerWalletUI(bestBal);
+                const b1 = lw.wallet !== undefined ? Number(lw.wallet) : (lw.walletBalance !== undefined ? Number(lw.walletBalance) : (lw.balance !== undefined ? Number(lw.balance) : null));
+                const b2 = acc.wallet !== undefined ? Number(acc.wallet) : (acc.walletBalance !== undefined ? Number(acc.walletBalance) : (acc.balance !== undefined ? Number(acc.balance) : null));
+                const valid = [b1, b2].filter(b => b !== null && !isNaN(b));
+                if (valid.length > 0) {
+                    const bestBal = Math.max(...valid);
+                    updateWorkerWalletUI(bestBal);
+                }
             }).catch(() => {});
         };
 
@@ -1136,6 +1139,10 @@ function loadLocalWorkerSession() {
                 const syncWallet = (snap) => {
                     const data = snap.val();
                     if (data) {
+                        const bal = data.wallet !== undefined ? Number(data.wallet) : (data.walletBalance !== undefined ? Number(data.walletBalance) : (data.balance !== undefined ? Number(data.balance) : null));
+                        if (bal !== null && !isNaN(bal)) {
+                            updateWorkerWalletUI(bal);
+                        }
                         if (data.photo || data.photoUrl) {
                             applyWorkerPhoto(data.photo || data.photoUrl);
                         }
@@ -1149,21 +1156,52 @@ function loadLocalWorkerSession() {
                     refreshWorkerWalletLive();
                 };
 
+                // Direct node listeners for local_worker and accounts/workers
                 database.ref('workers/local_worker_' + workerMobile).on('value', syncWallet);
                 database.ref('workers/accounts/workers/' + workerMobile).on('value', syncWallet);
+
+                // Direct leaf-node listeners on /wallet for instant zero-overhead sync
+                database.ref('workers/local_worker_' + workerMobile + '/wallet').on('value', snap => {
+                    const val = snap.val();
+                    if (val !== null && val !== undefined && !isNaN(val)) {
+                        updateWorkerWalletUI(Number(val));
+                    }
+                });
+                database.ref('workers/accounts/workers/' + workerMobile + '/wallet').on('value', snap => {
+                    const val = snap.val();
+                    if (val !== null && val !== undefined && !isNaN(val)) {
+                        updateWorkerWalletUI(Number(val));
+                    }
+                });
 
                 // Instant notification and live update when transaction occurs
                 database.ref('walletTransactions/local_worker_' + workerMobile).limitToLast(1).on('child_added', txSnap => {
                     const tx = txSnap.val();
                     if (tx && tx.balanceAfter !== undefined) {
-                        updateWorkerWalletUI(tx.balanceAfter);
-                        if (tx.timestamp && (Date.now() - Number(tx.timestamp) < 45000) && tx.type === 'CREDIT') {
+                        updateWorkerWalletUI(Number(tx.balanceAfter));
+                        if (tx.timestamp && (Date.now() - Number(tx.timestamp) < 60000) && tx.type === 'CREDIT') {
                             if (typeof showApkToast === 'function') {
                                 showApkToast(`🎉 ₹${tx.amount} वॉलेटमध्ये जमा झाले! नवीन शिल्लक: ₹${tx.balanceAfter}`);
                             }
                         }
                     }
                 });
+
+                // Multi-tab BroadcastChannel listener
+                try {
+                    if ('BroadcastChannel' in window && !window._walletBroadcastHooked) {
+                        window._walletBroadcastHooked = true;
+                        const bc = new BroadcastChannel('gharmitra_wallet_channel');
+                        bc.onmessage = (e) => {
+                            if (e.data && e.data.mobile === workerMobile && e.data.wallet !== undefined) {
+                                updateWorkerWalletUI(Number(e.data.wallet));
+                                if (e.data.amount && typeof showApkToast === 'function') {
+                                    showApkToast(`🎉 ₹${e.data.amount} वॉलेटमध्ये जमा झाले! नवीन शिल्लक: ₹${e.data.wallet}`);
+                                }
+                            }
+                        };
+                    }
+                } catch(e) {}
 
                 // Polling Heartbeat every 3 seconds to guarantee instant real-time sync without reload
                 if (!window._walletPollInterval) {
@@ -1179,6 +1217,17 @@ function loadLocalWorkerSession() {
                     window.addEventListener('focus', refreshWorkerWalletLive);
                     window.addEventListener('storage', e => {
                         if (e.key === 'current_user_session' || e.key === 'gharmitra_wallet_sync') {
+                            if (e.key === 'gharmitra_wallet_sync' && e.newValue) {
+                                try {
+                                    const parsed = JSON.parse(e.newValue);
+                                    if (parsed && parsed.mobile === workerMobile && parsed.wallet !== undefined) {
+                                        updateWorkerWalletUI(Number(parsed.wallet));
+                                        if (parsed.amount && typeof showApkToast === 'function') {
+                                            showApkToast(`🎉 ₹${parsed.amount} वॉलेटमध्ये जमा झाले! नवीन शिल्लक: ₹${parsed.wallet}`);
+                                        }
+                                    }
+                                } catch(err) {}
+                            }
                             refreshWorkerWalletLive();
                         }
                     });
@@ -1487,104 +1536,12 @@ function releaseActiveOrderLock(orderId) {
 }
 
 auth.onAuthStateChanged((user) => {
-    if (user) {
-        currentWorkerUid = user.uid;
-        
-        const userRef = database.ref('users/' + user.uid);
-        const workerRef = database.ref('workers/' + user.uid);
-
-        userRef.on('value', (userSnap) => {
-            let userData = userSnap.val() || {};
-            
-            workerRef.on('value', (workerSnap) => {
-                let workerData = workerSnap.val() || {};
-
-                let localSession = JSON.parse(localStorage.getItem('current_user_session') || '{}');
-
-                const finalName = userData.fullName || userData.name || workerData.name || localSession.fullName || localSession.name || (user.email ? user.email.split('@')[0] : "Worker");
-                const finalService = userData.service || userData.workType || workerData.service || localSession.workType || localSession.service || "Cleaning";
-
-                let calcRating = 5.0;
-                let calcTotalReviews = 0;
-                if (workerData.ratings && typeof workerData.ratings === 'object') {
-                    const rList = Object.values(workerData.ratings);
-                    calcTotalReviews = rList.length;
-                    if (calcTotalReviews > 0) {
-                        const sum = rList.reduce((acc, curr) => acc + (Number(curr.rating) || 5), 0);
-                        calcRating = Number((sum / calcTotalReviews).toFixed(1));
-                    }
-                } else if (workerData.rating !== undefined || workerData.totalReviews !== undefined) {
-                    calcRating = Number(workerData.rating || 5.0);
-                    calcTotalReviews = Number(workerData.totalReviews || 0);
-                }
-
-                // Resolve worker photo across all possible sources
-                let finalPhoto = workerData.photo || workerData.photoUrl || userData.photo || userData.photoUrl || localSession.photo || localSession.photoUrl || null;
-                const workerMobile = userData.mobile || localSession.mobile || getCurrentWorkerMobile();
-                if (!finalPhoto && workerMobile) {
-                    try {
-                        const k1 = JSON.parse(localStorage.getItem('gharmitra_user_worker_' + workerMobile) || '{}');
-                        finalPhoto = k1.photo || k1.photoUrl || null;
-                    } catch(e) {}
-                    if (!finalPhoto) {
-                        try {
-                            const k2 = JSON.parse(localStorage.getItem('gharkam_user_' + workerMobile) || '{}');
-                            finalPhoto = k2.photo || k2.photoUrl || null;
-                        } catch(e) {}
-                    }
-                }
-
-                const cloudWallet = workerData.wallet !== undefined ? workerData.wallet : (workerData.walletBalance !== undefined ? workerData.walletBalance : workerData.balance);
-                const finalWallet = cloudWallet !== undefined ? cloudWallet : (localSession.balance !== undefined ? localSession.balance : (localSession.wallet !== undefined ? localSession.wallet : 50));
-
-                const combinedData = {
-                    name: finalName,
-                    service: finalService,
-                    wallet: finalWallet,
-                    workerIndex: workerData.workerIndex || Math.floor(100000 + Math.random() * 900000),
-                    rating: calcRating,
-                    totalReviews: calcTotalReviews,
-                    photo: finalPhoto,
-                    photoUrl: finalPhoto
-                };
-
-                if (!workerSnap.exists()) {
-                    // Do not overwrite activeOrderId if an order was accepted
-                    // while the worker profile was being initialized.
-                    workerRef.update(combinedData);
-                } else if (finalPhoto && (!workerData.photo || !workerData.photoUrl)) {
-                    workerRef.update({ photo: finalPhoto, photoUrl: finalPhoto }).catch(() => {});
-                }
-
-                updateWorkerUI(combinedData);
-
-                const rawMob = workerMobile || workerData.mobile || user.phoneNumber;
-                const cleanMob = String(rawMob || '').replace(/\D/g, '').slice(-10);
-                if (cleanMob) {
-                    const syncAuthWallet = lwSnap => {
-                        const lwData = lwSnap.val();
-                        if (lwData) {
-                            const liveBal = lwData.wallet !== undefined ? lwData.wallet : (lwData.walletBalance !== undefined ? lwData.walletBalance : lwData.balance);
-                            if (liveBal !== undefined && liveBal !== null) {
-                                updateWorkerWalletUI(liveBal);
-                            }
-                        }
-                    };
-                    database.ref('workers/local_worker_' + cleanMob).on('value', syncAuthWallet);
-                    database.ref('workers/accounts/workers/' + cleanMob).on('value', syncAuthWallet);
-                }
-            });
-        });
-
-        loadWorkerEarnings(user.uid);
-    } else {
-        // Fallback to local session if no Firebase Auth
-        loadLocalWorkerSession();
-    }
+    // Workers in Gharmitra are strictly identified by their local session & clean mobile identity.
+    loadLocalWorkerSession();
 });
 
 function updateWorkerWalletUI(newBalance) {
-    if (newBalance === undefined || newBalance === null) return;
+    if (newBalance === undefined || newBalance === null || isNaN(newBalance)) return;
     const cleanBal = Math.max(0, Math.round(Number(newBalance) || 0));
 
     const w1 = document.getElementById('walletAmount');
@@ -1592,10 +1549,19 @@ function updateWorkerWalletUI(newBalance) {
     const w3 = document.getElementById('modalPaymentsWalletBalance');
     const w4 = document.getElementById('modalCurrentWallet');
 
-    if (w1) w1.innerText = cleanBal;
-    if (w2) w2.innerText = cleanBal;
-    if (w3) w3.innerText = cleanBal;
-    if (w4) w4.innerText = cleanBal;
+    const els = [w1, w2, w3, w4];
+    els.forEach(el => {
+        if (el) {
+            const oldVal = el.innerText;
+            el.innerText = cleanBal;
+            if (oldVal !== String(cleanBal)) {
+                el.classList.add('scale-110', 'text-emerald-500', 'transition-all');
+                setTimeout(() => {
+                    el.classList.remove('scale-110');
+                }, 400);
+            }
+        }
+    });
 
     try {
         const s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
@@ -2086,8 +2052,14 @@ function getWorkerCurrentWalletBalance() {
     const webText = document.getElementById('walletAmount')?.innerText;
     const apkText = document.getElementById('apkWalletAmount')?.innerText;
     const modalText = document.getElementById('modalPaymentsWalletBalance')?.innerText;
-    const raw = String(webText || apkText || modalText || '0').replace(/\D/g, '');
-    const val = parseInt(raw, 10);
+    const raw = String(webText || apkText || modalText || '').replace(/\D/g, '');
+    let val = parseInt(raw, 10);
+    if (isNaN(val)) {
+        try {
+            const s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+            val = Number(s.wallet !== undefined ? s.wallet : (s.balance || 0));
+        } catch(e) { val = 0; }
+    }
     return isNaN(val) ? 0 : val;
 }
 
@@ -3053,11 +3025,11 @@ function syncApkDashboardData() {
         if (apkRating) apkRating.innerText = ratingVal;
         if (apkReviews) apkReviews.innerText = `(${revVal} Reviews)`;
 
-        const walletVal = document.getElementById('walletAmount')?.innerText || '0';
+        const curBal = getWorkerCurrentWalletBalance();
         const apkWallet = document.getElementById('apkWalletAmount');
         const modalWallet = document.getElementById('modalPaymentsWalletBalance');
-        if (apkWallet) apkWallet.innerText = walletVal;
-        if (modalWallet) modalWallet.innerText = walletVal;
+        if (apkWallet && curBal !== undefined) apkWallet.innerText = curBal;
+        if (modalWallet && curBal !== undefined) modalWallet.innerText = curBal;
 
         const todayEarnVal = document.getElementById('todayEarnings')?.innerText || '0';
         const todayJobsVal = document.getElementById('todayJobsCount')?.innerText || '0';

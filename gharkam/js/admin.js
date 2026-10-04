@@ -1957,14 +1957,17 @@ function submitWorkerWalletRecharge() {
                 lastRechargeAmount: amount
             };
 
-            // Write to all worker nodes simultaneously
+            // Write to all worker nodes simultaneously (including direct leaf nodes for instant zero-latency trigger)
             const writes = [
                 database.ref("workers/local_worker_" + workerMobile).update(updatePayload),
-                database.ref("workers/accounts/workers/" + workerMobile).update(updatePayload)
+                database.ref("workers/accounts/workers/" + workerMobile).update(updatePayload),
+                database.ref("workers/local_worker_" + workerMobile + "/wallet").set(newBal),
+                database.ref("workers/accounts/workers/" + workerMobile + "/wallet").set(newBal)
             ];
 
             if (selectedWorkerForRecharge && selectedWorkerForRecharge !== ("local_worker_" + workerMobile)) {
                 writes.push(database.ref("workers/" + selectedWorkerForRecharge).update(updatePayload).catch(() => {}));
+                writes.push(database.ref("workers/" + selectedWorkerForRecharge + "/wallet").set(newBal).catch(() => {}));
             }
 
             // Write transaction record
@@ -1982,15 +1985,24 @@ function submitWorkerWalletRecharge() {
 
             await Promise.all(writes);
 
-            // Cross-tab sync if testing on same browser
+            // Instant BroadcastChannel message across tabs/windows without reloading
             try {
+                if ('BroadcastChannel' in window) {
+                    const bc = new BroadcastChannel('gharmitra_wallet_channel');
+                    bc.postMessage({ mobile: workerMobile, wallet: newBal, amount: amount, timestamp: Date.now() });
+                    bc.close();
+                }
+            } catch(e) {}
+
+            // Cross-tab storage sync
+            try {
+                localStorage.setItem('gharmitra_wallet_sync', JSON.stringify({ mobile: workerMobile, wallet: newBal, amount: amount, timestamp: Date.now() }));
                 const s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
                 const sMob = String(s.mobile || '').replace(/\D/g, '').slice(-10);
                 if (sMob === workerMobile) {
                     s.wallet = newBal;
                     s.balance = newBal;
                     localStorage.setItem('current_user_session', JSON.stringify(s));
-                    localStorage.setItem('gharmitra_wallet_sync', Date.now().toString());
                 }
             } catch(e) {}
 

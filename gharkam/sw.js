@@ -3,7 +3,7 @@
 // Cache Version: gharmitra-pwa-v1
 // =========================================================
 
-const CACHE_NAME = 'gharmitra-pwa-v55';
+const CACHE_NAME = 'gharmitra-pwa-v56';
 
 const STATIC_ASSETS = [
     './',
