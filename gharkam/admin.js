@@ -1941,63 +1941,90 @@ function submitWorkerWalletRecharge() {
 
     const workerMobile = String(selectedWorkerForRecharge).replace(/\D/g, '').slice(-10);
 
-    const applyFirebaseRecharge = () => {
-        const workerRef = database.ref("workers/" + selectedWorkerForRecharge);
-        return workerRef.child("wallet").transaction(current => (Number(current) || 0) + amount)
-            .then(result => {
-                const newBal = result && result.snapshot ? Number(result.snapshot.val()) : null;
-                if (newBal !== null && !isNaN(newBal)) {
-                    workerRef.child("walletBalance").set(newBal);
-                    workerRef.child("balance").set(newBal);
-                    if (workerMobile) {
-                        database.ref("workers/local_worker_" + workerMobile + "/wallet").set(newBal);
-                        database.ref("workers/local_worker_" + workerMobile + "/walletBalance").set(newBal);
-                        database.ref("workers/local_worker_" + workerMobile + "/balance").set(newBal);
-                        database.ref("workers/accounts/workers/" + workerMobile + "/wallet").set(newBal);
-                        database.ref("workers/accounts/workers/" + workerMobile + "/balance").set(newBal);
-                        database.ref("workers/accounts/workers/" + workerMobile + "/walletBalance").set(newBal);
+    const applyFirebaseRecharge = async () => {
+        try {
+            // Read current balance from local_worker node
+            const snap = await database.ref("workers/local_worker_" + workerMobile).once('value');
+            const wData = snap.val() || {};
+            const curBal = Number(wData.wallet !== undefined ? wData.wallet : (wData.walletBalance !== undefined ? wData.walletBalance : (wData.balance || 0)));
+            const newBal = Math.max(0, curBal + amount);
 
-                        database.ref('walletTransactions/local_worker_' + workerMobile).push({
-                            type: 'CREDIT',
-                            amount: amount,
-                            balanceAfter: newBal,
-                            reason: 'ॲडमिन कडून वॉलेट रिचार्ज',
-                            timestamp: firebase.database.ServerValue.TIMESTAMP
-                        });
-                    }
+            const updatePayload = {
+                wallet: newBal,
+                walletBalance: newBal,
+                balance: newBal,
+                lastRechargeAt: firebase.database.ServerValue.TIMESTAMP,
+                lastRechargeAmount: amount
+            };
 
-                    database.ref('walletTransactions/' + selectedWorkerForRecharge).push({
-                        type: 'CREDIT',
-                        amount: amount,
-                        balanceAfter: newBal,
-                        reason: 'ॲडमिन कडून वॉलेट रिचार्ज',
-                        timestamp: firebase.database.ServerValue.TIMESTAMP
-                    });
+            // Write to all worker nodes simultaneously
+            const writes = [
+                database.ref("workers/local_worker_" + workerMobile).update(updatePayload),
+                database.ref("workers/accounts/workers/" + workerMobile).update(updatePayload)
+            ];
+
+            if (selectedWorkerForRecharge && selectedWorkerForRecharge !== ("local_worker_" + workerMobile)) {
+                writes.push(database.ref("workers/" + selectedWorkerForRecharge).update(updatePayload).catch(() => {}));
+            }
+
+            // Write transaction record
+            const txData = {
+                type: 'CREDIT',
+                amount: amount,
+                balanceAfter: newBal,
+                reason: 'ॲडमिन कडून वॉलेट रिचार्ज',
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            writes.push(database.ref('walletTransactions/local_worker_' + workerMobile).push(txData));
+            if (selectedWorkerForRecharge && selectedWorkerForRecharge !== ("local_worker_" + workerMobile)) {
+                writes.push(database.ref('walletTransactions/' + selectedWorkerForRecharge).push(txData).catch(() => {}));
+            }
+
+            await Promise.all(writes);
+
+            // Cross-tab sync if testing on same browser
+            try {
+                const s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+                const sMob = String(s.mobile || '').replace(/\D/g, '').slice(-10);
+                if (sMob === workerMobile) {
+                    s.wallet = newBal;
+                    s.balance = newBal;
+                    localStorage.setItem('current_user_session', JSON.stringify(s));
+                    localStorage.setItem('gharmitra_wallet_sync', Date.now().toString());
                 }
-                alert(`₹${amount} यशस्वीरीत्या कामगाराच्या वॉलेटमध्ये जमा केले! नवीन शिल्लक: ₹${newBal !== null ? newBal : ''}`);
-                closeAdminWalletModal();
-                if (typeof renderWorkersTable === 'function') renderWorkersTable();
-            });
+            } catch(e) {}
+
+            alert(`₹${amount} यशस्वीरीत्या कामगाराच्या वॉलेटमध्ये जमा केले! नवीन शिल्लक: ₹${newBal}`);
+            closeAdminWalletModal();
+            if (typeof renderWorkersTable === 'function') renderWorkersTable();
+        } catch (err) {
+            console.error("Recharge failed:", err);
+            alert("पैसे जमा करताना अडचण आली: " + err.message);
+        }
     };
 
-    const tokenStr = sessionStorage.getItem('gharmitra_admin_token') || localStorage.getItem('gharmitra_auth_token');
-    const headers = { 'Content-Type': 'application/json' };
-    if (tokenStr) headers['Authorization'] = `Bearer ${tokenStr}`;
+    if (ADMIN_API_BASE) {
+        const tokenStr = sessionStorage.getItem('gharmitra_admin_token') || localStorage.getItem('gharmitra_auth_token');
+        const headers = { 'Content-Type': 'application/json' };
+        if (tokenStr) headers['Authorization'] = `Bearer ${tokenStr}`;
 
-    fetch(`${ADMIN_API_BASE}/api/admin/recharge-worker`, {
-        method: 'POST',
-        headers: headers,
-        credentials: 'include',
-        body: JSON.stringify({
-            workerMobile: workerMobile,
-            amount: amount,
-            reason: 'Super Admin Manual Recharge'
-        })
-    }).then(r => r.json()).then(data => {
+        fetch(`${ADMIN_API_BASE}/api/admin/recharge-worker`, {
+            method: 'POST',
+            headers: headers,
+            credentials: 'include',
+            body: JSON.stringify({
+                workerMobile: workerMobile,
+                amount: amount,
+                reason: 'Super Admin Manual Recharge'
+            })
+        }).then(r => r.json()).then(() => {
+            applyFirebaseRecharge();
+        }).catch(() => {
+            applyFirebaseRecharge();
+        });
+    } else {
         applyFirebaseRecharge();
-    }).catch(() => {
-        applyFirebaseRecharge().catch(err => alert("पैसे जमा करताना अडचण आली: " + err.message));
-    });
+    }
 }
 
 // =========================================================

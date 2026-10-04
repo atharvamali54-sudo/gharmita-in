@@ -1024,15 +1024,22 @@ function loadLocalWorkerSession() {
             currentWorkerUid = null;
             return;
         }
-        if (!currentWorkerUid) {
-            currentWorkerUid = getLocalWorkerId();
-        }
 
         let name = resolveWorkerName(userData);
         const service = userData.workType || userData.service || "Cleaning";
         let photo = userData.photo || userData.photoUrl || null;
         const rawMobile = userData.mobile || getCurrentWorkerMobile();
         const workerMobile = String(rawMobile || '').replace(/\D/g, '').slice(-10);
+
+        if (workerMobile) {
+            currentWorkerUid = 'local_worker_' + workerMobile;
+            if (userData.mobile !== workerMobile) {
+                userData.mobile = workerMobile;
+                try { localStorage.setItem('current_user_session', JSON.stringify(userData)); } catch(e) {}
+            }
+        } else if (!currentWorkerUid) {
+            currentWorkerUid = getLocalWorkerId();
+        }
 
         if (!photo && workerMobile) {
             try {
@@ -1065,6 +1072,27 @@ function loadLocalWorkerSession() {
         currentWorkerRejectReason = userData.kycRejectReason || '';
         currentWorkerAadharPhoto = userData.aadharCardPhoto || null;
         updateKycUI(currentWorkerVerificationStatus, currentWorkerRejectReason);
+
+        // Immediate Live Balance Check Helper
+        const refreshWorkerWalletLive = () => {
+            if (!workerMobile || typeof database === 'undefined') return;
+            database.ref('workers/local_worker_' + workerMobile).once('value').then(snap => {
+                const d = snap.val();
+                if (d) {
+                    const b = d.wallet !== undefined ? d.wallet : (d.walletBalance !== undefined ? d.walletBalance : d.balance);
+                    if (b !== undefined && b !== null) updateWorkerWalletUI(b);
+                }
+            }).catch(() => {});
+            database.ref('workers/accounts/workers/' + workerMobile).once('value').then(snap => {
+                const d = snap.val();
+                if (d) {
+                    const b = d.wallet !== undefined ? d.wallet : (d.walletBalance !== undefined ? d.walletBalance : d.balance);
+                    if (b !== undefined && b !== null) updateWorkerWalletUI(b);
+                }
+            }).catch(() => {});
+        };
+
+        window.refreshWorkerWalletLive = refreshWorkerWalletLive;
 
         // Fallback: Query Firebase worker node or order history
         const uid = currentWorkerUid || getLocalWorkerId();
@@ -1131,6 +1159,40 @@ function loadLocalWorkerSession() {
 
                 database.ref('workers/local_worker_' + workerMobile).on('value', syncWallet);
                 database.ref('workers/accounts/workers/' + workerMobile).on('value', syncWallet);
+
+                // Instant notification and live update when transaction occurs
+                database.ref('walletTransactions/local_worker_' + workerMobile).limitToLast(1).on('child_added', txSnap => {
+                    const tx = txSnap.val();
+                    if (tx && tx.balanceAfter !== undefined) {
+                        updateWorkerWalletUI(tx.balanceAfter);
+                        if (tx.timestamp && (Date.now() - Number(tx.timestamp) < 45000) && tx.type === 'CREDIT') {
+                            if (typeof showApkToast === 'function') {
+                                showApkToast(`🎉 ₹${tx.amount} वॉलेटमध्ये जमा झाले! नवीन शिल्लक: ₹${tx.balanceAfter}`);
+                            }
+                        }
+                    }
+                });
+
+                // Polling Heartbeat every 3 seconds to guarantee instant real-time sync without reload
+                if (!window._walletPollInterval) {
+                    window._walletPollInterval = setInterval(refreshWorkerWalletLive, 3000);
+                }
+
+                // App Resume / Tab Focus / Visibility change triggers immediate check
+                if (!window._walletFocusHookAdded) {
+                    window._walletFocusHookAdded = true;
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') refreshWorkerWalletLive();
+                    });
+                    window.addEventListener('focus', refreshWorkerWalletLive);
+                    window.addEventListener('storage', e => {
+                        if (e.key === 'current_user_session' || e.key === 'gharmitra_wallet_sync') {
+                            refreshWorkerWalletLive();
+                        }
+                    });
+                }
+
+                refreshWorkerWalletLive();
 
                 database.ref('orders').orderByChild('customerMobile').equalTo(workerMobile).limitToLast(5).once('value').then(oSnap => {
                     const orders = oSnap.val();
