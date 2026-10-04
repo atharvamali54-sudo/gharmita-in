@@ -24,16 +24,9 @@ if (window.emailjs) {
 }
 
 let currentCompletingOrderId = null;
-let isDutyOn = (localStorage.getItem('gharmitra_worker_duty_status') === 'true');
+let isDutyOn = false;
 let allOrdersData = null;
 let currentWorkerUid = null;
-try {
-    const _s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
-    const _m = _s.mobile || _s.phone || '';
-    const _c = String(_m).replace(/\D/g, '').slice(-10);
-    if (_c) currentWorkerUid = "local_worker_" + _c;
-    else if (_s.uid) currentWorkerUid = _s.uid;
-} catch(e) {}
 let currentWorkerService = "Cleaning"; 
 let activeChatOrderId = null;
 let activeChatListener = null;
@@ -1077,10 +1070,6 @@ function loadLocalWorkerSession() {
             database.ref('workers/' + uid).on('value', (snap) => {
                 const wData = snap.val();
                 if (wData) {
-                    const liveBal = wData.wallet !== undefined ? wData.wallet : (wData.walletBalance !== undefined ? wData.walletBalance : wData.balance);
-                    if (liveBal !== undefined && liveBal !== null) {
-                        updateWorkerWalletUI(liveBal);
-                    }
                     const fbName = wData.name || wData.fullName || wData.workerName;
                     if (fbName && fbName !== "Worker") {
                         applyWorkerName(fbName);
@@ -1118,10 +1107,6 @@ function loadLocalWorkerSession() {
                 database.ref('workers/accounts/workers/' + workerMobile).on('value', aSnap => {
                     const aData = aSnap.val();
                     if (aData) {
-                        const liveBal = aData.wallet !== undefined ? aData.wallet : (aData.walletBalance !== undefined ? aData.walletBalance : aData.balance);
-                        if (liveBal !== undefined && liveBal !== null) {
-                            updateWorkerWalletUI(liveBal);
-                        }
                         if (aData.photo || aData.photoUrl) {
                             applyWorkerPhoto(aData.photo || aData.photoUrl);
                         }
@@ -1134,24 +1119,18 @@ function loadLocalWorkerSession() {
                     }
                 });
 
-                database.ref('workers/local_worker_' + workerMobile).on('value', lwSnap => {
+                database.ref('workers/local_worker_' + workerMobile).once('value').then(lwSnap => {
                     const lwData = lwSnap.val();
-                    if (lwData) {
-                        const liveBal = lwData.wallet !== undefined ? lwData.wallet : (lwData.walletBalance !== undefined ? lwData.walletBalance : lwData.balance);
-                        if (liveBal !== undefined && liveBal !== null) {
-                            updateWorkerWalletUI(liveBal);
-                        }
-                        if (lwData.photo || lwData.photoUrl) {
-                            applyWorkerPhoto(lwData.photo || lwData.photoUrl);
-                        }
-                        if (lwData.verificationStatus !== undefined) {
-                            currentWorkerVerificationStatus = lwData.verificationStatus;
-                            currentWorkerRejectReason = lwData.kycRejectReason || '';
-                            if (lwData.aadharCardPhoto) currentWorkerAadharPhoto = lwData.aadharCardPhoto;
-                            updateKycUI(currentWorkerVerificationStatus, currentWorkerRejectReason);
-                        }
+                    if (lwData && (lwData.photo || lwData.photoUrl)) {
+                        applyWorkerPhoto(lwData.photo || lwData.photoUrl);
                     }
-                });
+                    if (lwData && lwData.verificationStatus !== undefined) {
+                        currentWorkerVerificationStatus = lwData.verificationStatus;
+                        currentWorkerRejectReason = lwData.kycRejectReason || '';
+                        if (lwData.aadharCardPhoto) currentWorkerAadharPhoto = lwData.aadharCardPhoto;
+                        updateKycUI(currentWorkerVerificationStatus, currentWorkerRejectReason);
+                    }
+                }).catch(() => {});
 
                 database.ref('orders').orderByChild('customerMobile').equalTo(workerMobile).limitToLast(5).once('value').then(oSnap => {
                     const orders = oSnap.val();
@@ -1170,69 +1149,28 @@ function loadLocalWorkerSession() {
 }
 
 function getLocalWorkerId() {
-    try {
-        const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
-        const raw = session.mobile || session.phone || '';
-        const clean = String(raw).replace(/\D/g, '').slice(-10);
-        if (clean) return "local_worker_" + clean;
-        if (session.uid) return session.uid;
-        return null;
-    } catch(e) {
-        return null;
-    }
+    const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+    return session.role === 'worker' && session.mobile ? "local_worker_" + session.mobile : null;
 }
 
 function getCurrentWorkerMobile() {
-    try {
-        const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
-        const raw = session.mobile || session.phone || '';
-        return String(raw).replace(/\D/g, '').slice(-10);
-    } catch(e) {
-        return "";
-    }
+    const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+    return session.role === 'worker' ? (session.mobile || "") : "";
 }
 
 function getActiveOrderForCurrentWorker() {
-    if (!allOrdersData) return null;
-
-    const sessionMobile = getCurrentWorkerMobile();
-    const localUid = sessionMobile ? ("local_worker_" + sessionMobile) : null;
-    const authUid = (typeof auth !== 'undefined' && auth && auth.currentUser) ? auth.currentUser.uid : null;
-    const currentUid = currentWorkerUid || authUid || localUid;
-    const savedActiveOrderId = localStorage.getItem('gharmitra_active_order_id');
+    if (!allOrdersData || !currentWorkerUid) return null;
 
     return Object.entries(allOrdersData)
         .map(([orderId, order]) => ({ orderId, order }))
-        .find(({ orderId, order }) => {
-            if (!order) return false;
-            const isActive = (order.status === 'Accepted' || order.status === 'On The Way' || order.status === 'In Progress');
-            if (!isActive) return false;
-
-            // Direct ID match from localStorage active lock
-            if (savedActiveOrderId && orderId === savedActiveOrderId) {
-                return true;
-            }
-
-            // Direct UID match (Firebase Auth UID)
-            if (currentUid && (order.workerUid === currentUid || order.workerId === currentUid)) {
-                return true;
-            }
-
-            // Local worker UID match (local_worker_XXXXXXXXXX)
-            if (localUid && (order.workerUid === localUid || order.workerId === localUid)) {
-                return true;
-            }
-
-            // Clean 10-digit mobile number match
-            if (sessionMobile) {
-                const orderMobClean = String(order.workerMobile || order.workerPhone || '').replace(/\D/g, '').slice(-10);
-                if (orderMobClean && orderMobClean === sessionMobile) {
-                    return true;
-                }
-            }
-
-            return false;
-        }) || null;
+        .find(({ order }) =>
+            order &&
+            (order.status === 'Accepted' || order.status === 'On The Way' || order.status === 'In Progress') &&
+            (
+                order.workerUid === currentWorkerUid ||
+                (order.workerMobile && order.workerMobile === getCurrentWorkerMobile())
+            )
+        ) || null;
 }
 
 function ensureWorkerTripMap() {
@@ -1482,11 +1420,9 @@ function stopLocationSharing(orderId, clearRemoteLocation = false) {
 }
 
 function releaseActiveOrderLock(orderId) {
-    try { localStorage.removeItem('gharmitra_active_order_id'); } catch(e) {}
-    const uid = currentWorkerUid || getLocalWorkerId();
-    if (!uid) return Promise.resolve();
+    if (!currentWorkerUid) return Promise.resolve();
 
-    return database.ref("workers/" + uid + "/activeOrderId").transaction(
+    return database.ref("workers/" + currentWorkerUid + "/activeOrderId").transaction(
         activeOrderId => activeOrderId === orderId ? null : activeOrderId
     ).catch(error => {
         console.warn("Could not release active order lock:", error);
@@ -1541,13 +1477,10 @@ auth.onAuthStateChanged((user) => {
                     }
                 }
 
-                const cloudWallet = workerData.wallet !== undefined ? workerData.wallet : (workerData.walletBalance !== undefined ? workerData.walletBalance : (workerData.balance !== undefined ? workerData.balance : undefined));
-                const finalWallet = cloudWallet !== undefined ? cloudWallet : (localSession.balance !== undefined ? localSession.balance : (localSession.wallet !== undefined ? localSession.wallet : 50));
-
                 const combinedData = {
                     name: finalName,
                     service: finalService,
-                    wallet: finalWallet,
+                    wallet: workerData.wallet !== undefined ? workerData.wallet : (localSession.balance || 50),
                     workerIndex: workerData.workerIndex || Math.floor(100000 + Math.random() * 900000),
                     rating: calcRating,
                     totalReviews: calcTotalReviews,
@@ -1590,7 +1523,7 @@ function updateWorkerUI(data) {
     currentWorkerService = cleanService;
     document.getElementById('workerService').innerText = currentWorkerService;
 
-    if(data.wallet !== undefined) updateWorkerWalletUI(data.wallet);
+    if(data.wallet !== undefined) document.getElementById('walletAmount').innerText = data.wallet;
     if(data.rating !== undefined) document.getElementById('workerAvgRating').innerText = Number(data.rating).toFixed(1);
     if(data.totalReviews !== undefined) document.getElementById('workerTotalReviews').innerText = data.totalReviews;
     
@@ -2060,47 +1993,22 @@ function getWorkerCurrentWalletBalance() {
     return isNaN(val) ? 0 : val;
 }
 
-function updateWorkerWalletUI(newBalance) {
-    if (newBalance === undefined || newBalance === null) return;
-    const cleanBal = Math.max(0, Math.round(Number(newBalance) || 0));
-
-    const w1 = document.getElementById('walletAmount');
-    const w2 = document.getElementById('apkWalletAmount');
-    const w3 = document.getElementById('modalPaymentsWalletBalance');
-
-    if (w1) w1.innerText = cleanBal;
-    if (w2) w2.innerText = cleanBal;
-    if (w3) w3.innerText = cleanBal;
-
-    try {
-        const s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
-        s.balance = cleanBal;
-        s.wallet = cleanBal;
-        localStorage.setItem('current_user_session', JSON.stringify(s));
-    } catch(e) {}
-}
-
-function toggleDuty(forceState) {
-    if (typeof forceState === 'boolean') {
-        isDutyOn = forceState;
-    } else {
-        if (!isDutyOn) {
-            if (currentWorkerVerificationStatus !== 'approved') {
-                showWorkerKycAlertModal(currentWorkerVerificationStatus, currentWorkerRejectReason);
-                return;
-            }
-
-            // Rule: Worker wallet must have at least ₹10 to turn Duty ON
-            const currentBal = getWorkerCurrentWalletBalance();
-            if (currentBal < 10) {
-                alert("⚠️ ड्युटी चालू (Duty ON) करण्यासाठी तुमच्या वॉलेटमध्ये किमान ₹१० शिल्लक असणे आवश्यक आहे!\n\nसध्याची शिल्लक: ₹" + currentBal + "\n\nनवीन कामे स्वीकारण्यासाठी कृपया आधी वॉलेट रिचार्ज करा.");
-                openCreditModal();
-                return;
-            }
+function toggleDuty() {
+    if (!isDutyOn) {
+        if (currentWorkerVerificationStatus !== 'approved') {
+            showWorkerKycAlertModal(currentWorkerVerificationStatus, currentWorkerRejectReason);
+            return;
         }
-        isDutyOn = !isDutyOn;
+
+        // Rule: Worker wallet must have at least ₹10 to turn Duty ON
+        const currentBal = getWorkerCurrentWalletBalance();
+        if (currentBal < 10) {
+            alert("⚠️ ड्युटी चालू (Duty ON) करण्यासाठी तुमच्या वॉलेटमध्ये किमान ₹१० शिल्लक असणे आवश्यक आहे!\n\nसध्याची शिल्लक: ₹" + currentBal + "\n\nनवीन कामे स्वीकारण्यासाठी कृपया आधी वॉलेट रिचार्ज करा.");
+            openCreditModal();
+            return;
+        }
     }
-    try { localStorage.setItem('gharmitra_worker_duty_status', isDutyOn ? 'true' : 'false'); } catch(e) {}
+    isDutyOn = !isDutyOn;
     getAudioContext();
     if (!isDutyOn) {
         stopOrderAlert();
@@ -2109,18 +2017,16 @@ function toggleDuty(forceState) {
     const headerDot = document.getElementById('dutyDot');
     const headerText = document.getElementById('dutyText');
 
-    if (btn && headerDot && headerText) {
-        if (isDutyOn) {
-            btn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
-            btn.innerHTML = "🟢 Duty ON (Click OFF)";
-            headerDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-            headerText.innerText = "Duty ON";
-        } else {
-            btn.className = "w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
-            btn.innerHTML = "🔴 Duty OFF (Click ON)";
-            headerDot.className = "w-2 h-2 rounded-full bg-red-500";
-            headerText.innerText = "Duty OFF";
-        }
+    if (isDutyOn) {
+        btn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
+        btn.innerHTML = "🟢 Duty ON (Click OFF)";
+        headerDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        headerText.innerText = "Duty ON";
+    } else {
+        btn.className = "w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
+        btn.innerHTML = "🔴 Duty OFF (Click ON)";
+        headerDot.className = "w-2 h-2 rounded-full bg-red-500";
+        headerText.innerText = "Duty OFF";
     }
     updateApkDutyUI();
     renderJobs();
@@ -2139,69 +2045,36 @@ database.ref("orders").on("value", (snapshot) => {
 function renderJobs() {
     const jobsContainer = document.getElementById('availableJobsContainer');
     const acceptedContainer = document.getElementById('acceptedJobsContainer');
-    const apkAcceptedContainer = document.getElementById('apkAcceptedJobsContainer');
-    const apkJobsContainer = document.getElementById('apkAvailableJobsContainer');
     const jobCountBadge = document.getElementById('jobCount');
-    const selectedArea = document.getElementById('workingAreaSelect') ? document.getElementById('workingAreaSelect').value : 'All';
+    const selectedArea = document.getElementById('workingAreaSelect').value;
 
     destroyWorkerTripMap();
-    if (acceptedContainer) acceptedContainer.innerHTML = "";
-    if (apkAcceptedContainer) apkAcceptedContainer.innerHTML = "";
+    acceptedContainer.innerHTML = "";
 
-    // 1. Resolve Active Order for current worker FIRST!
-    const activeOrderEntry = getActiveOrderForCurrentWorker();
-    const activeOrderId = activeOrderEntry ? activeOrderEntry.orderId : null;
-
-    // If an active order is present, keep local storage updated and ensure duty is ON
-    if (activeOrderId) {
-        try { localStorage.setItem('gharmitra_active_order_id', activeOrderId); } catch(e) {}
-        if (!isDutyOn) {
-            isDutyOn = true;
-            try { localStorage.setItem('gharmitra_worker_duty_status', 'true'); } catch(e) {}
-            const btn = document.getElementById('dutyToggleBtn');
-            const headerDot = document.getElementById('dutyDot');
-            const headerText = document.getElementById('dutyText');
-            if (btn && headerDot && headerText) {
-                btn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
-                btn.innerHTML = "🟢 Duty ON (Click OFF)";
-                headerDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-                headerText.innerText = "Duty ON";
-            }
-            updateApkDutyUI();
-        }
-    } else {
-        try { localStorage.removeItem('gharmitra_active_order_id'); } catch(e) {}
-    }
-
-    if (!isDutyOn && !activeOrderId) {
+    if (!isDutyOn) {
         stopOrderAlert();
         if (currentWorkerVerificationStatus !== 'approved') {
-            const kycHtml = `
+            jobsContainer.innerHTML = `
                 <div class="text-center py-10">
                     <span class="text-5xl block mb-3">🪪</span>
                     <p class="font-bold text-amber-700 text-sm">आधार कार्ड पडताळणी प्रलंबित आहे</p>
                     <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">महिला व कौटुंबिक सुरक्षिततेसाठी ॲडमिन मंजुरीनंतरच कामे उपलब्ध होतील.</p>
                 </div>`;
-            if (jobsContainer) jobsContainer.innerHTML = kycHtml;
-            if (apkJobsContainer) apkJobsContainer.innerHTML = kycHtml;
-            if (jobCountBadge) jobCountBadge.innerText = "KYC Pending";
+            jobCountBadge.innerText = "KYC Pending";
             return;
         }
-        const offHtml = `<div class="text-center py-10"><span class="text-5xl block mb-3">😴</span><p class="font-bold text-slate-700 text-sm">तुम्ही सध्या Duty OFF वर आहात</p></div>`;
-        if (jobsContainer) jobsContainer.innerHTML = offHtml;
-        if (apkJobsContainer) apkJobsContainer.innerHTML = offHtml;
-        if (jobCountBadge) jobCountBadge.innerText = "0 New Jobs";
+        jobsContainer.innerHTML = `<div class="text-center py-10"><span class="text-5xl block mb-3">😴</span><p class="font-bold text-slate-700 text-sm">तुम्ही सध्या Duty OFF वर आहात</p></div>`;
+        jobCountBadge.innerText = "0 New Jobs";
         return;
     }
 
     if (!allOrdersData) {
-        if (jobsContainer) jobsContainer.innerHTML = '<p class="text-slate-400 text-xs text-center py-10">सध्या एकही काम उपलब्ध नाही...</p>';
-        if (apkJobsContainer) apkJobsContainer.innerHTML = '<p class="text-slate-400 text-xs text-center py-10">सध्या एकही काम उपलब्ध नाही...</p>';
-        if (jobCountBadge) jobCountBadge.innerText = "0 New Jobs";
+        jobsContainer.innerHTML = '<p class="text-slate-400 text-xs text-center py-10">सध्या एकही काम उपलब्ध नाही...</p>';
+        jobCountBadge.innerText = "0 New Jobs";
         return;
     }
 
-    if (jobsContainer) jobsContainer.innerHTML = "";
+    jobsContainer.innerHTML = "";
     const keys = Object.keys(allOrdersData).reverse();
 
     // 10-Minute Emergency SOS Alert Check
@@ -2408,23 +2281,20 @@ function renderJobs() {
             </div>
             `}`;
             // Determine if running in APK mobile app environment
-            const apkAcceptedContainer = document.getElementById('apkAcceptedJobsContainer');
-            if (apkAcceptedContainer) apkAcceptedContainer.innerHTML = '';
-            if (acceptedContainer) acceptedContainer.innerHTML = '';
-
             const isAppMode = document.documentElement.classList.contains('is-app-env') ||
                               document.documentElement.classList.contains('is-mobile-app') ||
                               sessionStorage.getItem('gharmitra_is_app') === 'true' ||
-                              sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true' ||
-                              (apkAcceptedContainer && apkAcceptedContainer.offsetParent !== null);
+                              sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true';
+
+            const apkAcceptedContainer = document.getElementById('apkAcceptedJobsContainer');
+            if (apkAcceptedContainer) apkAcceptedContainer.innerHTML = '';
+            acceptedContainer.innerHTML = '';
 
             // Mount activeCard directly into the active/visible container so Leaflet binds to real DOM!
             if (isAppMode && apkAcceptedContainer) {
                 apkAcceptedContainer.appendChild(activeCard);
-            } else if (acceptedContainer) {
+            } else {
                 acceptedContainer.appendChild(activeCard);
-            } else if (apkAcceptedContainer) {
-                apkAcceptedContainer.appendChild(activeCard);
             }
 
             workerTripMapOrderId = key;
@@ -2530,12 +2400,6 @@ function acceptOrder(orderId) {
                         alert(orderError ? "Order accept करताना अडचण आली." : "ही order दुसऱ्या worker ने आधीच accept केली आहे.");
                         return;
                     }
-
-                    try {
-                        localStorage.setItem('gharmitra_active_order_id', orderId);
-                        localStorage.setItem('gharmitra_worker_duty_status', 'true');
-                        isDutyOn = true;
-                    } catch(e) {}
 
                     queueNotification(orderId, 'order_accepted', {
                         workerMobile: getCurrentWorkerMobile(),
@@ -2849,47 +2713,20 @@ function finalizeOrderCompletion(orderId) {
             // 8% commission calculation
             const commission = Math.max(1, Math.round(jobAmount * 0.08));
 
-            const cleanMobile = (typeof getCurrentWorkerMobile === 'function') ? getCurrentWorkerMobile() : '';
-            const ordWorkerMobile = String(ordData.workerMobile || ordData.workerPhone || '').replace(/\D/g, '').slice(-10);
-            const effectiveMobile = cleanMobile || ordWorkerMobile;
-
             const workerId = (typeof workerProfile !== 'undefined' && workerProfile && workerProfile.uid) || 
                              (typeof currentWorkerUid !== 'undefined' && currentWorkerUid) || 
-                             (effectiveMobile ? ('local_worker_' + effectiveMobile) : '');
+                             ('local_worker_' + (typeof getCurrentWorkerMobile === 'function' ? getCurrentWorkerMobile() : ''));
 
-            // Calculate new balance
-            const curBal = getWorkerCurrentWalletBalance();
-            const newBal = Math.max(0, curBal - commission);
-
-            // Update UI across all elements & local storage immediately
-            updateWorkerWalletUI(newBal);
-
-            const allWorkerKeys = new Set();
-            if (workerId) allWorkerKeys.add(workerId);
-            if (effectiveMobile) {
-                allWorkerKeys.add('local_worker_' + effectiveMobile);
-                allWorkerKeys.add(effectiveMobile);
-            }
-            if (cleanMobile) {
-                allWorkerKeys.add('local_worker_' + cleanMobile);
-                allWorkerKeys.add(cleanMobile);
-            }
-            if (ordData.workerUid) allWorkerKeys.add(ordData.workerUid);
-            if (ordData.workerId) allWorkerKeys.add(ordData.workerId);
-            if (typeof currentWorkerUid !== 'undefined' && currentWorkerUid) allWorkerKeys.add(currentWorkerUid);
-
-            // Deduct / update in all worker Firebase nodes
-            allWorkerKeys.forEach(wKey => {
-                database.ref('workers/' + wKey + '/wallet').set(newBal);
-                database.ref('workers/' + wKey + '/walletBalance').set(newBal);
-                database.ref('workers/' + wKey + '/balance').set(newBal);
-                database.ref('workers/accounts/workers/' + wKey + '/wallet').set(newBal);
-                database.ref('workers/accounts/workers/' + wKey + '/walletBalance').set(newBal);
-                database.ref('workers/accounts/workers/' + wKey + '/balance').set(newBal);
-            });
-
-            // Record debit transaction in passbook
             if (workerId) {
+                // Deduct 8% commission from worker wallet in Firebase
+                database.ref('workers/' + workerId + '/wallet').transaction((curr) => {
+                    return Math.max(0, (Number(curr) || 50) - commission);
+                });
+                database.ref('workers/' + workerId + '/walletBalance').transaction((curr) => {
+                    return Math.max(0, (Number(curr) || 50) - commission);
+                });
+
+                // Record debit transaction in passbook
                 database.ref('walletTransactions/' + workerId).push({
                     type: 'DEBIT',
                     amount: commission,
@@ -2897,28 +2734,28 @@ function finalizeOrderCompletion(orderId) {
                     orderId: orderId,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
-            }
-            if (cleanMobile && cleanMobile !== workerId) {
-                database.ref('walletTransactions/local_worker_' + cleanMobile).push({
-                    type: 'DEBIT',
-                    amount: commission,
-                    reason: `घरमित्र कमिशन (८% वजावट) - ₹${jobAmount} चे काम पूर्ण`,
-                    orderId: orderId,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
+
+                // Mark order as commission deducted
+                database.ref('orders/' + orderId).update({
+                    commissionDeducted: true,
+                    commissionAmount: commission,
+                    commissionPercentage: 8,
+                    commissionDeductedAt: firebase.database.ServerValue.TIMESTAMP
                 });
-            }
 
-            // Mark order as commission deducted
-            database.ref('orders/' + orderId).update({
-                commissionDeducted: true,
-                commissionAmount: commission,
-                commissionPercentage: 8,
-                commissionDeductedAt: firebase.database.ServerValue.TIMESTAMP
-            });
+                // Update UI display
+                const curBal = getWorkerCurrentWalletBalance();
+                const newBal = Math.max(0, curBal - commission);
+                const w1 = document.getElementById('walletAmount');
+                const w2 = document.getElementById('apkWalletAmount');
+                const w3 = document.getElementById('modalPaymentsWalletBalance');
+                if (w1) w1.innerText = newBal;
+                if (w2) w2.innerText = newBal;
+                if (w3) w3.innerText = newBal;
 
-            if (typeof showApkToast === 'function') {
-                showApkToast(`₹${commission} (८% कमिशन) तुमच्या वॉलेटमधून वजा झाले.`);
-            }
+                if (typeof showApkToast === 'function') {
+                    showApkToast(`₹${commission} (८% कमिशन) तुमच्या वॉलेटमधून वजा झाले.`);
+                }
 
                 // If balance drops below ₹10, auto turn duty OFF!
                 if (newBal < 10 && isDutyOn) {
