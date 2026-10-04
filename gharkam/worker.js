@@ -549,9 +549,11 @@ function startDispatchTimers() {
 })();
 
 // Page Load Var Local Session Check
-document.addEventListener("DOMContentLoaded", () => {
+if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", loadLocalWorkerSession);
+} else {
     loadLocalWorkerSession();
-});
+}
 
 function resolveWorkerName(userData) {
     if (!userData) return "";
@@ -1073,22 +1075,19 @@ function loadLocalWorkerSession() {
         currentWorkerAadharPhoto = userData.aadharCardPhoto || null;
         updateKycUI(currentWorkerVerificationStatus, currentWorkerRejectReason);
 
-        // Immediate Live Balance Check Helper
+        // Immediate Live Balance Check Helper (Unified & Conflict-Free)
         const refreshWorkerWalletLive = () => {
             if (!workerMobile || typeof database === 'undefined') return;
-            database.ref('workers/local_worker_' + workerMobile).once('value').then(snap => {
-                const d = snap.val();
-                if (d) {
-                    const b = d.wallet !== undefined ? d.wallet : (d.walletBalance !== undefined ? d.walletBalance : d.balance);
-                    if (b !== undefined && b !== null) updateWorkerWalletUI(b);
-                }
-            }).catch(() => {});
-            database.ref('workers/accounts/workers/' + workerMobile).once('value').then(snap => {
-                const d = snap.val();
-                if (d) {
-                    const b = d.wallet !== undefined ? d.wallet : (d.walletBalance !== undefined ? d.walletBalance : d.balance);
-                    if (b !== undefined && b !== null) updateWorkerWalletUI(b);
-                }
+            Promise.all([
+                database.ref('workers/local_worker_' + workerMobile).once('value'),
+                database.ref('workers/accounts/workers/' + workerMobile).once('value')
+            ]).then(([lwSnap, accSnap]) => {
+                const lw = lwSnap.val() || {};
+                const acc = accSnap.val() || {};
+                const b1 = lw.wallet !== undefined ? Number(lw.wallet) : (lw.walletBalance !== undefined ? Number(lw.walletBalance) : Number(lw.balance || 0));
+                const b2 = acc.wallet !== undefined ? Number(acc.wallet) : (acc.walletBalance !== undefined ? Number(acc.walletBalance) : Number(acc.balance || 0));
+                const bestBal = Math.max(b1 || 0, b2 || 0);
+                updateWorkerWalletUI(bestBal);
             }).catch(() => {});
         };
 
@@ -1100,10 +1099,6 @@ function loadLocalWorkerSession() {
             database.ref('workers/' + uid).on('value', (snap) => {
                 const wData = snap.val();
                 if (wData) {
-                    const liveBal = wData.wallet !== undefined ? wData.wallet : (wData.walletBalance !== undefined ? wData.walletBalance : wData.balance);
-                    if (liveBal !== undefined && liveBal !== null) {
-                        updateWorkerWalletUI(liveBal);
-                    }
                     const fbName = wData.name || wData.fullName || wData.workerName;
                     if (fbName && fbName !== "Worker") {
                         applyWorkerName(fbName);
@@ -1141,10 +1136,6 @@ function loadLocalWorkerSession() {
                 const syncWallet = (snap) => {
                     const data = snap.val();
                     if (data) {
-                        const liveBal = data.wallet !== undefined ? data.wallet : (data.walletBalance !== undefined ? data.walletBalance : data.balance);
-                        if (liveBal !== undefined && liveBal !== null) {
-                            updateWorkerWalletUI(liveBal);
-                        }
                         if (data.photo || data.photoUrl) {
                             applyWorkerPhoto(data.photo || data.photoUrl);
                         }
@@ -1155,6 +1146,7 @@ function loadLocalWorkerSession() {
                             updateKycUI(currentWorkerVerificationStatus, currentWorkerRejectReason);
                         }
                     }
+                    refreshWorkerWalletLive();
                 };
 
                 database.ref('workers/local_worker_' + workerMobile).on('value', syncWallet);
