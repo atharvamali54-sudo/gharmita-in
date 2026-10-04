@@ -3209,6 +3209,17 @@ async function dispatchAdminBroadcastPush() {
     if (!confirm(confirmMsg)) return;
 
     try {
+        // Ensure Firebase Auth session exists so rules requiring auth are satisfied
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            try {
+                if (!firebase.auth().currentUser) {
+                    await firebase.auth().signInAnonymously();
+                }
+            } catch(authErr) {
+                console.warn('Firebase Auth anonymous check:', authErr);
+            }
+        }
+
         const payload = {
             title: title,
             body: body,
