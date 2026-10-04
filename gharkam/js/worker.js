@@ -24,9 +24,16 @@ if (window.emailjs) {
 }
 
 let currentCompletingOrderId = null;
-let isDutyOn = false;
+let isDutyOn = (localStorage.getItem('gharmitra_worker_duty_status') === 'true');
 let allOrdersData = null;
 let currentWorkerUid = null;
+try {
+    const _s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+    const _m = _s.mobile || _s.phone || '';
+    const _c = String(_m).replace(/\D/g, '').slice(-10);
+    if (_c) currentWorkerUid = "local_worker_" + _c;
+    else if (_s.uid) currentWorkerUid = _s.uid;
+} catch(e) {}
 let currentWorkerService = "Cleaning"; 
 let activeChatOrderId = null;
 let activeChatListener = null;
@@ -1149,28 +1156,69 @@ function loadLocalWorkerSession() {
 }
 
 function getLocalWorkerId() {
-    const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
-    return session.role === 'worker' && session.mobile ? "local_worker_" + session.mobile : null;
+    try {
+        const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+        const raw = session.mobile || session.phone || '';
+        const clean = String(raw).replace(/\D/g, '').slice(-10);
+        if (clean) return "local_worker_" + clean;
+        if (session.uid) return session.uid;
+        return null;
+    } catch(e) {
+        return null;
+    }
 }
 
 function getCurrentWorkerMobile() {
-    const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
-    return session.role === 'worker' ? (session.mobile || "") : "";
+    try {
+        const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+        const raw = session.mobile || session.phone || '';
+        return String(raw).replace(/\D/g, '').slice(-10);
+    } catch(e) {
+        return "";
+    }
 }
 
 function getActiveOrderForCurrentWorker() {
-    if (!allOrdersData || !currentWorkerUid) return null;
+    if (!allOrdersData) return null;
+
+    const sessionMobile = getCurrentWorkerMobile();
+    const localUid = sessionMobile ? ("local_worker_" + sessionMobile) : null;
+    const authUid = (typeof auth !== 'undefined' && auth && auth.currentUser) ? auth.currentUser.uid : null;
+    const currentUid = currentWorkerUid || authUid || localUid;
+    const savedActiveOrderId = localStorage.getItem('gharmitra_active_order_id');
 
     return Object.entries(allOrdersData)
         .map(([orderId, order]) => ({ orderId, order }))
-        .find(({ order }) =>
-            order &&
-            (order.status === 'Accepted' || order.status === 'On The Way' || order.status === 'In Progress') &&
-            (
-                order.workerUid === currentWorkerUid ||
-                (order.workerMobile && order.workerMobile === getCurrentWorkerMobile())
-            )
-        ) || null;
+        .find(({ orderId, order }) => {
+            if (!order) return false;
+            const isActive = (order.status === 'Accepted' || order.status === 'On The Way' || order.status === 'In Progress');
+            if (!isActive) return false;
+
+            // Direct ID match from localStorage active lock
+            if (savedActiveOrderId && orderId === savedActiveOrderId) {
+                return true;
+            }
+
+            // Direct UID match (Firebase Auth UID)
+            if (currentUid && (order.workerUid === currentUid || order.workerId === currentUid)) {
+                return true;
+            }
+
+            // Local worker UID match (local_worker_XXXXXXXXXX)
+            if (localUid && (order.workerUid === localUid || order.workerId === localUid)) {
+                return true;
+            }
+
+            // Clean 10-digit mobile number match
+            if (sessionMobile) {
+                const orderMobClean = String(order.workerMobile || order.workerPhone || '').replace(/\D/g, '').slice(-10);
+                if (orderMobClean && orderMobClean === sessionMobile) {
+                    return true;
+                }
+            }
+
+            return false;
+        }) || null;
 }
 
 function ensureWorkerTripMap() {
@@ -1420,9 +1468,11 @@ function stopLocationSharing(orderId, clearRemoteLocation = false) {
 }
 
 function releaseActiveOrderLock(orderId) {
-    if (!currentWorkerUid) return Promise.resolve();
+    try { localStorage.removeItem('gharmitra_active_order_id'); } catch(e) {}
+    const uid = currentWorkerUid || getLocalWorkerId();
+    if (!uid) return Promise.resolve();
 
-    return database.ref("workers/" + currentWorkerUid + "/activeOrderId").transaction(
+    return database.ref("workers/" + uid + "/activeOrderId").transaction(
         activeOrderId => activeOrderId === orderId ? null : activeOrderId
     ).catch(error => {
         console.warn("Could not release active order lock:", error);
@@ -1993,22 +2043,27 @@ function getWorkerCurrentWalletBalance() {
     return isNaN(val) ? 0 : val;
 }
 
-function toggleDuty() {
-    if (!isDutyOn) {
-        if (currentWorkerVerificationStatus !== 'approved') {
-            showWorkerKycAlertModal(currentWorkerVerificationStatus, currentWorkerRejectReason);
-            return;
-        }
+function toggleDuty(forceState) {
+    if (typeof forceState === 'boolean') {
+        isDutyOn = forceState;
+    } else {
+        if (!isDutyOn) {
+            if (currentWorkerVerificationStatus !== 'approved') {
+                showWorkerKycAlertModal(currentWorkerVerificationStatus, currentWorkerRejectReason);
+                return;
+            }
 
-        // Rule: Worker wallet must have at least ₹10 to turn Duty ON
-        const currentBal = getWorkerCurrentWalletBalance();
-        if (currentBal < 10) {
-            alert("⚠️ ड्युटी चालू (Duty ON) करण्यासाठी तुमच्या वॉलेटमध्ये किमान ₹१० शिल्लक असणे आवश्यक आहे!\n\nसध्याची शिल्लक: ₹" + currentBal + "\n\nनवीन कामे स्वीकारण्यासाठी कृपया आधी वॉलेट रिचार्ज करा.");
-            openCreditModal();
-            return;
+            // Rule: Worker wallet must have at least ₹10 to turn Duty ON
+            const currentBal = getWorkerCurrentWalletBalance();
+            if (currentBal < 10) {
+                alert("⚠️ ड्युटी चालू (Duty ON) करण्यासाठी तुमच्या वॉलेटमध्ये किमान ₹१० शिल्लक असणे आवश्यक आहे!\n\nसध्याची शिल्लक: ₹" + currentBal + "\n\nनवीन कामे स्वीकारण्यासाठी कृपया आधी वॉलेट रिचार्ज करा.");
+                openCreditModal();
+                return;
+            }
         }
+        isDutyOn = !isDutyOn;
     }
-    isDutyOn = !isDutyOn;
+    try { localStorage.setItem('gharmitra_worker_duty_status', isDutyOn ? 'true' : 'false'); } catch(e) {}
     getAudioContext();
     if (!isDutyOn) {
         stopOrderAlert();
@@ -2017,16 +2072,18 @@ function toggleDuty() {
     const headerDot = document.getElementById('dutyDot');
     const headerText = document.getElementById('dutyText');
 
-    if (isDutyOn) {
-        btn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
-        btn.innerHTML = "🟢 Duty ON (Click OFF)";
-        headerDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-        headerText.innerText = "Duty ON";
-    } else {
-        btn.className = "w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
-        btn.innerHTML = "🔴 Duty OFF (Click ON)";
-        headerDot.className = "w-2 h-2 rounded-full bg-red-500";
-        headerText.innerText = "Duty OFF";
+    if (btn && headerDot && headerText) {
+        if (isDutyOn) {
+            btn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
+            btn.innerHTML = "🟢 Duty ON (Click OFF)";
+            headerDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+            headerText.innerText = "Duty ON";
+        } else {
+            btn.className = "w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
+            btn.innerHTML = "🔴 Duty OFF (Click ON)";
+            headerDot.className = "w-2 h-2 rounded-full bg-red-500";
+            headerText.innerText = "Duty OFF";
+        }
     }
     updateApkDutyUI();
     renderJobs();
@@ -2045,36 +2102,69 @@ database.ref("orders").on("value", (snapshot) => {
 function renderJobs() {
     const jobsContainer = document.getElementById('availableJobsContainer');
     const acceptedContainer = document.getElementById('acceptedJobsContainer');
+    const apkAcceptedContainer = document.getElementById('apkAcceptedJobsContainer');
+    const apkJobsContainer = document.getElementById('apkAvailableJobsContainer');
     const jobCountBadge = document.getElementById('jobCount');
-    const selectedArea = document.getElementById('workingAreaSelect').value;
+    const selectedArea = document.getElementById('workingAreaSelect') ? document.getElementById('workingAreaSelect').value : 'All';
 
     destroyWorkerTripMap();
-    acceptedContainer.innerHTML = "";
+    if (acceptedContainer) acceptedContainer.innerHTML = "";
+    if (apkAcceptedContainer) apkAcceptedContainer.innerHTML = "";
 
-    if (!isDutyOn) {
+    // 1. Resolve Active Order for current worker FIRST!
+    const activeOrderEntry = getActiveOrderForCurrentWorker();
+    const activeOrderId = activeOrderEntry ? activeOrderEntry.orderId : null;
+
+    // If an active order is present, keep local storage updated and ensure duty is ON
+    if (activeOrderId) {
+        try { localStorage.setItem('gharmitra_active_order_id', activeOrderId); } catch(e) {}
+        if (!isDutyOn) {
+            isDutyOn = true;
+            try { localStorage.setItem('gharmitra_worker_duty_status', 'true'); } catch(e) {}
+            const btn = document.getElementById('dutyToggleBtn');
+            const headerDot = document.getElementById('dutyDot');
+            const headerText = document.getElementById('dutyText');
+            if (btn && headerDot && headerText) {
+                btn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mb-6";
+                btn.innerHTML = "🟢 Duty ON (Click OFF)";
+                headerDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                headerText.innerText = "Duty ON";
+            }
+            updateApkDutyUI();
+        }
+    } else {
+        try { localStorage.removeItem('gharmitra_active_order_id'); } catch(e) {}
+    }
+
+    if (!isDutyOn && !activeOrderId) {
         stopOrderAlert();
         if (currentWorkerVerificationStatus !== 'approved') {
-            jobsContainer.innerHTML = `
+            const kycHtml = `
                 <div class="text-center py-10">
                     <span class="text-5xl block mb-3">🪪</span>
                     <p class="font-bold text-amber-700 text-sm">आधार कार्ड पडताळणी प्रलंबित आहे</p>
                     <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">महिला व कौटुंबिक सुरक्षिततेसाठी ॲडमिन मंजुरीनंतरच कामे उपलब्ध होतील.</p>
                 </div>`;
-            jobCountBadge.innerText = "KYC Pending";
+            if (jobsContainer) jobsContainer.innerHTML = kycHtml;
+            if (apkJobsContainer) apkJobsContainer.innerHTML = kycHtml;
+            if (jobCountBadge) jobCountBadge.innerText = "KYC Pending";
             return;
         }
-        jobsContainer.innerHTML = `<div class="text-center py-10"><span class="text-5xl block mb-3">😴</span><p class="font-bold text-slate-700 text-sm">तुम्ही सध्या Duty OFF वर आहात</p></div>`;
-        jobCountBadge.innerText = "0 New Jobs";
+        const offHtml = `<div class="text-center py-10"><span class="text-5xl block mb-3">😴</span><p class="font-bold text-slate-700 text-sm">तुम्ही सध्या Duty OFF वर आहात</p></div>`;
+        if (jobsContainer) jobsContainer.innerHTML = offHtml;
+        if (apkJobsContainer) apkJobsContainer.innerHTML = offHtml;
+        if (jobCountBadge) jobCountBadge.innerText = "0 New Jobs";
         return;
     }
 
     if (!allOrdersData) {
-        jobsContainer.innerHTML = '<p class="text-slate-400 text-xs text-center py-10">सध्या एकही काम उपलब्ध नाही...</p>';
-        jobCountBadge.innerText = "0 New Jobs";
+        if (jobsContainer) jobsContainer.innerHTML = '<p class="text-slate-400 text-xs text-center py-10">सध्या एकही काम उपलब्ध नाही...</p>';
+        if (apkJobsContainer) apkJobsContainer.innerHTML = '<p class="text-slate-400 text-xs text-center py-10">सध्या एकही काम उपलब्ध नाही...</p>';
+        if (jobCountBadge) jobCountBadge.innerText = "0 New Jobs";
         return;
     }
 
-    jobsContainer.innerHTML = "";
+    if (jobsContainer) jobsContainer.innerHTML = "";
     const keys = Object.keys(allOrdersData).reverse();
 
     // 10-Minute Emergency SOS Alert Check
@@ -2281,20 +2371,23 @@ function renderJobs() {
             </div>
             `}`;
             // Determine if running in APK mobile app environment
+            const apkAcceptedContainer = document.getElementById('apkAcceptedJobsContainer');
+            if (apkAcceptedContainer) apkAcceptedContainer.innerHTML = '';
+            if (acceptedContainer) acceptedContainer.innerHTML = '';
+
             const isAppMode = document.documentElement.classList.contains('is-app-env') ||
                               document.documentElement.classList.contains('is-mobile-app') ||
                               sessionStorage.getItem('gharmitra_is_app') === 'true' ||
-                              sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true';
-
-            const apkAcceptedContainer = document.getElementById('apkAcceptedJobsContainer');
-            if (apkAcceptedContainer) apkAcceptedContainer.innerHTML = '';
-            acceptedContainer.innerHTML = '';
+                              sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true' ||
+                              (apkAcceptedContainer && apkAcceptedContainer.offsetParent !== null);
 
             // Mount activeCard directly into the active/visible container so Leaflet binds to real DOM!
             if (isAppMode && apkAcceptedContainer) {
                 apkAcceptedContainer.appendChild(activeCard);
-            } else {
+            } else if (acceptedContainer) {
                 acceptedContainer.appendChild(activeCard);
+            } else if (apkAcceptedContainer) {
+                apkAcceptedContainer.appendChild(activeCard);
             }
 
             workerTripMapOrderId = key;
@@ -2400,6 +2493,12 @@ function acceptOrder(orderId) {
                         alert(orderError ? "Order accept करताना अडचण आली." : "ही order दुसऱ्या worker ने आधीच accept केली आहे.");
                         return;
                     }
+
+                    try {
+                        localStorage.setItem('gharmitra_active_order_id', orderId);
+                        localStorage.setItem('gharmitra_worker_duty_status', 'true');
+                        isDutyOn = true;
+                    } catch(e) {}
 
                     queueNotification(orderId, 'order_accepted', {
                         workerMobile: getCurrentWorkerMobile(),

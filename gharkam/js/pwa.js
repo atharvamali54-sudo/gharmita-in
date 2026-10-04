@@ -12,6 +12,9 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js')
             .then(reg => {
                 console.log('[Gharmitra PWA] SW registered:', reg.scope);
+                if (typeof reg.update === 'function') {
+                    reg.update().catch(() => {});
+                }
             })
             .catch(err => {
                 console.warn('[Gharmitra PWA] SW registration failed:', err);
