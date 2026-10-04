@@ -1940,6 +1940,46 @@ function submitWorkerWalletRecharge() {
     }
 
     const workerMobile = String(selectedWorkerForRecharge).replace(/\D/g, '').slice(-10);
+
+    const applyFirebaseRecharge = () => {
+        const workerRef = database.ref("workers/" + selectedWorkerForRecharge);
+        return workerRef.child("wallet").transaction(current => (Number(current) || 0) + amount)
+            .then(result => {
+                const newBal = result && result.snapshot ? Number(result.snapshot.val()) : null;
+                if (newBal !== null && !isNaN(newBal)) {
+                    workerRef.child("walletBalance").set(newBal);
+                    workerRef.child("balance").set(newBal);
+                    if (workerMobile) {
+                        database.ref("workers/local_worker_" + workerMobile + "/wallet").set(newBal);
+                        database.ref("workers/local_worker_" + workerMobile + "/walletBalance").set(newBal);
+                        database.ref("workers/local_worker_" + workerMobile + "/balance").set(newBal);
+                        database.ref("workers/accounts/workers/" + workerMobile + "/wallet").set(newBal);
+                        database.ref("workers/accounts/workers/" + workerMobile + "/balance").set(newBal);
+                        database.ref("workers/accounts/workers/" + workerMobile + "/walletBalance").set(newBal);
+
+                        database.ref('walletTransactions/local_worker_' + workerMobile).push({
+                            type: 'CREDIT',
+                            amount: amount,
+                            balanceAfter: newBal,
+                            reason: 'ॲडमिन कडून वॉलेट रिचार्ज',
+                            timestamp: firebase.database.ServerValue.TIMESTAMP
+                        });
+                    }
+
+                    database.ref('walletTransactions/' + selectedWorkerForRecharge).push({
+                        type: 'CREDIT',
+                        amount: amount,
+                        balanceAfter: newBal,
+                        reason: 'ॲडमिन कडून वॉलेट रिचार्ज',
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+                }
+                alert(`₹${amount} यशस्वीरीत्या कामगाराच्या वॉलेटमध्ये जमा केले! नवीन शिल्लक: ₹${newBal !== null ? newBal : ''}`);
+                closeAdminWalletModal();
+                if (typeof renderWorkersTable === 'function') renderWorkersTable();
+            });
+    };
+
     const tokenStr = sessionStorage.getItem('gharmitra_admin_token') || localStorage.getItem('gharmitra_auth_token');
     const headers = { 'Content-Type': 'application/json' };
     if (tokenStr) headers['Authorization'] = `Bearer ${tokenStr}`;
@@ -1954,28 +1994,9 @@ function submitWorkerWalletRecharge() {
             reason: 'Super Admin Manual Recharge'
         })
     }).then(r => r.json()).then(data => {
-        if (data.success) {
-            alert(`₹${amount} यशस्वीरीत्या कामगाराच्या वॉलेटमध्ये जमा केले!`);
-            closeAdminWalletModal();
-            if (typeof renderWorkersTable === 'function') renderWorkersTable();
-        } else {
-            // Fallback for offline backend dev server
-            const workerRef = database.ref("workers/" + selectedWorkerForRecharge);
-            workerRef.child("wallet").transaction(current => (Number(current) || 0) + amount)
-                .then(() => {
-                    alert(`₹${amount} यशस्वीरीत्या कामगाराच्या वॉलेटमध्ये जमा केले!`);
-                    closeAdminWalletModal();
-                })
-                .catch(err => alert("पैसे जमा करताना अडचण आली: " + err.message));
-        }
+        applyFirebaseRecharge();
     }).catch(() => {
-        const workerRef = database.ref("workers/" + selectedWorkerForRecharge);
-        workerRef.child("wallet").transaction(current => (Number(current) || 0) + amount)
-            .then(() => {
-                alert(`₹${amount} यशस्वीरीत्या कामगाराच्या वॉलेटमध्ये जमा केले!`);
-                closeAdminWalletModal();
-            })
-            .catch(err => alert("पैसे जमा करताना अडचण आली: " + err.message));
+        applyFirebaseRecharge().catch(err => alert("पैसे जमा करताना अडचण आली: " + err.message));
     });
 }
 

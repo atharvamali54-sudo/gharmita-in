@@ -497,11 +497,13 @@ let currentRole = 'customer';
                     updatedAt: firebase.database.ServerValue.TIMESTAMP
                 };
 
-                // Store in central accounts registry
-                database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).update(cloudData)
+                // Store in central accounts registry without overwriting live wallet balance
+                const centralData = { ...cloudData };
+                delete centralData.balance;
+                database.ref('workers/accounts/' + roleNode + '/' + cleanMobile).update(centralData)
                     .catch(err => console.warn('Cloud account sync error:', err));
 
-                // If worker, also sync with workers/local_worker_<mobile>
+                // If worker, also sync with workers/local_worker_<mobile> without overwriting live wallet
                 if (safeRole === 'worker') {
                     database.ref('workers/local_worker_' + cleanMobile).update({
                         fullName: cloudData.fullName,
@@ -509,7 +511,6 @@ let currentRole = 'customer';
                         mobile: cleanMobile,
                         workType: cloudData.workType || 'Cleaning',
                         service: cloudData.service || 'Cleaning',
-                        wallet: cloudData.balance || 50,
                         photo: cloudData.photo,
                         photoUrl: cloudData.photoUrl
                     }).catch(err => console.warn('Worker sync error:', err));
