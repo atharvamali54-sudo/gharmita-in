@@ -1983,10 +1983,28 @@ function closeImagePreview() {
   document.getElementById('previewModalImg').src = "";
 }
 
+
+function getWorkerCurrentWalletBalance() {
+    const webText = document.getElementById('walletAmount')?.innerText;
+    const apkText = document.getElementById('apkWalletAmount')?.innerText;
+    const modalText = document.getElementById('modalPaymentsWalletBalance')?.innerText;
+    const raw = String(webText || apkText || modalText || '0').replace(/\D/g, '');
+    const val = parseInt(raw, 10);
+    return isNaN(val) ? 0 : val;
+}
+
 function toggleDuty() {
     if (!isDutyOn) {
         if (currentWorkerVerificationStatus !== 'approved') {
             showWorkerKycAlertModal(currentWorkerVerificationStatus, currentWorkerRejectReason);
+            return;
+        }
+
+        // Rule: Worker wallet must have at least ₹10 to turn Duty ON
+        const currentBal = getWorkerCurrentWalletBalance();
+        if (currentBal < 10) {
+            alert("⚠️ ड्युटी चालू (Duty ON) करण्यासाठी तुमच्या वॉलेटमध्ये किमान ₹१० शिल्लक असणे आवश्यक आहे!\n\nसध्याची शिल्लक: ₹" + currentBal + "\n\nनवीन कामे स्वीकारण्यासाठी कृपया आधी वॉलेट रिचार्ज करा.");
+            openCreditModal();
             return;
         }
     }
@@ -2679,6 +2697,76 @@ function finalizeOrderCompletion(orderId) {
                 }).catch(err => console.warn('Customer VIP check error:', err));
             }
         }).catch(err => console.error('Order read error for VIP:', err));
+
+        // 8% Commission deduction from worker wallet on completing the order
+        database.ref("orders/" + orderId).once("value").then((snap) => {
+            const ordData = snap.val();
+            if (!ordData || ordData.commissionDeducted) return;
+
+            // Extract job amount (e.g. ₹500 -> 500)
+            const rawBudget = String(ordData.budget || '').split('(')[0];
+            const m = rawBudget.match(/\d+/);
+            const jobAmount = (typeof ordData.orderAmount === 'number' && ordData.orderAmount > 0)
+                ? ordData.orderAmount
+                : (m ? parseInt(m[0], 10) : 500);
+
+            // 8% commission calculation
+            const commission = Math.max(1, Math.round(jobAmount * 0.08));
+
+            const workerId = (typeof workerProfile !== 'undefined' && workerProfile && workerProfile.uid) || 
+                             (typeof currentWorkerUid !== 'undefined' && currentWorkerUid) || 
+                             ('local_worker_' + (typeof getCurrentWorkerMobile === 'function' ? getCurrentWorkerMobile() : ''));
+
+            if (workerId) {
+                // Deduct 8% commission from worker wallet in Firebase
+                database.ref('workers/' + workerId + '/wallet').transaction((curr) => {
+                    return Math.max(0, (Number(curr) || 50) - commission);
+                });
+                database.ref('workers/' + workerId + '/walletBalance').transaction((curr) => {
+                    return Math.max(0, (Number(curr) || 50) - commission);
+                });
+
+                // Record debit transaction in passbook
+                database.ref('walletTransactions/' + workerId).push({
+                    type: 'DEBIT',
+                    amount: commission,
+                    reason: `घरमित्र कमिशन (८% वजावट) - ₹${jobAmount} चे काम पूर्ण`,
+                    orderId: orderId,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                // Mark order as commission deducted
+                database.ref('orders/' + orderId).update({
+                    commissionDeducted: true,
+                    commissionAmount: commission,
+                    commissionPercentage: 8,
+                    commissionDeductedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                // Update UI display
+                const curBal = getWorkerCurrentWalletBalance();
+                const newBal = Math.max(0, curBal - commission);
+                const w1 = document.getElementById('walletAmount');
+                const w2 = document.getElementById('apkWalletAmount');
+                const w3 = document.getElementById('modalPaymentsWalletBalance');
+                if (w1) w1.innerText = newBal;
+                if (w2) w2.innerText = newBal;
+                if (w3) w3.innerText = newBal;
+
+                if (typeof showApkToast === 'function') {
+                    showApkToast(`₹${commission} (८% कमिशन) तुमच्या वॉलेटमधून वजा झाले.`);
+                }
+
+                // If balance drops below ₹10, auto turn duty OFF!
+                if (newBal < 10 && isDutyOn) {
+                    toggleDuty();
+                    setTimeout(() => {
+                        alert(`⚠️ काम पूर्ण झाल्यानंतर तुमचे वॉलेट शिल्लक ₹१० पेक्षा कमी (₹${newBal}) झाल्यामुळे ड्युटी आपोआप बंद (OFF) झाली आहे.\n\nनवीन कामे मिळण्यासाठी कृपया आधी वॉलेट रिचार्ज करा!`);
+                        openCreditModal();
+                    }, 600);
+                }
+            }
+        }).catch(err => console.error('Commission deduction error:', err));
 
         loadWorkerEarnings();
         alert("🎉 OTP यशस्वीरीत्या व्हेरिफाय झाला! काम पूर्ण झाले आहे.");
