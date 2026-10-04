@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Gharmitra - Worker Portal</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -171,7 +174,7 @@
 
 <div class="inner-3d-box p-4 rounded-2xl text-center min-w-[145px] w-full sm:w-auto text-slate-800">
 <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">SERVICE CREDITS</span>
-<span class="text-2xl font-black text-emerald-600 block my-1">₹<span id="walletAmount">50</span></span>
+<span class="text-2xl font-black text-emerald-600 block my-1">₹<span id="walletAmount">--</span></span>
 <button onclick="openCreditModal()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs py-2 px-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1">
 <i class="fa-solid fa-coins text-[10px]"></i> Buy Credits
 </button>
@@ -499,7 +502,7 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
                 <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 shrink-0"></i>
             </div>
             <div onclick="openWorkerPaymentsModal()" class="text-2xl font-black text-slate-800 tracking-tight my-auto cursor-pointer">
-                ₹<span id="apkWalletAmount">50</span>
+                ₹<span id="apkWalletAmount">--</span>
             </div>
             <div>
                 <button type="button" onclick="openCreditModal()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-[11px] py-1 px-3 rounded-full flex items-center justify-center gap-1 transition shadow-xs cursor-pointer">
@@ -1014,7 +1017,7 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
             <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-4 shadow-md flex items-center justify-between">
                 <div>
                     <span class="text-[11px] text-emerald-100 uppercase tracking-wider block font-bold">शिल्लक क्रेडिट्स (Wallet)</span>
-                    <span class="text-3xl font-black mt-1 block">₹<span id="modalPaymentsWalletBalance">50</span></span>
+                    <span class="text-3xl font-black mt-1 block">₹<span id="modalPaymentsWalletBalance">--</span></span>
                     <span class="text-[10px] text-emerald-200 mt-1 block">नवीन कामे स्वीकारण्यासाठी क्रेडिट्स लागतात.</span>
                 </div>
                 <button type="button" onclick="closeWorkerPaymentsModal(); openCreditModal();" class="bg-white text-emerald-700 font-bold text-xs py-2 px-3.5 rounded-xl shadow transition hover:bg-emerald-50 active:scale-95 shrink-0">
@@ -1192,10 +1195,10 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
     Copied!
 </div>
 
-<script src="js/firebase.js?v=42"></script>
-<script src="js/call-masking.js?v=42"></script>
-<script src="js/worker.js?v=45"></script>
-<script src="js/pwa.js?v=42"></script>
+<script src="js/firebase.js?v=52"></script>
+<script src="js/call-masking.js?v=52"></script>
+<script src="js/worker.js?v=52"></script>
+<script src="js/pwa.js?v=52"></script>
 
 <!-- Worker Digital ID Card & Society Gate Pass Modal -->
 <div id="workerIdCardModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">

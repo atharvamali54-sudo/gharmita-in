@@ -581,6 +581,17 @@ let currentRole = 'customer';
                 if (cloudUser && cloudUser.mobile) {
                     // Update local storage so this phone has it cached too
                     const merged = { ...(localUser || {}), ...cloudUser, role: safeRole };
+                    if (safeRole === 'worker') {
+                        try {
+                            const lwSnap = await database.ref('workers/local_worker_' + cleanMobile).once('value');
+                            const lwData = lwSnap.val();
+                            if (lwData) {
+                                const bestBal = lwData.wallet !== undefined ? lwData.wallet : (cloudUser.wallet !== undefined ? cloudUser.wallet : (cloudUser.balance !== undefined ? cloudUser.balance : (lwData.balance !== undefined ? lwData.balance : 0)));
+                                merged.balance = bestBal;
+                                merged.wallet = bestBal;
+                            }
+                        } catch(e) {}
+                    }
                     saveUserToLocalStorageOnly(safeRole, merged);
                     return merged;
                 }
