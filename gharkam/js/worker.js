@@ -1077,6 +1077,10 @@ function loadLocalWorkerSession() {
             database.ref('workers/' + uid).on('value', (snap) => {
                 const wData = snap.val();
                 if (wData) {
+                    const liveBal = wData.wallet !== undefined ? wData.wallet : (wData.walletBalance !== undefined ? wData.walletBalance : wData.balance);
+                    if (liveBal !== undefined && liveBal !== null) {
+                        updateWorkerWalletUI(liveBal);
+                    }
                     const fbName = wData.name || wData.fullName || wData.workerName;
                     if (fbName && fbName !== "Worker") {
                         applyWorkerName(fbName);
@@ -1114,6 +1118,10 @@ function loadLocalWorkerSession() {
                 database.ref('workers/accounts/workers/' + workerMobile).on('value', aSnap => {
                     const aData = aSnap.val();
                     if (aData) {
+                        const liveBal = aData.wallet !== undefined ? aData.wallet : (aData.walletBalance !== undefined ? aData.walletBalance : aData.balance);
+                        if (liveBal !== undefined && liveBal !== null) {
+                            updateWorkerWalletUI(liveBal);
+                        }
                         if (aData.photo || aData.photoUrl) {
                             applyWorkerPhoto(aData.photo || aData.photoUrl);
                         }
@@ -1126,18 +1134,24 @@ function loadLocalWorkerSession() {
                     }
                 });
 
-                database.ref('workers/local_worker_' + workerMobile).once('value').then(lwSnap => {
+                database.ref('workers/local_worker_' + workerMobile).on('value', lwSnap => {
                     const lwData = lwSnap.val();
-                    if (lwData && (lwData.photo || lwData.photoUrl)) {
-                        applyWorkerPhoto(lwData.photo || lwData.photoUrl);
+                    if (lwData) {
+                        const liveBal = lwData.wallet !== undefined ? lwData.wallet : (lwData.walletBalance !== undefined ? lwData.walletBalance : lwData.balance);
+                        if (liveBal !== undefined && liveBal !== null) {
+                            updateWorkerWalletUI(liveBal);
+                        }
+                        if (lwData.photo || lwData.photoUrl) {
+                            applyWorkerPhoto(lwData.photo || lwData.photoUrl);
+                        }
+                        if (lwData.verificationStatus !== undefined) {
+                            currentWorkerVerificationStatus = lwData.verificationStatus;
+                            currentWorkerRejectReason = lwData.kycRejectReason || '';
+                            if (lwData.aadharCardPhoto) currentWorkerAadharPhoto = lwData.aadharCardPhoto;
+                            updateKycUI(currentWorkerVerificationStatus, currentWorkerRejectReason);
+                        }
                     }
-                    if (lwData && lwData.verificationStatus !== undefined) {
-                        currentWorkerVerificationStatus = lwData.verificationStatus;
-                        currentWorkerRejectReason = lwData.kycRejectReason || '';
-                        if (lwData.aadharCardPhoto) currentWorkerAadharPhoto = lwData.aadharCardPhoto;
-                        updateKycUI(currentWorkerVerificationStatus, currentWorkerRejectReason);
-                    }
-                }).catch(() => {});
+                });
 
                 database.ref('orders').orderByChild('customerMobile').equalTo(workerMobile).limitToLast(5).once('value').then(oSnap => {
                     const orders = oSnap.val();
@@ -1527,10 +1541,13 @@ auth.onAuthStateChanged((user) => {
                     }
                 }
 
+                const cloudWallet = workerData.wallet !== undefined ? workerData.wallet : (workerData.walletBalance !== undefined ? workerData.walletBalance : (workerData.balance !== undefined ? workerData.balance : undefined));
+                const finalWallet = cloudWallet !== undefined ? cloudWallet : (localSession.balance !== undefined ? localSession.balance : (localSession.wallet !== undefined ? localSession.wallet : 50));
+
                 const combinedData = {
                     name: finalName,
                     service: finalService,
-                    wallet: workerData.wallet !== undefined ? workerData.wallet : (localSession.balance || 50),
+                    wallet: finalWallet,
                     workerIndex: workerData.workerIndex || Math.floor(100000 + Math.random() * 900000),
                     rating: calcRating,
                     totalReviews: calcTotalReviews,
@@ -1573,7 +1590,7 @@ function updateWorkerUI(data) {
     currentWorkerService = cleanService;
     document.getElementById('workerService').innerText = currentWorkerService;
 
-    if(data.wallet !== undefined) document.getElementById('walletAmount').innerText = data.wallet;
+    if(data.wallet !== undefined) updateWorkerWalletUI(data.wallet);
     if(data.rating !== undefined) document.getElementById('workerAvgRating').innerText = Number(data.rating).toFixed(1);
     if(data.totalReviews !== undefined) document.getElementById('workerTotalReviews').innerText = data.totalReviews;
     
@@ -2041,6 +2058,26 @@ function getWorkerCurrentWalletBalance() {
     const raw = String(webText || apkText || modalText || '0').replace(/\D/g, '');
     const val = parseInt(raw, 10);
     return isNaN(val) ? 0 : val;
+}
+
+function updateWorkerWalletUI(newBalance) {
+    if (newBalance === undefined || newBalance === null) return;
+    const cleanBal = Math.max(0, Math.round(Number(newBalance) || 0));
+
+    const w1 = document.getElementById('walletAmount');
+    const w2 = document.getElementById('apkWalletAmount');
+    const w3 = document.getElementById('modalPaymentsWalletBalance');
+
+    if (w1) w1.innerText = cleanBal;
+    if (w2) w2.innerText = cleanBal;
+    if (w3) w3.innerText = cleanBal;
+
+    try {
+        const s = JSON.parse(localStorage.getItem('current_user_session') || '{}');
+        s.balance = cleanBal;
+        s.wallet = cleanBal;
+        localStorage.setItem('current_user_session', JSON.stringify(s));
+    } catch(e) {}
 }
 
 function toggleDuty(forceState) {
@@ -2812,20 +2849,47 @@ function finalizeOrderCompletion(orderId) {
             // 8% commission calculation
             const commission = Math.max(1, Math.round(jobAmount * 0.08));
 
+            const cleanMobile = (typeof getCurrentWorkerMobile === 'function') ? getCurrentWorkerMobile() : '';
+            const ordWorkerMobile = String(ordData.workerMobile || ordData.workerPhone || '').replace(/\D/g, '').slice(-10);
+            const effectiveMobile = cleanMobile || ordWorkerMobile;
+
             const workerId = (typeof workerProfile !== 'undefined' && workerProfile && workerProfile.uid) || 
                              (typeof currentWorkerUid !== 'undefined' && currentWorkerUid) || 
-                             ('local_worker_' + (typeof getCurrentWorkerMobile === 'function' ? getCurrentWorkerMobile() : ''));
+                             (effectiveMobile ? ('local_worker_' + effectiveMobile) : '');
 
+            // Calculate new balance
+            const curBal = getWorkerCurrentWalletBalance();
+            const newBal = Math.max(0, curBal - commission);
+
+            // Update UI across all elements & local storage immediately
+            updateWorkerWalletUI(newBal);
+
+            const allWorkerKeys = new Set();
+            if (workerId) allWorkerKeys.add(workerId);
+            if (effectiveMobile) {
+                allWorkerKeys.add('local_worker_' + effectiveMobile);
+                allWorkerKeys.add(effectiveMobile);
+            }
+            if (cleanMobile) {
+                allWorkerKeys.add('local_worker_' + cleanMobile);
+                allWorkerKeys.add(cleanMobile);
+            }
+            if (ordData.workerUid) allWorkerKeys.add(ordData.workerUid);
+            if (ordData.workerId) allWorkerKeys.add(ordData.workerId);
+            if (typeof currentWorkerUid !== 'undefined' && currentWorkerUid) allWorkerKeys.add(currentWorkerUid);
+
+            // Deduct / update in all worker Firebase nodes
+            allWorkerKeys.forEach(wKey => {
+                database.ref('workers/' + wKey + '/wallet').set(newBal);
+                database.ref('workers/' + wKey + '/walletBalance').set(newBal);
+                database.ref('workers/' + wKey + '/balance').set(newBal);
+                database.ref('workers/accounts/workers/' + wKey + '/wallet').set(newBal);
+                database.ref('workers/accounts/workers/' + wKey + '/walletBalance').set(newBal);
+                database.ref('workers/accounts/workers/' + wKey + '/balance').set(newBal);
+            });
+
+            // Record debit transaction in passbook
             if (workerId) {
-                // Deduct 8% commission from worker wallet in Firebase
-                database.ref('workers/' + workerId + '/wallet').transaction((curr) => {
-                    return Math.max(0, (Number(curr) || 50) - commission);
-                });
-                database.ref('workers/' + workerId + '/walletBalance').transaction((curr) => {
-                    return Math.max(0, (Number(curr) || 50) - commission);
-                });
-
-                // Record debit transaction in passbook
                 database.ref('walletTransactions/' + workerId).push({
                     type: 'DEBIT',
                     amount: commission,
@@ -2833,28 +2897,28 @@ function finalizeOrderCompletion(orderId) {
                     orderId: orderId,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
-
-                // Mark order as commission deducted
-                database.ref('orders/' + orderId).update({
-                    commissionDeducted: true,
-                    commissionAmount: commission,
-                    commissionPercentage: 8,
-                    commissionDeductedAt: firebase.database.ServerValue.TIMESTAMP
+            }
+            if (cleanMobile && cleanMobile !== workerId) {
+                database.ref('walletTransactions/local_worker_' + cleanMobile).push({
+                    type: 'DEBIT',
+                    amount: commission,
+                    reason: `घरमित्र कमिशन (८% वजावट) - ₹${jobAmount} चे काम पूर्ण`,
+                    orderId: orderId,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
+            }
 
-                // Update UI display
-                const curBal = getWorkerCurrentWalletBalance();
-                const newBal = Math.max(0, curBal - commission);
-                const w1 = document.getElementById('walletAmount');
-                const w2 = document.getElementById('apkWalletAmount');
-                const w3 = document.getElementById('modalPaymentsWalletBalance');
-                if (w1) w1.innerText = newBal;
-                if (w2) w2.innerText = newBal;
-                if (w3) w3.innerText = newBal;
+            // Mark order as commission deducted
+            database.ref('orders/' + orderId).update({
+                commissionDeducted: true,
+                commissionAmount: commission,
+                commissionPercentage: 8,
+                commissionDeductedAt: firebase.database.ServerValue.TIMESTAMP
+            });
 
-                if (typeof showApkToast === 'function') {
-                    showApkToast(`₹${commission} (८% कमिशन) तुमच्या वॉलेटमधून वजा झाले.`);
-                }
+            if (typeof showApkToast === 'function') {
+                showApkToast(`₹${commission} (८% कमिशन) तुमच्या वॉलेटमधून वजा झाले.`);
+            }
 
                 // If balance drops below ₹10, auto turn duty OFF!
                 if (newBal < 10 && isDutyOn) {
