@@ -1753,17 +1753,37 @@ populateBookingProfile();
                     : '<i class="fa-solid fa-spinner fa-spin"></i> <span>Booking in progress...</span>';
             }
 
-            const service = document.getElementById('apkServiceSelect')?.value || document.getElementById('serviceSelect')?.value;
-            const name = (document.getElementById('apkCustomerName')?.value || document.getElementById('customerName')?.value || '').trim();
-            const mobile = (document.getElementById('apkCustomerMobile')?.value || document.getElementById('customerMobile')?.value || '').trim();
-            const area = document.getElementById('apkAreaSelect')?.value || document.getElementById('areaSelect')?.value;
-            const address = (document.getElementById('apkCustomerAddress')?.value || document.getElementById('customerAddress')?.value || '').trim();
-            const budget = document.getElementById('apkBudgetInput')?.value || document.getElementById('budgetInput')?.value;
-            const date = document.getElementById('apkBookingDate')?.value || document.getElementById('bookingDate')?.value;
-            const time = document.getElementById('apkBookingTime')?.value || document.getElementById('bookingTime')?.value;
-            const photoInput = (document.getElementById('apkJobPhoto')?.files?.length)
-                ? document.getElementById('apkJobPhoto')
-                : document.getElementById('jobPhoto');
+            const isAppMode = document.documentElement.classList.contains('is-app-env') ||
+                              document.documentElement.classList.contains('is-mobile-app');
+
+            // Accurately select inputs based on active mode (Desktop Website vs APK Mobile App)
+            const service = (isAppMode ? document.getElementById('apkServiceSelect')?.value : document.getElementById('serviceSelect')?.value) ||
+                            document.getElementById('serviceSelect')?.value || document.getElementById('apkServiceSelect')?.value;
+
+            const name = ((isAppMode ? document.getElementById('apkCustomerName')?.value : document.getElementById('customerName')?.value) ||
+                          document.getElementById('customerName')?.value || document.getElementById('apkCustomerName')?.value || '').trim();
+
+            const mobile = ((isAppMode ? document.getElementById('apkCustomerMobile')?.value : document.getElementById('customerMobile')?.value) ||
+                            document.getElementById('customerMobile')?.value || document.getElementById('apkCustomerMobile')?.value || '').trim();
+
+            const area = (isAppMode ? document.getElementById('apkAreaSelect')?.value : document.getElementById('areaSelect')?.value) ||
+                         document.getElementById('areaSelect')?.value || document.getElementById('apkAreaSelect')?.value;
+
+            const address = ((isAppMode ? document.getElementById('apkCustomerAddress')?.value : document.getElementById('customerAddress')?.value) ||
+                             document.getElementById('customerAddress')?.value || document.getElementById('apkCustomerAddress')?.value || '').trim();
+
+            const budget = (isAppMode ? document.getElementById('apkBudgetInput')?.value : document.getElementById('budgetInput')?.value) ||
+                           document.getElementById('budgetInput')?.value || document.getElementById('apkBudgetInput')?.value;
+
+            const date = (isAppMode ? document.getElementById('apkBookingDate')?.value : document.getElementById('bookingDate')?.value) ||
+                         document.getElementById('bookingDate')?.value || document.getElementById('apkBookingDate')?.value;
+
+            const time = (isAppMode ? document.getElementById('apkBookingTime')?.value : document.getElementById('bookingTime')?.value) ||
+                         document.getElementById('bookingTime')?.value || document.getElementById('apkBookingTime')?.value;
+
+            const photoInput = isAppMode
+                ? (document.getElementById('apkJobPhoto')?.files?.length ? document.getElementById('apkJobPhoto') : document.getElementById('jobPhoto'))
+                : (document.getElementById('jobPhoto')?.files?.length ? document.getElementById('jobPhoto') : document.getElementById('apkJobPhoto'));
 
             if (!service || !name || !mobile || mobile.length !== 10 || !area || !address) {
                 alert("कृपया सर्व आवश्यक माहिती आणि अचूक १० अंकी मोबाईल नंबर भरा!");
@@ -3801,3 +3821,17 @@ function closeCustomerReceiptModal() {
     const modal = document.getElementById('customerReceiptModal');
     if (modal) modal.classList.add('hidden');
 }
+
+// Two-Way Sync between Desktop and Mobile Area & Service Selects
+document.addEventListener('DOMContentLoaded', () => {
+    const bindSync = (id1, id2) => {
+        const el1 = document.getElementById(id1);
+        const el2 = document.getElementById(id2);
+        if (el1 && el2) {
+            el1.addEventListener('change', () => { if (el2.value !== el1.value) el2.value = el1.value; });
+            el2.addEventListener('change', () => { if (el1.value !== el2.value) el1.value = el2.value; });
+        }
+    };
+    bindSync('areaSelect', 'apkAreaSelect');
+    bindSync('serviceSelect', 'apkServiceSelect');
+});

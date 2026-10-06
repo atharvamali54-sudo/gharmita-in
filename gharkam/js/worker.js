@@ -426,8 +426,7 @@ function claimNextOffer() {
     const candidate = Object.entries(allOrdersData)
         .map(([id, order]) => ({ id, order }))
         .find(({ order }) => isMatchingPendingOrder(order, selectedArea) &&
-            (!order.offerExpiresAt || Number(order.offerExpiresAt) <= orderNow()) &&
-            !(order.offerDeclines && Number(order.offerDeclines[currentWorkerUid]) > orderNow() - OFFER_WINDOW_MS));
+            (!order.offerExpiresAt || Number(order.offerExpiresAt) <= orderNow()));
     if (!candidate) return;
 
     offerClaimInFlight = true;
@@ -2102,7 +2101,13 @@ function toggleDuty() {
     renderJobs();
 }
 
-function filterAreaJobs() { renderJobs(); }
+function filterAreaJobs() {
+    const val = document.getElementById('workingAreaSelect')?.value;
+    const apkArea = document.getElementById('apkWorkingAreaSelect');
+    if (apkArea && val) apkArea.value = val;
+    claimNextOffer();
+    renderJobs();
+}
 
 database.ref("orders").on("value", (snapshot) => {
     allOrdersData = snapshot.val();
@@ -2212,7 +2217,7 @@ function renderJobs() {
         // An assigned worker must finish the active order before seeing any
         // other pending order.  A pending job is visible only during this
         // worker's exclusive 30-second offer window.
-        const isCurrentWorkersOffer = (!item.offerWorkerUid || (item.offerWorkerUid === currentWorkerUid && Number(item.offerExpiresAt) > orderNow()));
+        const isCurrentWorkersOffer = (!item.offerWorkerUid || Number(item.offerExpiresAt) <= orderNow() || item.offerWorkerUid === currentWorkerUid);
         // STTRICTLY ONE ORDER AT A TIME: Only render if pendingCount === 0
         if (pendingCount === 0 && !activeOrderId && item.status === 'Pending' && isAreaMatch && isServiceMatch && isCurrentWorkersOffer) {
             pendingCount++;
