@@ -773,9 +773,9 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
 
 
 <!-- Worker Work-Start QR Scanner Modal -->
-<div id="workerQrScannerModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-slate-100 text-center animate-in zoom-in-95 duration-200 relative">
-        <button type="button" onclick="closeWorkerQrScannerModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">✕</button>
+<div id="workerQrScannerModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl border border-slate-100 text-center animate-in zoom-in-95 duration-200 relative max-h-[88vh] overflow-y-auto my-auto overscroll-contain">
+        <button type="button" onclick="closeWorkerQrScannerModal()" class="absolute top-3.5 right-3.5 text-slate-400 hover:text-slate-700 text-base font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition">✕</button>
         
         <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 text-2xl flex items-center justify-center mx-auto mb-2 shadow-sm">
             <i class="fa-solid fa-qrcode"></i>
@@ -813,11 +813,11 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
 </div>
 
 <!-- Work Completion OTP Verification Modal & Final Minute Bill Summary -->
-<div id="completionOtpModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-slate-100 text-center space-y-3.5 relative">
-        <button onclick="closeCompletionOtpModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">✕</button>
+<div id="completionOtpModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl border border-slate-100 text-center space-y-3 relative max-h-[88vh] overflow-y-auto my-auto overscroll-contain">
+        <button onclick="closeCompletionOtpModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-700 text-base font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition">✕</button>
         
-        <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 text-2xl flex items-center justify-center mx-auto shadow-sm">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 text-xl flex items-center justify-center mx-auto shadow-sm">
             <i class="fa-solid fa-file-invoice-dollar"></i>
         </div>
         
@@ -886,21 +886,21 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
 
         <div>
             <p class="text-xs font-bold text-slate-700 mb-1">ग्राहकाच्या स्क्रीनवरील ४-अंकी OTP टाका:</p>
-            <input type="text" id="workCompletionOtpInput" maxlength="4" inputmode="numeric" placeholder="••••" class="w-full text-center text-3xl font-black tracking-[0.4em] bg-slate-50 border-2 border-slate-300 focus:border-emerald-600 rounded-2xl py-2.5 px-4 outline-none transition shadow-inner">
+            <input type="text" id="workCompletionOtpInput" maxlength="4" inputmode="numeric" placeholder="••••" class="w-full text-center text-3xl font-black tracking-[0.4em] bg-slate-50 border-2 border-slate-300 focus:border-emerald-600 rounded-2xl py-2 px-4 outline-none transition shadow-inner">
         </div>
 
         <div id="completionOtpStatusMsg" class="hidden text-xs font-bold p-2.5 rounded-xl text-center"></div>
 
-        <div class="grid grid-cols-2 gap-2 pt-1">
-            <button type="button" onclick="closeCompletionOtpModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-xs transition">
+        <div class="grid grid-cols-2 gap-2 pt-1 pb-1">
+            <button type="button" onclick="closeCompletionOtpModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 sm:py-3 rounded-xl text-xs transition">
                 रद्द करा
             </button>
-            <button type="button" onclick="verifyAndCompleteWork()" id="verifyOtpBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5">
+            <button type="button" onclick="verifyAndCompleteWork()" id="verifyOtpBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 sm:py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-check"></i> व्हेरिफाय करा
             </button>
         </div>
 
-        <button type="button" onclick="resendCompletionOtp()" id="resendOtpBtn" class="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline block mx-auto pt-0.5">
+        <button type="button" onclick="resendCompletionOtp()" id="resendOtpBtn" class="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline block mx-auto pb-1">
             <i class="fa-solid fa-rotate-right mr-1"></i> OTP पुन्हा पाठवा (Resend OTP)
         </button>
     </div>
@@ -1298,8 +1298,8 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
 
 <script src="js/firebase.js?v=56"></script>
 <script src="js/call-masking.js?v=56"></script>
-<script src="js/worker.js?v=60"></script>
-<script src="js/pwa.js?v=60"></script>
+<script src="js/worker.js?v=61"></script>
+<script src="js/pwa.js?v=61"></script>
 
 <!-- Worker Digital ID Card & Society Gate Pass Modal -->
 <div id="workerIdCardModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
