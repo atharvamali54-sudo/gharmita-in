@@ -703,6 +703,20 @@
                                 </div>
                             </div>
 
+                            <!-- Material Cost Breakdown Box -->
+                            <div id="customerMaterialBreakdownBox" class="hidden bg-white/10 border border-amber-400/30 rounded-xl p-3 text-left space-y-1.5 text-xs text-slate-100">
+                                <div class="flex justify-between items-center text-amber-300 font-bold border-b border-white/10 pb-1">
+                                    <span>🛍️ साहित्य/मटेरियल खर्च:</span>
+                                    <span id="customerMaterialCostDisplay" class="text-sm font-black text-amber-300">₹0</span>
+                                </div>
+                                <div class="text-[11px] text-slate-200 flex items-center justify-between">
+                                    <span>वस्तू: <strong id="customerMaterialItemsDisplay" class="text-white">-</strong></span>
+                                    <button type="button" id="customerMaterialReceiptBtn" onclick="openCustomerReceiptModal()" class="hidden bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[10px] px-2.5 py-1 rounded-lg transition shadow">
+                                        🧾 पावती पहा (Receipt)
+                                    </button>
+                                </div>
+                            </div>
+
                             <!-- Paused Alert Banner -->
                             <div id="customerWorkPausedBanner" class="hidden bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs font-bold p-2.5 rounded-xl flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-pause text-amber-400"></i>
@@ -1303,6 +1317,20 @@
                             </div>
                         </div>
 
+                        <!-- Material Cost Breakdown Box -->
+                        <div id="apkMaterialBreakdownBox" class="hidden bg-white/10 border border-amber-400/30 rounded-xl p-3 text-left space-y-1.5 text-xs text-slate-100">
+                            <div class="flex justify-between items-center text-amber-300 font-bold border-b border-white/10 pb-1">
+                                <span>🛍️ साहित्य/मटेरियल खर्च:</span>
+                                <span id="apkMaterialCostDisplay" class="text-sm font-black text-amber-300">₹0</span>
+                            </div>
+                            <div class="text-[11px] text-slate-200 flex items-center justify-between">
+                                <span>वस्तू: <strong id="apkMaterialItemsDisplay" class="text-white">-</strong></span>
+                                <button type="button" id="apkMaterialReceiptBtn" onclick="openCustomerReceiptModal()" class="hidden bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[10px] px-2.5 py-1 rounded-lg transition shadow">
+                                    🧾 पावती पहा
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Paused Alert Banner -->
                         <div id="apkWorkPausedBanner" class="hidden bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs font-bold p-2.5 rounded-xl flex items-center justify-center gap-2">
                             <i class="fa-solid fa-pause text-amber-400"></i>
@@ -1639,8 +1667,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="js/firebase.js?v=43"></script>
     <script src="js/call-masking.js?v=43"></script>
-    <script src="js/customer.js?v=57"></script>
-    <script src="js/pwa.js?v=57"></script>
+    <script src="js/customer.js?v=58"></script>
+    <script src="js/pwa.js?v=58"></script>
 
     <!-- Customer Wallet & VIP Rewards Modal -->
     <div id="customerWalletModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
@@ -1696,5 +1724,22 @@
             </button>
         </div>
     </div>
+
+<!-- Customer Receipt Image Modal -->
+<div id="customerReceiptModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-3xl p-4 shadow-2xl space-y-3 relative animate-in zoom-in-95 duration-200">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h4 class="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                <i class="fa-solid fa-receipt text-emerald-600"></i> साहित्याची दुकान पावती (Shop Receipt)
+            </h4>
+            <button onclick="closeCustomerReceiptModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs">✕</button>
+        </div>
+        <div class="max-h-[70vh] overflow-auto rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center p-1">
+            <img id="customerReceiptModalImg" src="" alt="Shop Receipt" class="w-full h-auto max-h-[65vh] object-contain rounded-xl">
+        </div>
+        <button type="button" onclick="closeCustomerReceiptModal()" class="w-full py-2 bg-slate-800 text-white font-bold rounded-xl text-xs transition">झाले (Close)</button>
+    </div>
+</div>
+
 </body>
 </html>

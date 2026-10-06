@@ -3599,3 +3599,205 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// =========================================================
+// Pay-Per-Minute (₹3/min) Live QR, Work Meter & Material Engine
+// =========================================================
+let _customerLiveMeterInterval = null;
+window._lastCustomerReceiptUrl = null;
+
+function handleCustomerPayPerMinuteState(orderId, data) {
+    const qrCardDesktop = document.getElementById('customerWorkStartQrCard');
+    const qrCardMobile = document.getElementById('apkWorkStartQrCard');
+    const meterCardDesktop = document.getElementById('customerLiveWorkMeterCard');
+    const meterCardMobile = document.getElementById('apkLiveWorkMeterCard');
+
+    // 1. Worker Reached Location -> Render Dynamic Start QR and 4-digit PIN
+    if (data.status === 'Reached Location') {
+        if (_customerLiveMeterInterval) {
+            clearInterval(_customerLiveMeterInterval);
+            _customerLiveMeterInterval = null;
+        }
+        if (meterCardDesktop) meterCardDesktop.classList.add('hidden');
+        if (meterCardMobile) meterCardMobile.classList.add('hidden');
+
+        if (qrCardDesktop) qrCardDesktop.classList.remove('hidden');
+        if (qrCardMobile) qrCardMobile.classList.remove('hidden');
+
+        const startPin = data.startOtp || '1234';
+        const startToken = `gharmitra:start:${orderId}:${startPin}`;
+
+        const dOtpEl = document.getElementById('customerStartOtpDisplay');
+        const mOtpEl = document.getElementById('apkStartOtpDisplay');
+        if (dOtpEl) dOtpEl.innerText = startPin;
+        if (mOtpEl) mOtpEl.innerText = startPin;
+
+        renderCustomerStartQr('customerWorkStartQrContainer', startToken);
+        renderCustomerStartQr('apkWorkStartQrContainer', startToken);
+        return;
+    } else {
+        if (qrCardDesktop) qrCardDesktop.classList.add('hidden');
+        if (qrCardMobile) qrCardMobile.classList.add('hidden');
+    }
+
+    // 2. Work In Progress -> Activate Synchronized Live Meter with Material Breakdown
+    if (data.status === 'In Progress') {
+        if (meterCardDesktop) meterCardDesktop.classList.remove('hidden');
+        if (meterCardMobile) meterCardMobile.classList.remove('hidden');
+
+        const updateLiveMeterUI = () => {
+            const now = Date.now();
+            const startedAt = Number(data.workStartedAt || now);
+            let pausedSec = Number(data.totalPausedSeconds || 0);
+            if (data.isWorkPaused && data.workCurrentPauseStartedAt) {
+                pausedSec += Math.floor((now - Number(data.workCurrentPauseStartedAt)) / 1000);
+            }
+            const netActiveSec = Math.max(0, Math.floor((now - startedAt) / 1000) - pausedSec);
+
+            const hrs = Math.floor(netActiveSec / 3600);
+            const mins = Math.floor((netActiveSec % 3600) / 60);
+            const secs = netActiveSec % 60;
+            const timeString = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            // Labor pricing: ₹60 base fare for first 20 mins, then ₹3/min
+            const billedMins = Math.ceil(netActiveSec / 60);
+            let laborFare = 60;
+            if (billedMins > 20) {
+                laborFare = 60 + ((billedMins - 20) * 3);
+            }
+
+            // Material Cost Breakdown
+            const matCost = Number(data.materialCost || 0);
+            const matItems = data.materialItems || 'साहित्य / स्पेअर पार्ट';
+            const matReceiptUrl = data.materialReceiptUrl || '';
+
+            const dMatBox = document.getElementById('customerMaterialBreakdownBox');
+            const mMatBox = document.getElementById('apkMaterialBreakdownBox');
+            const dMatCost = document.getElementById('customerMaterialCostDisplay');
+            const mMatCost = document.getElementById('apkMaterialCostDisplay');
+            const dMatItems = document.getElementById('customerMaterialItemsDisplay');
+            const mMatItems = document.getElementById('apkMaterialItemsDisplay');
+            const dReceiptBtn = document.getElementById('customerMaterialReceiptBtn');
+            const mReceiptBtn = document.getElementById('apkMaterialReceiptBtn');
+
+            if (matCost > 0) {
+                if (dMatBox) dMatBox.classList.remove('hidden');
+                if (mMatBox) mMatBox.classList.remove('hidden');
+                if (dMatCost) dMatCost.innerText = `₹${matCost}`;
+                if (mMatCost) mMatCost.innerText = `₹${matCost}`;
+                if (dMatItems) dMatItems.innerText = matItems;
+                if (mMatItems) mMatItems.innerText = matItems;
+
+                if (matReceiptUrl) {
+                    window._lastCustomerReceiptUrl = matReceiptUrl;
+                    if (dReceiptBtn) dReceiptBtn.classList.remove('hidden');
+                    if (mReceiptBtn) mReceiptBtn.classList.remove('hidden');
+                } else {
+                    if (dReceiptBtn) dReceiptBtn.classList.add('hidden');
+                    if (mReceiptBtn) mReceiptBtn.classList.add('hidden');
+                }
+            } else {
+                if (dMatBox) dMatBox.classList.add('hidden');
+                if (mMatBox) mMatBox.classList.add('hidden');
+            }
+
+            const totalCombinedFare = laborFare + matCost;
+
+            const dTimer = document.getElementById('customerLiveWorkTimer');
+            const mTimer = document.getElementById('apkLiveWorkTimer');
+            const dAmt = document.getElementById('customerLiveWorkAmount');
+            const mAmt = document.getElementById('apkLiveWorkAmount');
+
+            if (dTimer) dTimer.innerText = timeString;
+            if (mTimer) mTimer.innerText = timeString;
+            if (dAmt) dAmt.innerText = `₹${totalCombinedFare}`;
+            if (mAmt) mAmt.innerText = `₹${totalCombinedFare}`;
+
+            // Pause State Indicator
+            const dPauseBanner = document.getElementById('customerWorkPausedBanner');
+            const mPauseBanner = document.getElementById('apkWorkPausedBanner');
+            const dStatusText = document.getElementById('customerMeterStatusText');
+            const mStatusText = document.getElementById('apkMeterStatusText');
+
+            if (data.isWorkPaused) {
+                if (dPauseBanner) dPauseBanner.classList.remove('hidden');
+                if (mPauseBanner) mPauseBanner.classList.remove('hidden');
+                if (dStatusText) dStatusText.innerText = '⏸️ काम पॉज आहे (सामान खरेदी)';
+                if (mStatusText) mStatusText.innerText = '⏸️ काम पॉज आहे';
+            } else {
+                if (dPauseBanner) dPauseBanner.classList.add('hidden');
+                if (mPauseBanner) mPauseBanner.classList.add('hidden');
+                if (dStatusText) dStatusText.innerText = '🟢 काम चालू आहे (Live Work)';
+                if (mStatusText) mStatusText.innerText = '🟢 काम चालू आहे';
+            }
+        };
+
+        updateLiveMeterUI();
+        if (!_customerLiveMeterInterval) {
+            _customerLiveMeterInterval = setInterval(updateLiveMeterUI, 1000);
+        }
+        return;
+    } else {
+        if (meterCardDesktop) meterCardDesktop.classList.add('hidden');
+        if (meterCardMobile) meterCardMobile.classList.add('hidden');
+        if (_customerLiveMeterInterval) {
+            clearInterval(_customerLiveMeterInterval);
+            _customerLiveMeterInterval = null;
+        }
+    }
+
+    // 3. Completed State
+    if (data.status === 'Completed') {
+        const finalVal = data.finalAmount || data.orderAmount;
+        if (finalVal) {
+            const dBud = document.getElementById('statusBudget');
+            const mBud = document.getElementById('apkStatusBudget');
+            if (dBud) dBud.innerText = `₹${finalVal}`;
+            if (mBud) mBud.innerText = `₹${finalVal} (${data.totalWorkMinutes || 0} मि. काम)`;
+        }
+    }
+}
+
+function renderCustomerStartQr(containerId, qrText) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (container._renderedQrText === qrText) return;
+    container.innerHTML = '';
+    container._renderedQrText = qrText;
+
+    if (typeof QRCode !== 'undefined') {
+        try {
+            new QRCode(container, {
+                text: qrText,
+                width: 150,
+                height: 150,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+            return;
+        } catch(e) {
+            console.warn('QRCode library render error, using SVG fallback:', e);
+        }
+    }
+
+    const img = document.createElement('img');
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrText)}`;
+    img.alt = 'Work Start QR Code';
+    img.className = 'w-36 h-36 mx-auto rounded-xl';
+    container.appendChild(img);
+}
+
+function openCustomerReceiptModal() {
+    const url = window._lastCustomerReceiptUrl;
+    if (!url) return;
+    const modal = document.getElementById('customerReceiptModal');
+    const img = document.getElementById('customerReceiptModalImg');
+    if (img) img.src = url;
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeCustomerReceiptModal() {
+    const modal = document.getElementById('customerReceiptModal');
+    if (modal) modal.classList.add('hidden');
+}

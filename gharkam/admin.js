@@ -1280,6 +1280,7 @@ function renderOrdersTable() {
             </td>
             <td class="p-3.5">
                 <span class="font-black text-emerald-600">${escapeHtml(item.budget || '₹500')}</span>
+                ${item.materialCost ? `<span class="block text-[10px] text-amber-700 font-bold mt-0.5">(साहित्य: ₹${item.materialCost})</span>` : ''}
                 ${isEmergencyOrder && item.advancePaidToAdmin ? `<span class="block text-[10px] text-emerald-600 font-bold mt-0.5">(₹${item.advancePaidToAdmin} ॲडव्हान्स प्राप्त)</span>` : ''}
             </td>
             <td class="p-3.5">
@@ -1852,7 +1853,22 @@ function openAdminOrderModal(orderId) {
             ${order.startOtp ? `<p><strong>Start QR PIN:</strong> <strong class="text-purple-600 font-mono font-black text-sm">${order.startOtp}</strong></p>` : ''}
             ${order.completionOtp ? `<p><strong>Completion OTP:</strong> <strong class="text-emerald-600 font-mono font-black text-sm">${order.completionOtp}</strong></p>` : ''}
             ${order.totalWorkMinutes ? `<p><strong>कामाचा प्रत्यक्ष वेळ:</strong> <span class="font-bold text-slate-800">${order.totalWorkMinutes} मिनिटे</span> (पॉज: ${Math.floor((order.totalPausedSeconds || 0)/60)} मि.)</p>` : ''}
-            ${order.finalAmount ? `<p><strong>अंतिम बिल:</strong> <span class="font-black text-emerald-600 text-base">₹${order.finalAmount}</span></p>` : ''}
+            ${order.laborAmount ? `<p><strong>मजुरी (Labor Fare):</strong> <span class="font-bold text-indigo-700">₹${order.laborAmount}</span> (८% कमिशन लागू)</p>` : ''}
+            ${order.materialCost ? `
+            <div class="mt-1 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+                <div class="flex justify-between items-center font-bold">
+                    <span>🛍️ साहित्य खर्च (Material Cost):</span>
+                    <strong class="text-amber-800 text-sm">₹${order.materialCost} (०% कमिशन-मुक्त)</strong>
+                </div>
+                <p><strong>वस्तू:</strong> ${order.materialItems || '-'}</p>
+                ${order.materialReceiptUrl ? `
+                <div class="pt-1">
+                    <a href="${order.materialReceiptUrl}" target="_blank" class="inline-flex items-center gap-1 bg-amber-600 hover:bg-amber-700 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] transition shadow">
+                        <i class="fa-solid fa-receipt"></i> 🧾 दुकान पावती फोटो पहा
+                    </a>
+                </div>` : ''}
+            </div>` : ''}
+            ${order.finalAmount ? `<p class="pt-1"><strong>अंतिम एकूण देय बिल:</strong> <span class="font-black text-emerald-600 text-base">₹${order.finalAmount}</span></p>` : ''}
         </div>
         ${voiceHtml}
         ${photoHtml}

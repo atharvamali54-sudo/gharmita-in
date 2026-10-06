@@ -2592,10 +2592,40 @@ function openWorkCompletionOtpModal(orderId) {
 
     const activeTimeEl = document.getElementById('completionSummaryActiveTime');
     const pausedTimeEl = document.getElementById('completionSummaryPausedTime');
+    const laborFareEl = document.getElementById('completionSummaryLaborFare');
     const totalFareEl = document.getElementById('completionSummaryTotalFare');
+
     if (activeTimeEl) activeTimeEl.innerText = `${billedMins} मिनिटे (${Math.floor(netActiveSec / 60)} मि. ${netActiveSec % 60} से.)`;
     if (pausedTimeEl) pausedTimeEl.innerText = `${Math.floor(pausedSec / 60)} मिनिटे`;
-    if (totalFareEl) totalFareEl.innerText = `₹${finalFare}`;
+    if (laborFareEl) laborFareEl.innerText = `₹${finalFare}`;
+
+    window._workerCurrentLaborFare = finalFare;
+    window._workerCurrentOrderId = orderId;
+
+    const existingMatCost = Number(orderData.materialCost || 0);
+    const costInput = document.getElementById('workerMaterialCostInput');
+    const itemsInput = document.getElementById('workerMaterialItemsInput');
+    const previewBox = document.getElementById('workerReceiptPreviewBox');
+    const previewImg = document.getElementById('workerReceiptPreviewImg');
+
+    if (existingMatCost > 0) {
+        if (costInput) costInput.value = existingMatCost;
+        if (itemsInput) itemsInput.value = orderData.materialItems || '';
+        if (orderData.materialReceiptUrl) {
+            window._workerReceiptDataUrl = orderData.materialReceiptUrl;
+            if (previewImg) previewImg.src = orderData.materialReceiptUrl;
+            if (previewBox) previewBox.classList.remove('hidden');
+        }
+        setWorkerMaterialMode(true, false);
+    } else {
+        if (costInput) costInput.value = '';
+        if (itemsInput) itemsInput.value = '';
+        window._workerReceiptDataUrl = null;
+        if (previewBox) previewBox.classList.add('hidden');
+        setWorkerMaterialMode(false, false);
+    }
+
+    calculateWorkerCombinedBill();
 
     if (modal) modal.classList.remove('hidden');
     if (input) setTimeout(() => input.focus(), 150);
@@ -2734,14 +2764,23 @@ function finalizeOrderCompletion(orderId) {
         finalFare = 60 + ((billedMins - 20) * 3);
     }
 
+    const matCost = Number(orderData.materialCost || 0);
+    const totalCombinedFare = finalFare + matCost;
+    const matItems = orderData.materialItems || '';
+    const receiptUrl = orderData.materialReceiptUrl || null;
+
     stopLocationSharing(orderId, true).then(() =>
         database.ref("orders/" + orderId).update({
             status: 'Completed',
             workerLocation: null,
             completionOtpVerified: true,
-            finalAmount: finalFare,
-            orderAmount: finalFare,
-            budget: `₹${finalFare} (${billedMins} मि. काम)`,
+            laborAmount: finalFare,
+            materialCost: matCost,
+            materialItems: matItems,
+            materialReceiptUrl: receiptUrl,
+            finalAmount: totalCombinedFare,
+            orderAmount: totalCombinedFare,
+            budget: matCost > 0 ? `₹${totalCombinedFare} (मजुरी: ₹${finalFare} + साहित्य: ₹${matCost})` : `₹${totalCombinedFare} (${billedMins} मि. काम)`,
             totalWorkMinutes: billedMins,
             totalPausedSeconds: pausedSec,
             offerWorkerUid: null,
@@ -2869,15 +2908,13 @@ function finalizeOrderCompletion(orderId) {
             const ordData = snap.val();
             if (!ordData || ordData.commissionDeducted) return;
 
-            // Extract job amount (e.g. ₹500 -> 500)
-            const rawBudget = String(ordData.budget || '').split('(')[0];
-            const m = rawBudget.match(/\d+/);
-            const jobAmount = (typeof ordData.orderAmount === 'number' && ordData.orderAmount > 0)
-                ? ordData.orderAmount
-                : (m ? parseInt(m[0], 10) : 500);
+            // CRITICAL RULE: Commission is 8% ONLY on laborAmount (मजुरी), 0% on materialCost (साहित्य)!
+            const laborFare = (typeof ordData.laborAmount === 'number' && ordData.laborAmount > 0)
+                ? ordData.laborAmount
+                : ((typeof ordData.orderAmount === 'number' && ordData.orderAmount > 0) ? ordData.orderAmount : 60);
 
-            // 8% commission calculation
-            const commission = Math.max(1, Math.round(jobAmount * 0.08));
+            const matCost = Number(ordData.materialCost || 0);
+            const commission = Math.max(1, Math.round(laborFare * 0.08));
 
             const workerId = (typeof workerProfile !== 'undefined' && workerProfile && workerProfile.uid) || 
                              (typeof currentWorkerUid !== 'undefined' && currentWorkerUid) || 
@@ -2896,7 +2933,7 @@ function finalizeOrderCompletion(orderId) {
                 database.ref('walletTransactions/' + workerId).push({
                     type: 'DEBIT',
                     amount: commission,
-                    reason: `घरमित्र कमिशन (८% वजावट) - ₹${jobAmount} चे काम पूर्ण`,
+                    reason: `घरमित्र कमिशन (८% मजुरीवर वजावट) - ₹${laborFare} मजुरी ${matCost > 0 ? `(साहित्य ₹${matCost} कमिशन-मुक्त)` : ""}`,
                     orderId: orderId,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
