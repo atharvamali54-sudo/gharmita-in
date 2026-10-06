@@ -4000,3 +4000,150 @@ window.submitWorkerManualStartPin = submitWorkerManualStartPin;
 window.verifyAndStartJob = verifyAndStartJob;
 window.toggleWorkerJobPause = toggleWorkerJobPause;
 window.startWorkerLiveTimerInterval = startWorkerLiveTimerInterval;
+
+// =========================================================
+// Worker Material Cost & Receipt Handlers
+// =========================================================
+window._workerCurrentLaborFare = 60;
+window._workerCurrentOrderId = null;
+window._workerReceiptDataUrl = null;
+
+function setWorkerMaterialMode(enabled, doSync = true) {
+    const box = document.getElementById('workerMaterialInputDetailsBox');
+    const btnNo = document.getElementById('btnWorkerNoMaterial');
+    const btnAdd = document.getElementById('btnWorkerAddMaterial');
+
+    if (enabled) {
+        if (box) box.classList.remove('hidden');
+        if (btnAdd) {
+            btnAdd.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-600 text-white transition";
+        }
+        if (btnNo) {
+            btnNo.className = "px-2 py-0.5 rounded text-[10px] font-bold text-slate-700 hover:bg-slate-100 transition";
+        }
+    } else {
+        if (box) box.classList.add('hidden');
+        if (btnNo) {
+            btnNo.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-600 text-white transition";
+        }
+        if (btnAdd) {
+            btnAdd.className = "px-2 py-0.5 rounded text-[10px] font-bold text-slate-700 hover:bg-slate-100 transition";
+        }
+        const costInput = document.getElementById('workerMaterialCostInput');
+        const itemsInput = document.getElementById('workerMaterialItemsInput');
+        if (costInput) costInput.value = '';
+        if (itemsInput) itemsInput.value = '';
+        window._workerReceiptDataUrl = null;
+        const previewBox = document.getElementById('workerReceiptPreviewBox');
+        if (previewBox) previewBox.classList.add('hidden');
+    }
+
+    calculateWorkerCombinedBill();
+    if (doSync) {
+        syncWorkerMaterialDetails();
+    }
+}
+
+function calculateWorkerCombinedBill() {
+    const laborFare = Number(window._workerCurrentLaborFare || 60);
+    const costInput = document.getElementById('workerMaterialCostInput');
+    const matCost = Number(costInput ? costInput.value : 0) || 0;
+    const total = laborFare + matCost;
+    const totalEl = document.getElementById('completionSummaryTotalFare');
+    if (totalEl) totalEl.innerText = `₹${total}`;
+}
+
+function handleWorkerReceiptPhotoUpload(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        const rawImg = new Image();
+        rawImg.onload = function() {
+            const canvas = document.createElement('canvas');
+            const maxDim = 800;
+            let width = rawImg.width;
+            let height = rawImg.height;
+
+            if (width > height && width > maxDim) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+            } else if (height > maxDim) {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(rawImg, 0, 0, width, height);
+
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+            window._workerReceiptDataUrl = compressedDataUrl;
+
+            const previewBox = document.getElementById('workerReceiptPreviewBox');
+            const previewImg = document.getElementById('workerReceiptPreviewImg');
+            if (previewImg) previewImg.src = compressedDataUrl;
+            if (previewBox) previewBox.classList.remove('hidden');
+
+            syncWorkerMaterialDetails();
+        };
+        rawImg.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function syncWorkerMaterialDetails() {
+    const orderId = window._workerCurrentOrderId || (typeof currentCompletingOrderId !== 'undefined' ? currentCompletingOrderId : null);
+    if (!orderId) return;
+
+    calculateWorkerCombinedBill();
+
+    const laborFare = Number(window._workerCurrentLaborFare || 60);
+    const costInput = document.getElementById('workerMaterialCostInput');
+    const itemsInput = document.getElementById('workerMaterialItemsInput');
+    const matCost = Number(costInput ? costInput.value : 0) || 0;
+    const matItems = itemsInput ? itemsInput.value.trim() : '';
+    const totalFare = laborFare + matCost;
+
+    const updatePayload = {
+        laborAmount: laborFare,
+        materialCost: matCost,
+        materialItems: matItems,
+        materialReceiptUrl: window._workerReceiptDataUrl || null,
+        finalAmount: totalFare,
+        orderAmount: totalFare,
+        lastBillSyncAt: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    database.ref("orders/" + orderId).update(updatePayload).then(() => {
+        console.log("Material bill synced in real-time to customer!");
+    }).catch(err => {
+        console.warn("Material bill sync error:", err);
+    });
+}
+
+function viewReceiptImage(src) {
+    if (!src) return;
+    const modal = document.getElementById('receiptImagePreviewModal');
+    const img = document.getElementById('receiptImagePreviewImg');
+    if (img) img.src = src;
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeReceiptImagePreviewModal() {
+    const modal = document.getElementById('receiptImagePreviewModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+window.setWorkerMaterialMode = setWorkerMaterialMode;
+window.calculateWorkerCombinedBill = calculateWorkerCombinedBill;
+window.handleWorkerReceiptPhotoUpload = handleWorkerReceiptPhotoUpload;
+window.syncWorkerMaterialDetails = syncWorkerMaterialDetails;
+window.viewReceiptImage = viewReceiptImage;
+window.closeReceiptImagePreviewModal = closeReceiptImagePreviewModal;
+window.openWorkCompletionOtpModal = openWorkCompletionOtpModal;
+window.closeCompletionOtpModal = closeCompletionOtpModal;
+window.verifyAndCompleteWork = verifyAndCompleteWork;
+window.resendCompletionOtp = resendCompletionOtp;
