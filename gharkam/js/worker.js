@@ -2343,6 +2343,50 @@ function renderJobs() {
                     🚗 On The Way (ग्राहकाकडे निघा)
                 </button>
             </div>
+            ` : item.status === 'On The Way' ? `
+            <div class="pt-1">
+                <button onclick="updateStatus('${key}', 'Reached Location')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-2">
+                    📍 Reached at Location (लोकेशनवर पोहोचलो)
+                </button>
+            </div>
+            ` : item.status === 'Reached Location' ? `
+            <div class="pt-1">
+                <button onclick="openWorkerQrScannerModal('${key}')" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2 animate-pulse">
+                    <i class="fa-solid fa-qrcode text-base"></i> ग्राहकाचा QR स्कॅन करा / Start PIN टाका
+                </button>
+            </div>
+            ` : item.status === 'In Progress' ? `
+            <!-- Live Running Meter & Action Controls -->
+            <div class="pt-1 space-y-2.5">
+                <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-3.5 rounded-2xl shadow-md border border-indigo-900/50">
+                    <div class="flex items-center justify-between text-[11px] mb-1.5 pb-1 border-b border-white/10">
+                        <span id="workerMeterLiveBadge_${key}" class="inline-flex items-center gap-1 font-bold ${item.isWorkPaused ? 'text-amber-300' : 'text-emerald-400'}">
+                            <i class="fa-solid ${item.isWorkPaused ? 'fa-circle-pause' : 'fa-circle-dot'} animate-pulse"></i>
+                            ${item.isWorkPaused ? 'काम पॉज आहे (सामान खरेदी)' : 'काम चालू आहे (Live Work)'}
+                        </span>
+                        <span class="text-slate-300 text-[10px]">₹३ / मिनिट दर (Base ₹६०)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block">वेळ (Duration):</span>
+                            <span id="workerLiveTimerDisplay_${key}" class="text-xl font-mono font-black text-amber-300">00:00:00</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 block">चालू बिल (Live Fare):</span>
+                            <span id="workerLiveFareDisplay_${key}" class="text-2xl font-black text-emerald-400">₹60</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="toggleWorkerJobPause('${key}')" class="py-2.5 px-3 rounded-xl font-bold text-xs transition shadow-sm flex items-center justify-center gap-1.5 ${item.isWorkPaused ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'}">
+                        ${item.isWorkPaused ? '<i class="fa-solid fa-play mr-1"></i> Resume Work' : '<i class="fa-solid fa-pause mr-1"></i> Pause (सामान)'}
+                    </button>
+                    <button onclick="openWorkCompletionOtpModal('${key}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-flag-checkered mr-1"></i> Complete Work
+                    </button>
+                </div>
+            </div>
             ` : `
             <div class="pt-1">
                 <button onclick="updateStatus('${key}', 'Completed')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-2">
@@ -2376,6 +2420,13 @@ function renderJobs() {
 
             if (item.status === 'On The Way') {
                 startLocationSharing(key);
+            } else if (item.status === 'In Progress') {
+                startWorkerLiveTimerInterval(key, item);
+            } else {
+                if (_workerLiveTimerInterval) {
+                    clearInterval(_workerLiveTimerInterval);
+                    _workerLiveTimerInterval = null;
+                }
             }
         }
     });
@@ -2525,6 +2576,27 @@ function openWorkCompletionOtpModal(orderId) {
     // Send email to customer via EmailJS
     sendCompletionOtpEmail(orderData, otp);
 
+    // Calculate final minute fare summary
+    const now = Date.now();
+    const startedAt = Number(orderData.workStartedAt || now);
+    let pausedSec = Number(orderData.totalPausedSeconds || 0);
+    if (orderData.isWorkPaused && orderData.workCurrentPauseStartedAt) {
+        pausedSec += Math.floor((now - Number(orderData.workCurrentPauseStartedAt)) / 1000);
+    }
+    const netActiveSec = Math.max(0, Math.floor((now - startedAt) / 1000) - pausedSec);
+    const billedMins = Math.max(1, Math.ceil(netActiveSec / 60));
+    let finalFare = 60;
+    if (billedMins > 20) {
+        finalFare = 60 + ((billedMins - 20) * 3);
+    }
+
+    const activeTimeEl = document.getElementById('completionSummaryActiveTime');
+    const pausedTimeEl = document.getElementById('completionSummaryPausedTime');
+    const totalFareEl = document.getElementById('completionSummaryTotalFare');
+    if (activeTimeEl) activeTimeEl.innerText = `${billedMins} मिनिटे (${Math.floor(netActiveSec / 60)} मि. ${netActiveSec % 60} से.)`;
+    if (pausedTimeEl) pausedTimeEl.innerText = `${Math.floor(pausedSec / 60)} मिनिटे`;
+    if (totalFareEl) totalFareEl.innerText = `₹${finalFare}`;
+
     if (modal) modal.classList.remove('hidden');
     if (input) setTimeout(() => input.focus(), 150);
 }
@@ -2637,10 +2709,29 @@ function verifyAndCompleteWork() {
 
 function finalizeOrderCompletion(orderId) {
     stopOrderAlert();
+    if (_workerLiveTimerInterval) {
+        clearInterval(_workerLiveTimerInterval);
+        _workerLiveTimerInterval = null;
+    }
     const btn = document.getElementById('verifyOtpBtn');
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> पूर्ण करत आहे...';
+    }
+
+    const activeOrder = getActiveOrderForCurrentWorker();
+    const orderData = (activeOrder && activeOrder.orderId === orderId) ? activeOrder.order : {};
+    const now = Date.now();
+    const startedAt = Number(orderData.workStartedAt || now);
+    let pausedSec = Number(orderData.totalPausedSeconds || 0);
+    if (orderData.isWorkPaused && orderData.workCurrentPauseStartedAt) {
+        pausedSec += Math.floor((now - Number(orderData.workCurrentPauseStartedAt)) / 1000);
+    }
+    const netActiveSec = Math.max(0, Math.floor((now - startedAt) / 1000) - pausedSec);
+    const billedMins = Math.max(1, Math.ceil(netActiveSec / 60));
+    let finalFare = 60;
+    if (billedMins > 20) {
+        finalFare = 60 + ((billedMins - 20) * 3);
     }
 
     stopLocationSharing(orderId, true).then(() =>
@@ -2648,6 +2739,11 @@ function finalizeOrderCompletion(orderId) {
             status: 'Completed',
             workerLocation: null,
             completionOtpVerified: true,
+            finalAmount: finalFare,
+            orderAmount: finalFare,
+            budget: `₹${finalFare} (${billedMins} मि. काम)`,
+            totalWorkMinutes: billedMins,
+            totalPausedSeconds: pausedSec,
             offerWorkerUid: null,
             offerExpiresAt: null,
             offeredAt: null,
@@ -2863,6 +2959,21 @@ function updateStatus(orderId, newStatus) {
     if (newStatus === 'On The Way' && activeOrder.order.status === 'Accepted' && Number(activeOrder.order.onTheWayDeadline) <= orderNow()) {
         releaseExpiredAcceptedOrder();
         alert('15 मिनिटांची वेळ संपली आहे. ही order दुसऱ्या worker कडे पाठवली जात आहे.');
+        return;
+    }
+
+    // Worker reached location -> update status and prompt to scan QR
+    if (newStatus === 'Reached Location') {
+        database.ref("orders/" + orderId).update({
+            status: 'Reached Location',
+            reachedAt: firebase.database.ServerValue.TIMESTAMP
+        }).then(() => {
+            alert("📍 तुम्ही लोकेशनवर पोहोचला आहात! आता ग्राहकाच्या मोबाईलवरील QR कोड स्कॅन करून काम सुरू करा.");
+            openWorkerQrScannerModal(orderId);
+        }).catch(error => {
+            console.error("Status update error:", error);
+            alert("स्टेटस अपडेट करताना अडचण आली.");
+        });
         return;
     }
 

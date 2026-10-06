@@ -1943,8 +1943,8 @@ populateBookingProfile();
                 customerLocationAccuracy: (currentCustomerLocation && currentCustomerLocation.accuracy) ? currentCustomerLocation.accuracy : null,
                 customerMapsUrl: custMapsUrl,
                 hasExactGps: !!(currentCustomerLocation && currentCustomerLocation.lat),
-                budget: isEmergency ? ("₹" + (budget || 500) + " (₹50 ॲडव्हान्स प्राप्त)") : ("₹" + (budget || 500)),
-                orderAmount: parseInt(String(budget || '').replace(/\D/g, '')) || 500,
+                budget: isEmergency ? "₹3/मिनिट (₹50 ॲडव्हान्स प्राप्त)" : (budget && budget.includes('3/min') ? "₹3/मिनिट (Base ₹60)" : ("₹" + (budget || "3/मिनिट"))),
+                orderAmount: 60,
                 walletDeduction: appliedWalletDeduction,
                 walletUsed: appliedWalletDeduction > 0,
                 date: date || new Date().toISOString().split('T')[0],
@@ -1953,6 +1953,11 @@ populateBookingProfile();
                 voiceNoteUrl: currentVoiceNoteDataUrl || "",
                 hasVoiceNote: !!currentVoiceNoteDataUrl,
                 status: "Pending",
+                pricingType: "minute_based",
+                ratePerMinute: 3,
+                minBaseFare: 60,
+                minBaseMinutes: 20,
+                startOtp: String(Math.floor(1000 + Math.random() * 9000)),
                 completionOtp: String(Math.floor(1000 + Math.random() * 9000)),
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
@@ -2390,7 +2395,28 @@ _Sent securely via Gharmitra Family Safety Shield._`;
                         document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     }
+                    else if (data.status === 'Reached Location') {
+                        badgeEl.className = "bg-purple-100 text-purple-700 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
+                        badgeTextEl.innerText = "कामगार पोहोचला (Start QR)";
+                        workerMobileEl.innerHTML = workerInfo;
+                        document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step4Dot').className = "w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 animate-pulse";
+                    }
+                    else if (data.status === 'In Progress') {
+                        badgeEl.className = "bg-emerald-100 text-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
+                        badgeTextEl.innerText = data.isWorkPaused ? "काम पॉज आहे (सामान)" : "काम चालू आहे (₹३/मि.)";
+                        workerMobileEl.innerHTML = workerInfo;
+                        document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step4Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                    }
                 }
+
+                // --- Pay-Per-Minute QR Code & Live Meter Dynamic Controller ---
+                handleCustomerPayPerMinuteState(orderId, data);
             });
         }
 

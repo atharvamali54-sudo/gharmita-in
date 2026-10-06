@@ -959,7 +959,7 @@ function calculateKpisAndRender() {
             if (order.status === 'Completed') {
                 todayCompletedCount++;
                 todayVolume += budgetNum;
-            } else if (order.status === 'Accepted' || order.status === 'On The Way' || order.status === 'In Progress') {
+            } else if (order.status === 'Accepted' || order.status === 'On The Way' || order.status === 'Reached Location' || order.status === 'In Progress') {
                 todayActiveCount++;
             } else if (order.status === 'Pending') {
                 todayPendingCount++;
@@ -1235,7 +1235,8 @@ function renderOrdersTable() {
         if (item.status === 'Pending') statusBadgeClass = "bg-amber-100 text-amber-800 border border-amber-200";
         if (item.status === 'Accepted') statusBadgeClass = "bg-blue-100 text-blue-800 border border-blue-200";
         if (item.status === 'On The Way') statusBadgeClass = "bg-indigo-100 text-indigo-800 border border-indigo-200 animate-pulse";
-        if (item.status === 'In Progress') statusBadgeClass = "bg-amber-100 text-amber-800 border border-amber-300 font-bold";
+        if (item.status === 'Reached Location') statusBadgeClass = "bg-purple-100 text-purple-800 border border-purple-200 font-bold";
+        if (item.status === 'In Progress') statusBadgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold animate-pulse";
         if (item.status === 'Completed') statusBadgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-200";
         if (item.status === 'Cancelled') statusBadgeClass = "bg-rose-100 text-rose-800 border border-rose-200";
 
@@ -1289,7 +1290,8 @@ function renderOrdersTable() {
                     <span class="admin-badge ${statusBadgeClass}">${escapeHtml(item.status || 'Pending')}</span>
                     ${isSos ? `<span class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm animate-pulse" title="गेल्या ${elapsedMins} मिनिटांपासून प्रलंबित (इमर्जन्सी डिस्पॅच आवश्यक)"><i class="fa-solid fa-triangle-exclamation"></i> SOS (${elapsedMins} मि.)</span>` : ''}
                 </div>
-                ${item.completionOtp ? `<span class="text-[10px] text-slate-400 block mt-0.5">OTP: <strong>${item.completionOtp}</strong></span>` : ''}
+                ${item.startOtp ? `<span class="text-[10px] text-purple-700 font-mono block mt-0.5">Start PIN: <strong>${item.startOtp}</strong></span>` : ''}
+                ${item.completionOtp ? `<span class="text-[10px] text-slate-500 block mt-0.5">End OTP: <strong>${item.completionOtp}</strong></span>` : ''}
             </td>
             <td class="p-3.5 text-center">
                 <div class="flex items-center justify-center gap-1.5 flex-wrap">
@@ -1847,7 +1849,10 @@ function openAdminOrderModal(orderId) {
             <p><strong>तारीख व वेळ:</strong> ${order.date || ''} ${order.time || ''}</p>
             <p><strong>सध्याचे स्टेटस:</strong> <span class="font-bold text-blue-600">${order.status || 'Pending'}</span></p>
             <p><strong>नेमलेला कामगार:</strong> ${order.workerMobile || order.workerUid || 'अजून नेमला नाही'}</p>
-            ${order.completionOtp ? `<p><strong>Work OTP:</strong> <strong class="text-emerald-600 font-black text-sm">${order.completionOtp}</strong></p>` : ''}
+            ${order.startOtp ? `<p><strong>Start QR PIN:</strong> <strong class="text-purple-600 font-mono font-black text-sm">${order.startOtp}</strong></p>` : ''}
+            ${order.completionOtp ? `<p><strong>Completion OTP:</strong> <strong class="text-emerald-600 font-mono font-black text-sm">${order.completionOtp}</strong></p>` : ''}
+            ${order.totalWorkMinutes ? `<p><strong>कामाचा प्रत्यक्ष वेळ:</strong> <span class="font-bold text-slate-800">${order.totalWorkMinutes} मिनिटे</span> (पॉज: ${Math.floor((order.totalPausedSeconds || 0)/60)} मि.)</p>` : ''}
+            ${order.finalAmount ? `<p><strong>अंतिम बिल:</strong> <span class="font-black text-emerald-600 text-base">₹${order.finalAmount}</span></p>` : ''}
         </div>
         ${voiceHtml}
         ${photoHtml}
