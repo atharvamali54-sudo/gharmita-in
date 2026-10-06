@@ -1270,7 +1270,7 @@ function getActiveOrderForCurrentWorker() {
         .map(([orderId, order]) => ({ orderId, order }))
         .find(({ order }) =>
             order &&
-            (order.status === 'Accepted' || order.status === 'On The Way' || order.status === 'In Progress') &&
+            (order.status === 'Accepted' || order.status === 'On The Way' || order.status === 'Reached Location' || order.status === 'In Progress') &&
             (
                 order.workerUid === currentWorkerUid ||
                 (order.workerMobile && order.workerMobile === getCurrentWorkerMobile())
@@ -2255,7 +2255,7 @@ function renderJobs() {
             jobsContainer.appendChild(jobCard);
         }
 
-        if ((item.status === 'Accepted' || item.status === 'On The Way' || item.status === 'In Progress') && key === activeOrderId) {
+        if ((item.status === 'Accepted' || item.status === 'On The Way' || item.status === 'Reached Location' || item.status === 'In Progress') && key === activeOrderId) {
             const rawCustPhone = item.customerMobile || '';
             const cleanCustDigits = String(rawCustPhone).replace(/[^\d+]/g, '');
             const custTelHref = cleanCustDigits
@@ -2289,7 +2289,7 @@ function renderJobs() {
             <p><strong>पत्ता:</strong> ${escapeHtml(item.address)}${activeGpsBadge}</p>
             <p><strong>तारीख:</strong> ${item.date || 'Not specified'}</p>
             <p><strong>वेळ:</strong> ${item.time || 'Not specified'}</p>
-            ${(item.status === 'On The Way' || item.status === 'In Progress')
+            ${(item.status === 'On The Way' || item.status === 'Reached Location' || item.status === 'In Progress')
                 ? `<div class="bg-white p-3 rounded-xl border border-emerald-200 space-y-2 mt-2">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold text-slate-700"><i class="fa-solid fa-shield-halved text-emerald-600"></i> ग्राहक संपर्क:</span>
@@ -3006,15 +3006,19 @@ function updateStatus(orderId, newStatus) {
 
     // Worker reached location -> update status and prompt to scan QR
     if (newStatus === 'Reached Location') {
+        stopLocationSharing(orderId, false);
         database.ref("orders/" + orderId).update({
             status: 'Reached Location',
             reachedAt: firebase.database.ServerValue.TIMESTAMP
         }).then(() => {
-            alert("📍 तुम्ही लोकेशनवर पोहोचला आहात! आता ग्राहकाच्या मोबाईलवरील QR कोड स्कॅन करून काम सुरू करा.");
-            openWorkerQrScannerModal(orderId);
+            alert("📍 तुम्ही लोकेशनवर पोहोचला आहात! आता ग्राहकाच्या मोबाईलवरील QR कोड स्कॅन करा किंवा Start PIN टाका.");
+            if (typeof openWorkerQrScannerModal === 'function') {
+                openWorkerQrScannerModal(orderId);
+            }
+            renderJobs();
         }).catch(error => {
             console.error("Status update error:", error);
-            alert("स्टेटस अपडेट करताना अडचण आली.");
+            alert("स्टेटस अपडेट करताना अडचण आली: " + (error?.message || error));
         });
         return;
     }
@@ -3776,3 +3780,224 @@ function closeWorkerIdCardModal() {
     }
 }
 window.closeWorkerIdCardModal = closeWorkerIdCardModal;
+
+// =========================================================
+// Pay-Per-Minute QR Scanner, Start PIN, Live Meter & Pause Engine
+// =========================================================
+let _workerLiveTimerInterval = null;
+let html5QrScannerInstance = null;
+let currentScanningOrderId = null;
+
+function startWorkerLiveTimerInterval(orderId, orderData) {
+    if (_workerLiveTimerInterval) clearInterval(_workerLiveTimerInterval);
+    const updateTick = () => {
+        const timerEl = document.getElementById(`workerLiveTimerDisplay_${orderId}`);
+        const fareEl = document.getElementById(`workerLiveFareDisplay_${orderId}`);
+        if (!timerEl && !fareEl) {
+            clearInterval(_workerLiveTimerInterval);
+            _workerLiveTimerInterval = null;
+            return;
+        }
+        const now = Date.now();
+        const startedAt = Number(orderData.workStartedAt || now);
+        let pausedSec = Number(orderData.totalPausedSeconds || 0);
+        if (orderData.isWorkPaused && orderData.workCurrentPauseStartedAt) {
+            pausedSec += Math.floor((now - Number(orderData.workCurrentPauseStartedAt)) / 1000);
+        }
+        const netActiveSec = Math.max(0, Math.floor((now - startedAt) / 1000) - pausedSec);
+        const hrs = Math.floor(netActiveSec / 3600);
+        const mins = Math.floor((netActiveSec % 3600) / 60);
+        const secs = netActiveSec % 60;
+        const timeStr = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+        const billedMins = Math.ceil(netActiveSec / 60);
+        let fare = 60;
+        if (billedMins > 20) {
+            fare = 60 + ((billedMins - 20) * 3);
+        }
+
+        if (timerEl) timerEl.innerText = timeStr;
+        if (fareEl) fareEl.innerText = `₹${fare}`;
+    };
+    updateTick();
+    _workerLiveTimerInterval = setInterval(updateTick, 1000);
+}
+
+function openWorkerQrScannerModal(orderId) {
+    currentScanningOrderId = orderId;
+    const modal = document.getElementById('workerQrScannerModal');
+    const input = document.getElementById('workerStartPinManualInput');
+    const errEl = document.getElementById('workerQrScannerErrorMsg');
+    if (input) input.value = '';
+    if (errEl) { errEl.innerText = ''; errEl.classList.add('hidden'); }
+    if (modal) modal.classList.remove('hidden');
+
+    try {
+        if (typeof Html5Qrcode !== 'undefined') {
+            const readerContainer = document.getElementById('workerQrReader');
+            if (readerContainer) {
+                readerContainer.innerHTML = '';
+            }
+            if (html5QrScannerInstance) {
+                html5QrScannerInstance.stop().catch(() => {}).finally(() => {
+                    initHtml5QrCode(orderId);
+                });
+            } else {
+                initHtml5QrCode(orderId);
+            }
+        }
+    } catch(e) {
+        console.warn('QR camera initialization error:', e);
+    }
+}
+
+function initHtml5QrCode(orderId) {
+    try {
+        html5QrScannerInstance = new Html5Qrcode("workerQrReader");
+        html5QrScannerInstance.start(
+            { facingMode: "environment" },
+            {
+                fps: 10,
+                qrbox: { width: 220, height: 220 }
+            },
+            (decodedText) => {
+                console.log("QR Code scanned:", decodedText);
+                if (html5QrScannerInstance) {
+                    html5QrScannerInstance.stop().catch(() => {});
+                }
+                verifyAndStartJob(orderId, decodedText);
+            },
+            () => {}
+        ).catch(err => {
+            console.warn("Unable to start camera for QR scanner:", err);
+            const readerContainer = document.getElementById('workerQrReader');
+            if (readerContainer) {
+                readerContainer.innerHTML = '<div class="p-4 text-center text-slate-300"><i class="fa-solid fa-camera-slash text-2xl mb-1 text-slate-400"></i><p>कॅमेरा परमिशन उपलब्ध नाही.<br>कृपया खालील ४-अंकी Start PIN टाका.</p></div>';
+            }
+        });
+    } catch(err) {
+        console.warn("Html5Qrcode instance error:", err);
+    }
+}
+
+function closeWorkerQrScannerModal() {
+    const modal = document.getElementById('workerQrScannerModal');
+    if (modal) modal.classList.add('hidden');
+    if (html5QrScannerInstance) {
+        html5QrScannerInstance.stop().catch(() => {}).finally(() => {
+            html5QrScannerInstance = null;
+        });
+    }
+}
+
+function submitWorkerManualStartPin() {
+    const orderId = currentScanningOrderId || (getActiveOrderForCurrentWorker() ? getActiveOrderForCurrentWorker().orderId : null);
+    if (!orderId) {
+        alert("कोणतीही सक्रिय ऑर्डर सापडली नाही.");
+        return;
+    }
+    const input = document.getElementById('workerStartPinManualInput');
+    const pin = (input ? input.value : '').trim();
+    if (!pin || pin.length !== 4) {
+        const errEl = document.getElementById('workerQrScannerErrorMsg');
+        if (errEl) {
+            errEl.innerText = "कृपया ग्राहकाच्या स्क्रीनवरील ४-अंकी PIN टाका.";
+            errEl.classList.remove('hidden');
+        }
+        return;
+    }
+    verifyAndStartJob(orderId, pin);
+}
+
+function verifyAndStartJob(orderId, codeOrPin) {
+    database.ref("orders/" + orderId).once("value").then(snap => {
+        const orderData = snap.val();
+        if (!orderData) {
+            alert("ऑर्डर सापडली नाही.");
+            return;
+        }
+
+        const validPin = String(orderData.startOtp || '').trim();
+        const cleanInput = String(codeOrPin || '').trim();
+        const expectedQrToken = `gharmitra:start:${orderId}:${validPin}`;
+        const isMatch = cleanInput === validPin || cleanInput === expectedQrToken || cleanInput.endsWith(`:${validPin}`);
+
+        if (!isMatch) {
+            const errEl = document.getElementById('workerQrScannerErrorMsg');
+            if (errEl) {
+                errEl.innerText = "❌ चुकीचा QR किंवा Start PIN! कृपया ग्राहकाचा अचूक QR कोड स्कॅन करा किंवा ४-अंकी PIN टाका.";
+                errEl.classList.remove('hidden');
+            } else {
+                alert("❌ चुकीचा QR किंवा Start PIN!");
+            }
+            return;
+        }
+
+        // Correct PIN / QR verified!
+        closeWorkerQrScannerModal();
+        const now = Date.now();
+        database.ref("orders/" + orderId).update({
+            status: "In Progress",
+            workStartedAt: now,
+            startOtpVerified: true,
+            isWorkPaused: false,
+            totalPausedSeconds: 0
+        }).then(() => {
+            if (typeof showApkToast === 'function') {
+                showApkToast("🎉 काम सुरू झाले! वेळ व भाडे गणना चालू झाली.");
+            } else {
+                alert("🎉 काम सुरू झाले! वेळ व भाडे गणना चालू झाली.");
+            }
+            renderJobs();
+        });
+    });
+}
+
+function toggleWorkerJobPause(orderId) {
+    const activeOrder = getActiveOrderForCurrentWorker();
+    if (!activeOrder || activeOrder.orderId !== orderId) return;
+    const ord = activeOrder.order;
+    const now = Date.now();
+
+    if (ord.isWorkPaused) {
+        // Resume work
+        const pauseStarted = Number(ord.workCurrentPauseStartedAt || now);
+        const addedPausedSec = Math.max(0, Math.floor((now - pauseStarted) / 1000));
+        const totalPausedSec = Number(ord.totalPausedSeconds || 0) + addedPausedSec;
+        database.ref("orders/" + orderId).update({
+            isWorkPaused: false,
+            workCurrentPauseStartedAt: null,
+            totalPausedSeconds: totalPausedSec,
+            lastResumedAt: now
+        }).then(() => {
+            if (typeof showApkToast === 'function') {
+                showApkToast("▶️ काम पुन्हा सुरू झाले!");
+            } else {
+                alert("▶️ काम पुन्हा सुरू झाले!");
+            }
+            renderJobs();
+        });
+    } else {
+        // Pause work (for buying materials etc.)
+        database.ref("orders/" + orderId).update({
+            isWorkPaused: true,
+            workCurrentPauseStartedAt: now,
+            lastPausedAt: now
+        }).then(() => {
+            if (typeof showApkToast === 'function') {
+                showApkToast("⏸️ काम पॉज केले आहे (सामान खरेदी)!");
+            } else {
+                alert("⏸️ काम पॉज केले आहे (सामान खरेदीसाठी)!
+या काळात ग्राहकाला कोणतेही बिल आकारले जाणार नाही.");
+            }
+            renderJobs();
+        });
+    }
+}
+
+window.openWorkerQrScannerModal = openWorkerQrScannerModal;
+window.closeWorkerQrScannerModal = closeWorkerQrScannerModal;
+window.submitWorkerManualStartPin = submitWorkerManualStartPin;
+window.verifyAndStartJob = verifyAndStartJob;
+window.toggleWorkerJobPause = toggleWorkerJobPause;
+window.startWorkerLiveTimerInterval = startWorkerLiveTimerInterval;
