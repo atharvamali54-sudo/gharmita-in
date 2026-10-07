@@ -1853,7 +1853,7 @@ function openAdminOrderModal(orderId) {
             ${order.startOtp ? `<p><strong>Start QR PIN:</strong> <strong class="text-purple-600 font-mono font-black text-sm">${order.startOtp}</strong></p>` : ''}
             ${order.completionOtp ? `<p><strong>Completion OTP:</strong> <strong class="text-emerald-600 font-mono font-black text-sm">${order.completionOtp}</strong></p>` : ''}
             ${order.totalWorkMinutes ? `<p><strong>कामाचा प्रत्यक्ष वेळ:</strong> <span class="font-bold text-slate-800">${order.totalWorkMinutes} मिनिटे</span> (पॉज: ${Math.floor((order.totalPausedSeconds || 0)/60)} मि.)</p>` : ''}
-            ${order.laborAmount ? `<p><strong>मजुरी (Labor Fare):</strong> <span class="font-bold text-indigo-700">₹${order.laborAmount}</span> (${order.commissionPercentage || (order.laborAmount > 3000 ? 15 : (order.laborAmount > 1000 ? 12 : 8))}% कमिशन लागू)</p>` : ''}
+            ${order.laborAmount ? `<p><strong>मजुरी (Labor Fare):</strong> <span class="font-bold text-indigo-700">₹${order.laborAmount}</span> (${order.commissionPercentage || (order.laborAmount > 3000 ? 10 : (order.laborAmount > 1000 ? 9 : 8))}% कमिशन लागू)</p>` : ''}
             ${order.materialCost ? `
             <div class="mt-1 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
                 <div class="flex justify-between items-center font-bold">

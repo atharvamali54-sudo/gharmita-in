@@ -2910,8 +2910,8 @@ function finalizeOrderCompletion(orderId) {
 
         // Tiered Commission deduction from worker wallet on completing the order:
         // - छोट्या दुरुस्ती कामांवर (₹150 ते ₹1,000 पर्यंत): फक्त 8%
-        // - मोठ्या कामांवर (₹1,001 ते ₹3,000): 12%
-        // - खूप मोठ्या कामांवर (₹3,001 ते ₹10,000+): 15%
+        // - मध्यम/मोठ्या कामांवर (₹1,001 ते ₹3,000): 9%
+        // - खूप मोठ्या कामांवर (₹3,001 ते ₹10,000+): 10%
         // - साहित्याच्या बिलावर (Material Cost): 0% कमिशन (कमिशन-मुक्त)
         database.ref("orders/" + orderId).once("value").then((snap) => {
             const ordData = snap.val();
@@ -2927,11 +2927,11 @@ function finalizeOrderCompletion(orderId) {
             let commissionPercent = 8;
             let slabLabel = "छोटी दुरुस्ती (₹१,००० पर्यंत @ ८%)";
             if (laborFare > 3000) {
-                commissionPercent = 15;
-                slabLabel = "मोठे काम (₹३,०००+ @ १५%)";
+                commissionPercent = 10;
+                slabLabel = "मोठे काम (₹३,०००+ @ १०%)";
             } else if (laborFare > 1000) {
-                commissionPercent = 12;
-                slabLabel = "मोठे काम (₹१,०००-₹३,००० @ १२%)";
+                commissionPercent = 9;
+                slabLabel = "मोठे काम (₹१,०००-₹३,००० @ ९%)";
             } else {
                 commissionPercent = 8;
                 slabLabel = "छोटी दुरुस्ती (₹१,००० पर्यंत @ ८%)";
@@ -4075,11 +4075,11 @@ function calculateWorkerCombinedBill() {
         let commPercent = 8;
         let slabName = "८% (₹१,००० पर्यंत)";
         if (laborFare > 3000) {
-            commPercent = 15;
-            slabName = "१५% (मोठे काम ₹३,०००+)";
+            commPercent = 10;
+            slabName = "१०% (मोठे काम ₹३,०००+)";
         } else if (laborFare > 1000) {
-            commPercent = 12;
-            slabName = "१२% (मोठे काम ₹१,०००-₹३,०००)";
+            commPercent = 9;
+            slabName = "९% (मोठे काम ₹१,०००-₹३,०००)";
         }
         const estComm = Math.max(1, Math.round(laborFare * (commPercent / 100)));
         commNote.innerHTML = `🛡️ <strong>नोंद:</strong> मजुरी ₹${laborFare} वर <strong>${slabName} = ₹${estComm}</strong> कमिशन वजा होईल. साहित्याचे १००% पैसे (₹${matCost}) कमिशन-मुक्त राहतील.`;
