@@ -879,8 +879,8 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
                 <span class="text-slate-900">💰 एकूण अंतिम देय बिल:</span>
                 <strong id="completionSummaryTotalFare" class="text-emerald-600 text-lg">₹--</strong>
             </div>
-            <p class="text-[10px] text-emerald-800 font-semibold bg-emerald-50 p-1.5 rounded-lg border border-emerald-200">
-                🛡️ नोंद: घरमित्रचे ८% कमिशन फक्त मजुरीवर वजा होईल. साहित्याचे १००% पैसे कामगाराचे राहतील.
+            <p id="completionSummaryCommissionNote" class="text-[10px] text-emerald-800 font-semibold bg-emerald-50 p-1.5 rounded-lg border border-emerald-200">
+                🛡️ नोंद: घरमित्रचे कमिशन (₹१,००० पर्यंत ८%, मोठ्या कामांवर १२%-१५%) फक्त मजुरीवर वजा होईल. साहित्याचे १००% पैसे कामगाराचे राहतील.
             </p>
         </div>
 
@@ -1129,10 +1129,11 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
             <!-- Commission Info -->
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs space-y-1.5 text-slate-600">
                 <div class="font-bold text-slate-800 flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-info text-blue-600"></i> घरमित्र कमिशन नियम:
+                    <i class="fa-solid fa-circle-info text-blue-600"></i> घरमित्र कमिशन स्लॅब नियम:
                 </div>
-                <p>• प्रत्येक पूर्ण झालेल्या कामावर फक्त <strong>10% प्लॅटफॉर्म फी</strong> आकारली जाते.</p>
-                <p>• ग्राहकाकडून घेतलेली पूर्ण रक्कम (रोख / UPI) थेट तुमच्याकडे राहते.</p>
+                <p>• <strong>छोट्या दुरुस्ती कामांवर (₹१,००० पर्यंत):</strong> फक्त <strong>८%</strong> प्लॅटफॉर्म कमिशन.</p>
+                <p>• <strong>मोठ्या कामांवर (₹१,००० ते ₹३,०००):</strong> <strong>१२%</strong> आणि (₹३,०००+): <strong>१५%</strong> कमिशन.</p>
+                <p>• 🛍️ <strong>साहित्याच्या बिलावर (Material Cost):</strong> <strong>०% कमिशन</strong> (१००% पैसे कामगाराचे).</p>
             </div>
 
             <!-- Quick Recharge Amounts -->
@@ -1298,8 +1299,8 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
 
 <script src="js/firebase.js?v=56"></script>
 <script src="js/call-masking.js?v=56"></script>
-<script src="js/worker.js?v=61"></script>
-<script src="js/pwa.js?v=61"></script>
+<script src="js/worker.js?v=62"></script>
+<script src="js/pwa.js?v=62"></script>
 
 <!-- Worker Digital ID Card & Society Gate Pass Modal -->
 <div id="workerIdCardModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">

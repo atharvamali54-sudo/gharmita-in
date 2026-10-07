@@ -2908,25 +2908,43 @@ function finalizeOrderCompletion(orderId) {
             }
         }).catch(err => console.error('Order read error for VIP:', err));
 
-        // 8% Commission deduction from worker wallet on completing the order
+        // Tiered Commission deduction from worker wallet on completing the order:
+        // - छोट्या दुरुस्ती कामांवर (₹150 ते ₹1,000 पर्यंत): फक्त 8%
+        // - मोठ्या कामांवर (₹1,001 ते ₹3,000): 12%
+        // - खूप मोठ्या कामांवर (₹3,001 ते ₹10,000+): 15%
+        // - साहित्याच्या बिलावर (Material Cost): 0% कमिशन (कमिशन-मुक्त)
         database.ref("orders/" + orderId).once("value").then((snap) => {
             const ordData = snap.val();
             if (!ordData || ordData.commissionDeducted) return;
 
-            // CRITICAL RULE: Commission is 8% ONLY on laborAmount (मजुरी), 0% on materialCost (साहित्य)!
+            // CRITICAL RULE: Commission is tiered ONLY on laborAmount (मजुरी), 0% on materialCost (साहित्य)!
             const laborFare = (typeof ordData.laborAmount === 'number' && ordData.laborAmount > 0)
                 ? ordData.laborAmount
                 : ((typeof ordData.orderAmount === 'number' && ordData.orderAmount > 0) ? ordData.orderAmount : 60);
 
             const matCost = Number(ordData.materialCost || 0);
-            const commission = Math.max(1, Math.round(laborFare * 0.08));
+
+            let commissionPercent = 8;
+            let slabLabel = "छोटी दुरुस्ती (₹१,००० पर्यंत @ ८%)";
+            if (laborFare > 3000) {
+                commissionPercent = 15;
+                slabLabel = "मोठे काम (₹३,०००+ @ १५%)";
+            } else if (laborFare > 1000) {
+                commissionPercent = 12;
+                slabLabel = "मोठे काम (₹१,०००-₹३,००० @ १२%)";
+            } else {
+                commissionPercent = 8;
+                slabLabel = "छोटी दुरुस्ती (₹१,००० पर्यंत @ ८%)";
+            }
+
+            const commission = Math.max(1, Math.round(laborFare * (commissionPercent / 100)));
 
             const workerId = (typeof workerProfile !== 'undefined' && workerProfile && workerProfile.uid) || 
                              (typeof currentWorkerUid !== 'undefined' && currentWorkerUid) || 
                              ('local_worker_' + (typeof getCurrentWorkerMobile === 'function' ? getCurrentWorkerMobile() : ''));
 
             if (workerId) {
-                // Deduct 8% commission from worker wallet in Firebase
+                // Deduct tiered commission from worker wallet in Firebase
                 database.ref('workers/' + workerId + '/wallet').transaction((curr) => {
                     return Math.max(0, (Number(curr) || 50) - commission);
                 });
@@ -2938,7 +2956,7 @@ function finalizeOrderCompletion(orderId) {
                 database.ref('walletTransactions/' + workerId).push({
                     type: 'DEBIT',
                     amount: commission,
-                    reason: `घरमित्र कमिशन (८% मजुरीवर वजावट) - ₹${laborFare} मजुरी ${matCost > 0 ? `(साहित्य ₹${matCost} कमिशन-मुक्त)` : ""}`,
+                    reason: `घरमित्र कमिशन (${commissionPercent}% मजुरीवर वजावट - ${slabLabel}) - ₹${laborFare} मजुरी ${matCost > 0 ? `(साहित्य ₹${matCost} कमिशन-मुक्त)` : ""}`,
                     orderId: orderId,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
@@ -2947,7 +2965,7 @@ function finalizeOrderCompletion(orderId) {
                 database.ref('orders/' + orderId).update({
                     commissionDeducted: true,
                     commissionAmount: commission,
-                    commissionPercentage: 8,
+                    commissionPercentage: commissionPercent,
                     commissionDeductedAt: firebase.database.ServerValue.TIMESTAMP
                 });
 
@@ -2962,7 +2980,7 @@ function finalizeOrderCompletion(orderId) {
                 if (w3) w3.innerText = newBal;
 
                 if (typeof showApkToast === 'function') {
-                    showApkToast(`₹${commission} (८% कमिशन) तुमच्या वॉलेटमधून वजा झाले.`);
+                    showApkToast(`₹${commission} (${commissionPercent}% कमिशन) तुमच्या वॉलेटमधून वजा झाले.`);
                 }
 
                 // If balance drops below ₹10, auto turn duty OFF!
@@ -4051,6 +4069,21 @@ function calculateWorkerCombinedBill() {
     const total = laborFare + matCost;
     const totalEl = document.getElementById('completionSummaryTotalFare');
     if (totalEl) totalEl.innerText = `₹${total}`;
+
+    const commNote = document.getElementById('completionSummaryCommissionNote');
+    if (commNote) {
+        let commPercent = 8;
+        let slabName = "८% (₹१,००० पर्यंत)";
+        if (laborFare > 3000) {
+            commPercent = 15;
+            slabName = "१५% (मोठे काम ₹३,०००+)";
+        } else if (laborFare > 1000) {
+            commPercent = 12;
+            slabName = "१२% (मोठे काम ₹१,०००-₹३,०००)";
+        }
+        const estComm = Math.max(1, Math.round(laborFare * (commPercent / 100)));
+        commNote.innerHTML = `🛡️ <strong>नोंद:</strong> मजुरी ₹${laborFare} वर <strong>${slabName} = ₹${estComm}</strong> कमिशन वजा होईल. साहित्याचे १००% पैसे (₹${matCost}) कमिशन-मुक्त राहतील.`;
+    }
 }
 
 function handleWorkerReceiptPhotoUpload(e) {
