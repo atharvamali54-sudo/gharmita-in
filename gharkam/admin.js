@@ -1291,6 +1291,19 @@ function renderOrdersTable() {
                     <span class="admin-badge ${statusBadgeClass}">${escapeHtml(item.status || 'Pending')}</span>
                     ${isSos ? `<span class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm animate-pulse" title="गेल्या ${elapsedMins} मिनिटांपासून प्रलंबित (इमर्जन्सी डिस्पॅच आवश्यक)"><i class="fa-solid fa-triangle-exclamation"></i> SOS (${elapsedMins} मि.)</span>` : ''}
                 </div>
+                ${item.status === 'In Progress' && item.workStartedAt ? (() => {
+                    const workDurationMins = Math.max(1, Math.floor((now - Number(item.workStartedAt)) / 60000));
+                    const estLaborCost = Math.max(60, workDurationMins * 3);
+                    const isOvertimeAlert = workDurationMins > 120;
+                    return `
+                    <div class="mt-1 p-1.5 rounded-lg ${isOvertimeAlert ? 'bg-red-50 border border-red-300 text-red-900 animate-pulse' : 'bg-emerald-50 border border-emerald-200 text-emerald-800'} text-[10px] font-bold">
+                        <span class="flex items-center gap-1">
+                            <i class="fa-solid fa-stopwatch ${isOvertimeAlert ? 'text-red-600' : 'text-emerald-600'}"></i>
+                            <span>लाईव्ह: <strong>${workDurationMins} मि.</strong> (~₹${estLaborCost})</span>
+                        </span>
+                        ${isOvertimeAlert ? `<span class="text-[9px] text-red-600 font-black block">🚨 २ तासांपेक्षा जास्त वेळ!</span>` : ''}
+                    </div>`;
+                })() : ''}
                 ${item.startOtp ? `<span class="text-[10px] text-purple-700 font-mono block mt-0.5">Start PIN: <strong>${item.startOtp}</strong></span>` : ''}
                 ${item.completionOtp ? `<span class="text-[10px] text-slate-500 block mt-0.5">End OTP: <strong>${item.completionOtp}</strong></span>` : ''}
             </td>
@@ -3461,3 +3474,151 @@ window.updateAdminPushPreview = updateAdminPushPreview;
 window.dispatchAdminBroadcastPush = dispatchAdminBroadcastPush;
 window.testAdminPushOnDevice = testAdminPushOnDevice;
 window.renderAdminPushBroadcastHistory = renderAdminPushBroadcastHistory;
+
+
+// =========================================================
+// 🚀 नवीन: थेट फोन बुकिंग (Manual Phone Order) & Excel Export
+// =========================================================
+
+function openAdminManualOrderModal() {
+    const modal = document.getElementById('adminManualOrderModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeAdminManualOrderModal() {
+    const modal = document.getElementById('adminManualOrderModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+async function submitAdminManualOrder() {
+    const name = (document.getElementById('manualOrderCustomerName')?.value || '').trim();
+    const mobile = (document.getElementById('manualOrderCustomerMobile')?.value || '').trim();
+    const service = document.getElementById('manualOrderService')?.value || 'इलेक्ट्रिशियन (Electrician)';
+    const area = document.getElementById('manualOrderArea')?.value || 'Kothrud';
+    const address = (document.getElementById('manualOrderAddress')?.value || '').trim();
+    const timeSlot = document.getElementById('manualOrderTimeSlot')?.value || 'तातडीने (Immediate)';
+
+    if (!name || !mobile || mobile.length < 10 || !address) {
+        alert("कृपया ग्राहकाचे नाव, १०-अंकी मोबाईल नंबर आणि पूर्ण पत्ता प्रविष्ट करा.");
+        return;
+    }
+
+    const submitBtn = document.getElementById('submitManualOrderBtn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>ऑर्डर तयार होत आहे...</span>';
+    }
+
+    try {
+        const orderId = 'ORD_' + Date.now();
+        const startOtp = Math.floor(1000 + Math.random() * 9000).toString();
+        const completionOtp = Math.floor(1000 + Math.random() * 9000).toString();
+
+        const orderData = {
+            id: orderId,
+            customerName: name,
+            customerMobile: mobile,
+            service: service,
+            area: area,
+            address: address,
+            budget: '₹३/मिनिट (Pay-Per-Minute)',
+            ratePerMinute: 3,
+            pricingModel: 'pay_per_minute',
+            time: timeSlot,
+            date: new Date().toLocaleDateString('mr-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+            timestamp: Date.now(),
+            createdAt: Date.now(),
+            status: 'Pending',
+            startOtp: startOtp,
+            completionOtp: completionOtp,
+            source: 'Admin_Phone_Booking',
+            isEmergency: timeSlot.includes('तातडीने')
+        };
+
+        await database.ref('orders/' + orderId).set(orderData);
+
+        // Alert available workers in that area via Firebase push/order trigger
+        alert(`✅ ऑर्डर यशस्वीरीत्या नोंदवली गेली!
+
+ऑर्डर आयडी: #${orderId.slice(-6)}
+Start PIN: ${startOtp}
+
+ही ऑर्डर आता सर्व कामगारांना थेट उपलब्ध झाली आहे.`);
+        closeAdminManualOrderModal();
+
+        // Clear inputs
+        if (document.getElementById('manualOrderCustomerName')) document.getElementById('manualOrderCustomerName').value = '';
+        if (document.getElementById('manualOrderCustomerMobile')) document.getElementById('manualOrderCustomerMobile').value = '';
+        if (document.getElementById('manualOrderAddress')) document.getElementById('manualOrderAddress').value = '';
+    } catch (err) {
+        console.error("Manual order creation failed:", err);
+        alert("ऑर्डर तयार करताना त्रुटी आली: " + err.message);
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>ऑर्डर नोंदवा व कामगारांना पाठवा</span>';
+        }
+    }
+}
+
+function exportOrdersToCsv() {
+    const orderList = Object.entries(allOrders).map(([id, o]) => ({ id, ...o }));
+    if (orderList.length === 0) {
+        alert("डाउनलोड करण्यासाठी कोणतीही ऑर्डर उपलब्ध नाही.");
+        return;
+    }
+
+    // Sort descending by date
+    orderList.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
+
+    // Prepare CSV Content
+    const headers = ["Order_ID", "Date", "Customer_Name", "Customer_Mobile", "Service", "Area", "Address", "Status", "Worker_Mobile", "Work_Minutes", "Labor_Amount", "Material_Cost", "Final_Amount", "Admin_Commission_10%"];
+
+    const rows = orderList.map(o => {
+        const orderDate = o.timestamp ? new Date(Number(o.timestamp)).toLocaleString('en-IN') : (o.date || '');
+        const labor = Number(o.laborAmount) || parseInt(String(o.budget || '').replace(/\D/g, '')) || 0;
+        const mat = Number(o.materialCost) || 0;
+        const finalAmt = Number(o.finalAmount) || (labor + mat) || 0;
+        const comm = Math.round(labor * 0.10);
+
+        return [
+            `"${o.id || ''}"`,
+            `"${orderDate}"`,
+            `"${(o.customerName || '').replace(/"/g, '""')}"`,
+            `"${o.customerMobile || ''}"`,
+            `"${(o.service || '').replace(/"/g, '""')}"`,
+            `"${(o.area || '').replace(/"/g, '""')}"`,
+            `"${(o.address || '').replace(/"/g, '""')}"`,
+            `"${o.status || 'Pending'}"`,
+            `"${o.workerMobile || ''}"`,
+            `"${o.totalWorkMinutes || 0}"`,
+            `"${labor}"`,
+            `"${mat}"`,
+            `"${finalAmt}"`,
+            `"${comm}"`
+        ].join(",");
+    });
+
+    const csvContent = "\uFEFF" + headers.join(",") + "\n" + rows.join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const todayStr = new Date().toISOString().slice(0, 10);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Gharmitra_Orders_Report_${todayStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
+window.openAdminManualOrderModal = openAdminManualOrderModal;
+window.closeAdminManualOrderModal = closeAdminManualOrderModal;
+window.submitAdminManualOrder = submitAdminManualOrder;
+window.exportOrdersToCsv = exportOrdersToCsv;

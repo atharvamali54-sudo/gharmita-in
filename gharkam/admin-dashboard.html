@@ -388,6 +388,7 @@
                         <option value="Pending">Pending (प्रलंबित)</option>
                         <option value="Accepted">Accepted (स्वीकारले)</option>
                         <option value="On The Way">On The Way (निघत आहे)</option>
+                        <option value="In Progress">In Progress (कामावर / टायमर सुरू)</option>
                         <option value="Completed">Completed (पूर्ण)</option>
                         <option value="Cancelled">Cancelled (रद्द)</option>
                     </select>
@@ -395,6 +396,14 @@
                     <select id="orderAreaFilter" onchange="filterOrdersTable()" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="ALL">सर्व पुणे भाग (All Areas)</option>
                     </select>
+
+                    <button type="button" onclick="openAdminManualOrderModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-3.5 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-phone-volume"></i> <span>+ फोन बुकिंग</span>
+                    </button>
+
+                    <button type="button" onclick="exportOrdersToCsv()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-3 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer" title="सर्व ऑर्डर्स Excel/CSV मध्ये डाउनलोड करा">
+                        <i class="fa-solid fa-file-excel"></i> <span>Excel डाउनलोड</span>
+                    </button>
                 </div>
             </div>
 
@@ -1089,6 +1098,107 @@
         </div>
     </div>
     </div> <!-- /#adminMainDashboard -->
+
+    
+    <!-- =========================================================
+         4C. Admin Manual Phone Booking Modal (थेट फोनवरून आलेली ऑर्डर नोंदवा)
+         ========================================================= -->
+    <div id="adminManualOrderModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-lg w-full my-auto shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+            <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-900 px-6 py-4 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-lg text-emerald-300">
+                        <i class="fa-solid fa-phone-volume"></i>
+                    </span>
+                    <div>
+                        <h4 class="font-black text-base sm:text-lg">थेट फोन बुकिंग नोंदणी</h4>
+                        <p class="text-xs text-blue-200">Manual Call-in Order Entry (₹३/मि. सिस्टीम)</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeAdminManualOrderModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer text-sm">✕</button>
+            </div>
+
+            <form onsubmit="event.preventDefault(); submitAdminManualOrder();" class="p-5 sm:p-6 space-y-4 overflow-y-auto text-xs">
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl text-blue-900 font-semibold flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-blue-600 text-sm"></i>
+                    <span>फोनवरून आलेल्या ग्राहकाची ऑर्डर नोंदवा. ती तत्काळ सर्व उपलब्ध कामगारांना ब्रॉडकास्ट होईल.</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">ग्राहकाचे पूर्ण नाव <span class="text-rose-500">*</span></label>
+                        <input type="text" id="manualOrderCustomerName" required placeholder="उदा. राहुल कुलकर्णी" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">ग्राहकाचा मोबाईल (१० अंकी) <span class="text-rose-500">*</span></label>
+                        <input type="tel" id="manualOrderCustomerMobile" required maxlength="10" placeholder="उदा. 9876543210" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">सेवेचा प्रकार (Service) <span class="text-rose-500">*</span></label>
+                        <select id="manualOrderService" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="इलेक्ट्रिशियन (Electrician)">⚡ इलेक्ट्रिशियन (Electrician)</option>
+                            <option value="प्लंबिंग (Plumbing)">🚰 प्लंबिंग (Plumbing)</option>
+                            <option value="सुतारकाम (Carpentry)">🪚 सुतारकाम (Carpentry)</option>
+                            <option value="उपकरण दुरुस्ती (Appliance Repair)">🔧 उपकरण दुरुस्ती (Appliance Repair)</option>
+                            <option value="सफाई काम (Deep Cleaning)">🧹 सफाई काम (Deep Cleaning)</option>
+                            <option value="रंगकाम (Painting)">🎨 रंगकाम (Painting)</option>
+                            <option value="इतर घरकाम (General Maintenance)">🛠️ इतर घरकाम (General)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">पुणे परिसर (Area) <span class="text-rose-500">*</span></label>
+                        <select id="manualOrderArea" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Kothrud">कोथरूड (Kothrud)</option>
+                            <option value="Shivajinagar">शिवाजीनगर (Shivajinagar)</option>
+                            <option value="Baner">बाणेर (Baner)</option>
+                            <option value="Aundh">औंध (Aundh)</option>
+                            <option value="Wakad">वाकड (Wakad)</option>
+                            <option value="Hinjawadi">हिंजवडी (Hinjawadi)</option>
+                            <option value="Hadapsar">हडपसर (Hadapsar)</option>
+                            <option value="Viman Nagar">विमान नगर (Viman Nagar)</option>
+                            <option value="Pimple Saudagar">पिंपळे सौदागर (Pimple Saudagar)</option>
+                            <option value="Sinhagad Road">सिंहगड रोड (Sinhagad Road)</option>
+                            <option value="Swargate">स्वारगेट (Swargate)</option>
+                            <option value="Kalyani Nagar">कल्याणी नगर (Kalyani Nagar)</option>
+                            <option value="Bavdhan">बावधन (Bavdhan)</option>
+                            <option value="Warje">वारजे (Warje)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">घर / फ्लॅट क्रमांक आणि संपूर्ण पत्ता <span class="text-rose-500">*</span></label>
+                    <textarea id="manualOrderAddress" required rows="2" placeholder="उदा. फ्लॅट ४०२, गंगा सोसायटी, डीपी रोड..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">दर मॉडेल (Pricing Model)</label>
+                        <input type="text" id="manualOrderPricing" value="⏱️ ₹३/मिनिट (Pay-Per-Minute)" readonly class="w-full p-2.5 bg-slate-100 border border-slate-300 rounded-xl font-bold text-blue-700 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">अपेक्षित वेळ (Timing)</label>
+                        <select id="manualOrderTimeSlot" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="तातडीने (Immediate / 10 Mins)">⚡ तातडीने (Immediate / 10-15 Min)</option>
+                            <option value="आज दुपारी (Today Afternoon)">आज दुपारी (Afternoon)</option>
+                            <option value="आज संध्याकाळी (Today Evening)">आज संध्याकाळी (Evening)</option>
+                            <option value="उद्या सकाळी (Tomorrow Morning)">उद्या सकाळी (Morning)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t flex justify-end gap-2">
+                    <button type="button" onclick="closeAdminManualOrderModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-bold text-slate-700 transition">रद्द करा</button>
+                    <button type="submit" id="submitManualOrderBtn" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black shadow-md transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-paper-plane"></i> <span>ऑर्डर नोंदवा व कामगारांना पाठवा</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="js/firebase.js"></script>
     <script src="js/admin.js?v=63"></script>
