@@ -939,39 +939,29 @@ function saveProfile(event) {
 
     const currentName = customerProfile.fullName || customerProfile.name || '';
     const currentAddress = customerProfile.address || '';
+    const nameChanged = nextName !== currentName;
     const emailChanged = nextEmail !== String(customerProfile.email || '').toLowerCase();
     const mobileChanged = nextMobile !== String(customerProfile.mobile || '');
     const addressChanged = nextAddress !== currentAddress;
 
+    // Check if anything actually changed
+    if (!nameChanged && !emailChanged && !mobileChanged && !addressChanged) {
+        setProfileStatus('कोणताही बदल केलेला नाही.', 'info');
+        return;
+    }
+
     const nextProfile = { ...customerProfile, fullName: nextName, name: nextName, email: nextEmail, mobile: nextMobile, address: nextAddress, role: 'customer' };
 
-    if (!emailChanged && !mobileChanged) {
-        if (nextName === currentName && !addressChanged) {
-            setProfileStatus('कोणताही बदल केलेला नाही.', 'info');
-            return;
-        }
-        writeCustomerProfile(nextProfile, customerProfile.mobile);
-        if (nextAddress) {
-            try {
-                localStorage.setItem('gharmitra_saved_address', nextAddress);
-                localStorage.setItem('gharmitra_customer_address', nextAddress);
-            } catch(e) {}
-            const addrField = document.getElementById('customerAddress');
-            if (addrField) addrField.value = nextAddress;
-            const savedBadge = document.getElementById('savedAddressBadge');
-            if (savedBadge) {
-                savedBadge.classList.remove('hidden');
-                savedBadge.classList.add('inline-flex');
-            }
-        }
-        setProfileStatus('प्रोफाइल माहिती व पत्ता यशस्वीरीत्या अपडेट झाले.', 'success');
-        setTimeout(closeProfileModal, 900);
+    // STRICT SECURITY: Any edit in profile requires OTP to customer's registered email
+    const targetEmail = customerProfile.email || nextEmail;
+    if (!targetEmail) {
+        setProfileStatus('नोंदणीकृत ई-मेल उपलब्ध नाही. कृपया ॲडमिनशी संपर्क साधा.', 'error');
         return;
     }
 
     pendingProfileChanges = { profile: nextProfile, previousMobile: customerProfile.mobile };
     profileOtpCode = String(Math.floor(100000 + Math.random() * 900000));
-    setProfileStatus('OTP पाठवत आहोत…', 'info');
+    setProfileStatus('सुरक्षेसाठी ई-मेलवर ६-अंकी OTP पाठवत आहोत…', 'info');
 
     if (!window.emailjs) {
         setProfileStatus('OTP सेवा उपलब्ध नाही. कृपया पुन्हा प्रयत्न करा.', 'error');
@@ -1008,11 +998,26 @@ function verifyProfileOtp() {
         return;
     }
 
-    writeCustomerProfile(pendingProfileChanges.profile, pendingProfileChanges.previousMobile);
+    const updatedProf = pendingProfileChanges.profile;
+    writeCustomerProfile(updatedProf, pendingProfileChanges.previousMobile);
+    if (updatedProf.address) {
+        try {
+            localStorage.setItem('gharmitra_saved_address', updatedProf.address);
+            localStorage.setItem('gharmitra_customer_address', updatedProf.address);
+        } catch(e) {}
+        const addrField = document.getElementById('customerAddress');
+        if (addrField) addrField.value = updatedProf.address;
+        const savedBadge = document.getElementById('savedAddressBadge');
+        if (savedBadge) {
+            savedBadge.classList.remove('hidden');
+            savedBadge.classList.add('inline-flex');
+        }
+    }
     pendingProfileChanges = null;
     profileOtpCode = null;
     document.getElementById('profileOtpArea').classList.add('hidden');
-    setProfileStatus('Profile सुरक्षितपणे अपडेट झाले. Booking form मध्ये नवीन details दिसतील.', 'success');
+    document.getElementById('profileSaveBtn').classList.remove('hidden');
+    setProfileStatus('🎉 OTP यशस्वीरीत्या व्हेरिफाय झाला! प्रोफाईल अपडेट झाले.', 'success');
     setTimeout(closeProfileModal, 1000);
 }
 
@@ -2503,16 +2508,21 @@ _Sent securely via Gharmitra Family Safety Shield._`;
             const signedInMobile = getLoggedInCustomerMobile();
             const searchInput = document.getElementById('searchMobileInput');
 
-            if (searchInput) {
-                if (signedInMobile && signedInMobile.length === 10) {
-                    searchInput.value = signedInMobile;
-                    fetchCustomerOrders();
-                } else if (searchInput.value && searchInput.value.replace(/\D/g, '').length === 10) {
-                    fetchCustomerOrders();
-                } else {
-                    searchInput.focus();
+            if (!signedInMobile || signedInMobile.length < 10) {
+                alert("ऑर्डर हिस्टरी पाहण्यासाठी आधी तुमच्या मोबाईल नंबरने लॉगिन किंवा बुकिंग करा.");
+                if (searchInput) searchInput.value = "";
+                const container = document.getElementById('ordersListContainer');
+                if (container) {
+                    container.innerHTML = '<p class="text-xs text-amber-700 bg-amber-50 p-4 rounded-xl text-center border border-amber-200">सुरक्षेसाठी कृपया आधी लॉगिन करा. तुम्ही फक्त तुमच्याच लॉगिन नंबरची ऑर्डर हिस्टरी पाहू शकता.</p>';
                 }
+                return;
             }
+
+            if (searchInput) {
+                searchInput.value = signedInMobile;
+                searchInput.readOnly = true; // Strict lock
+            }
+            fetchCustomerOrders();
         }
 
         function closeMyOrdersModal() {
@@ -2529,14 +2539,15 @@ _Sent securely via Gharmitra Family Safety Shield._`;
             const searchBtn = document.getElementById('searchOrdersBtn');
             if (!container) return;
 
-            const rawMobile = inputEl ? inputEl.value.trim() : '';
-            const mobile = rawMobile.replace(/\D/g, '').slice(-10);
-
-            if (!mobile || mobile.length !== 10) {
-                alert("कृपया अचूक १० अंकी मोबाईल नंबर प्रविष्ट करा!");
-                if (inputEl) inputEl.focus();
+            const signedInMobile = getLoggedInCustomerMobile();
+            if (!signedInMobile || signedInMobile.length !== 10) {
+                alert("कृपया आधी तुमच्या मोबाईल नंबरने लॉगिन करा!");
                 return;
             }
+
+            // Strictly enforce logged-in user's mobile (disallow searching other users' numbers)
+            const mobile = signedInMobile;
+            if (inputEl) inputEl.value = mobile;
 
             if (searchBtn) {
                 searchBtn.disabled = true;

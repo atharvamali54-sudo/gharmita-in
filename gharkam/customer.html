@@ -474,6 +474,22 @@
                         </label>
                     </div>
 
+                    <!-- 7-Day Workmanship Warranty Badge (Zero Risk, High Trust) -->
+                    <div class="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-2xl flex items-center gap-3 shadow-2xs mt-4">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shrink-0 shadow-sm">
+                            🛡️
+                        </div>
+                        <div class="text-xs">
+                            <h5 class="font-extrabold text-emerald-950 flex items-center gap-1.5">
+                                <span>१००% काम समाधान खात्री (7-Day Warranty)</span>
+                                <span class="text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1.5 py-0.2 rounded">फ्री रिव्हिजिट</span>
+                            </h5>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                                कामात काही दोष आढळल्यास ७ दिवसांच्या आत त्याच कामासाठी मोफत रिव्हिजिट. (कामाच्या कारागिरीवर लागू, साहित्याचा खर्च वेगळा).
+                            </p>
+                        </div>
+                    </div>
+
                     <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mt-4 cursor-pointer">
                         <i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now</span>
                     </button>
@@ -1244,6 +1260,22 @@
                         </label>
                     </div>
 
+                    <!-- 7-Day Workmanship Warranty Badge (Zero Risk, High Trust) -->
+                    <div class="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-2xl flex items-center gap-3 shadow-2xs mt-4">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shrink-0 shadow-sm">
+                            🛡️
+                        </div>
+                        <div class="text-xs">
+                            <h5 class="font-extrabold text-emerald-950 flex items-center gap-1.5">
+                                <span>१००% काम समाधान खात्री (7-Day Warranty)</span>
+                                <span class="text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1.5 py-0.2 rounded">फ्री रिव्हिजिट</span>
+                            </h5>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                                कामात काही दोष आढळल्यास ७ दिवसांच्या आत त्याच कामासाठी मोफत रिव्हिजिट. (कामाच्या कारागिरीवर लागू, साहित्याचा खर्च वेगळा).
+                            </p>
+                        </div>
+                    </div>
+
                     <button type="submit" id="apkSubmitBtn" class="w-full bg-[#1868fe] hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-5">
                         <i class="fa-solid fa-paper-plane"></i>
                         <span>Book Appointment Now</span>
@@ -1379,7 +1411,7 @@
             <div class="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
                 <div>
                     <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2"><i class="fa-solid fa-user-pen text-blue-600"></i> Edit Profile</h3>
-                    <p class="text-[11px] text-slate-500 mt-1">Update your name directly. Updating email or mobile requires OTP verification.</p>
+                    <p class="text-[11px] text-slate-500 mt-1">सुरक्षेसाठी प्रोफाईलमध्ये कोणताही बदल (नाव, मोबाईल, पत्ता किंवा ईमेल) सेव्ह करताना तुमच्या नोंदणीकृत ईमेलवर OTP पाठवला जाईल.</p>
                 </div>
                 <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -1477,17 +1509,23 @@
                 </button>
             </div>
 
-            <div class="py-4 space-y-3 shrink-0">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
-                    <i class="fa-solid fa-mobile-screen mr-1 text-blue-600"></i> मोबाईल नंबर (Mobile Number)
-                </label>
+            <div class="py-4 space-y-2 shrink-0">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        <i class="fa-solid fa-mobile-screen mr-1 text-blue-600"></i> लॉगिन केलेला मोबाईल नंबर (Your Number)
+                    </label>
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                        <i class="fa-solid fa-lock text-[9px]"></i> सुरक्षित इतिहास
+                    </span>
+                </div>
                 <div class="flex gap-2">
-                    <input type="tel" id="searchMobileInput" pattern="[0-9]{10}" placeholder="१० अंकी मोबाईल नंबर टाका" onkeydown="if(event.key==='Enter') fetchCustomerOrders()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 font-medium py-2.5 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
-                    <button type="button" onclick="fetchCustomerOrders()" id="searchOrdersBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl transition text-xs shrink-0 flex items-center gap-1.5 shadow-sm">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <span>Search</span>
+                    <input type="tel" id="searchMobileInput" readonly placeholder="लॉगिन मोबाईल नंबर..." class="w-full bg-slate-100 border border-slate-200 text-slate-800 font-bold py-2.5 px-4 rounded-xl focus:outline-none text-sm cursor-not-allowed">
+                    <button type="button" onclick="fetchCustomerOrders()" id="searchOrdersBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl transition text-xs shrink-0 flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>रीफ्रेश</span>
                     </button>
                 </div>
+                <p class="text-[10px] text-slate-400">सुरक्षेसाठी तुम्ही फक्त तुमच्याच लॉगिन नंबरची ऑर्डर हिस्टरी पाहू शकता.</p>
             </div>
 
             <!-- Orders List Container (Scrollable) -->
