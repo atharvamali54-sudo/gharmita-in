@@ -670,11 +670,15 @@ async function detectCustomerExactLocation() {
             }
 
             const areaSelect = document.getElementById('areaSelect');
+            const apkAreaSelect = document.getElementById('apkAreaSelect');
             if (areaSelect && closestArea && minDistance < 15) {
                 areaSelect.value = closestArea;
                 try {
                     localStorage.setItem('gharmitra_saved_area', closestArea);
                 } catch(e) {}
+            }
+            if (apkAreaSelect && closestArea && minDistance < 15) {
+                apkAreaSelect.value = closestArea;
             }
 
             // Reverse geocode via OpenStreetMap Nominatim with fallback
@@ -712,6 +716,7 @@ async function detectCustomerExactLocation() {
             }
 
             const addressInput = document.getElementById('customerAddress');
+            const apkAddressInput = document.getElementById('apkCustomerAddress');
             if (addressInput) {
                 const currentVal = addressInput.value.trim();
                 if (!currentVal) {
@@ -723,6 +728,25 @@ async function detectCustomerExactLocation() {
                     localStorage.setItem('gharmitra_saved_address', addressInput.value.trim());
                     localStorage.setItem('gharmitra_customer_address', addressInput.value.trim());
                 } catch(e) {}
+            }
+            if (apkAddressInput) {
+                const currentVal = apkAddressInput.value.trim();
+                if (!currentVal) {
+                    apkAddressInput.value = detectedAddressText || `${closestArea || 'Pune'}, Maharashtra (GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+                } else if (detectedAddressText && !currentVal.toLowerCase().includes(closestArea ? closestArea.toLowerCase() : 'pune')) {
+                    apkAddressInput.value = `${currentVal}, ${detectedAddressText}`;
+                }
+            }
+
+            // If APK map accordion is closed, gently open it to show the pinned location
+            const apkMapAcc = document.getElementById('apkMapAccordion');
+            if (apkMapAcc && !apkMapAcc.open) {
+                apkMapAcc.open = true;
+                setTimeout(() => {
+                    if (customerPinMap) {
+                        try { customerPinMap.invalidateSize(); } catch(e) {}
+                    }
+                }, 200);
             }
 
             renderGpsLocationBadge(lat, lng, accuracy);
@@ -743,8 +767,19 @@ async function detectCustomerExactLocation() {
                 }, 3000);
             }
 
+            if (apkBtn) {
+                apkBtn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> <span class="text-emerald-700">GPS लॉक</span>`;
+                setTimeout(() => {
+                    apkBtn.disabled = false;
+                    apkBtn.innerHTML = '<i class="fa-solid fa-crosshairs text-blue-600"></i> <span>अचूक GPS</span>';
+                }, 3000);
+            }
+
             if (pinInfo) {
                 pinInfo.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-circle-check"></i> अचूक GPS लॉक (±${accuracy}m)</span> • मॅपवर पिन हलवून सूक्ष्म बदल करू शकता`;
+            }
+            if (apkPinInfo) {
+                apkPinInfo.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-circle-check"></i> अचूक GPS लॉक (±${accuracy}m)</span>`;
             }
 
         } catch (err) {
@@ -1508,6 +1543,18 @@ populateBookingProfile();
                     activeEl.classList.add('flex');
                 }
 
+                const apkPromptEl = document.getElementById('apkVoiceRecordPrompt');
+                const apkActiveEl = document.getElementById('apkVoiceRecordingActive');
+                const apkPreviewEl = document.getElementById('apkVoiceAudioPreviewCard');
+                const apkBadgeEl = document.getElementById('apkVoiceNoteBadge');
+                if (apkPromptEl) apkPromptEl.classList.add('hidden');
+                if (apkPreviewEl) apkPreviewEl.classList.add('hidden');
+                if (apkBadgeEl) apkBadgeEl.classList.add('hidden');
+                if (apkActiveEl) {
+                    apkActiveEl.classList.remove('hidden');
+                    apkActiveEl.classList.add('flex');
+                }
+
                 voiceRecordTimer = setInterval(() => {
                     voiceRecordSeconds++;
                     updateVoiceTimerDisplay();
@@ -1540,10 +1587,12 @@ populateBookingProfile();
 
         function updateVoiceTimerDisplay() {
             const timerDisplay = document.getElementById('voiceRecordTimer');
-            if (!timerDisplay) return;
+            const apkTimerDisplay = document.getElementById('apkVoiceRecordTimer');
             const mins = String(Math.floor(voiceRecordSeconds / 60)).padStart(2, '0');
             const secs = String(voiceRecordSeconds % 60).padStart(2, '0');
-            timerDisplay.innerText = `${mins}:${secs} / 00:30`;
+            const formattedTime = `${mins}:${secs} / 00:30`;
+            if (timerDisplay) timerDisplay.innerText = formattedTime;
+            if (apkTimerDisplay) apkTimerDisplay.innerText = formattedTime;
         }
 
         function setupVoicePreviewPlayer(audioSrc) {
@@ -1721,11 +1770,11 @@ populateBookingProfile();
             if (apkSubmitBtn) {
                 apkSubmitBtn.disabled = false;
                 if (isEmergency) {
-                    apkSubmitBtn.className = 'w-full bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-black text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-red-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-5';
+                    apkSubmitBtn.className = 'w-full bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-black text-sm py-3 px-5 rounded-xl shadow-md shadow-red-500/25 transition flex items-center justify-center gap-2 cursor-pointer';
                     apkSubmitBtn.innerHTML = '<i class="fa-solid fa-bolt text-yellow-300"></i> <span>₹५० भरा आणि १०-मिनिट इमर्जन्सी बुक करा</span>';
                 } else {
-                    apkSubmitBtn.className = 'w-full bg-[#1868fe] hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-5';
-                    apkSubmitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now</span>';
+                    apkSubmitBtn.className = 'w-full bg-[#1868fe] hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2 cursor-pointer';
+                    apkSubmitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now (फक्त ₹३/मि.)</span>';
                 }
             }
         }
@@ -3253,11 +3302,11 @@ function syncApkBookingTypeUI(isEmergency) {
 
     if (apkNormalLabel && apkEmergencyLabel) {
         if (isEmergency) {
-            apkNormalLabel.className = 'cursor-pointer border-2 border-slate-200 bg-white hover:border-blue-400 p-3 rounded-xl flex items-start gap-2.5 transition shadow-xs';
-            apkEmergencyLabel.className = 'cursor-pointer border-2 border-red-600 bg-red-50/60 p-3 rounded-xl flex items-start gap-2.5 transition shadow-xs';
+            apkNormalLabel.className = 'cursor-pointer border-2 border-slate-200 bg-white hover:border-blue-400 p-2 rounded-xl flex items-center gap-2 transition shadow-2xs';
+            apkEmergencyLabel.className = 'cursor-pointer border-2 border-red-600 bg-red-50/70 p-2 rounded-xl flex items-center gap-2 transition shadow-2xs';
         } else {
-            apkNormalLabel.className = 'cursor-pointer border-2 border-blue-600 bg-blue-50/50 p-3 rounded-xl flex items-start gap-2.5 transition shadow-xs';
-            apkEmergencyLabel.className = 'cursor-pointer border-2 border-slate-200 bg-white hover:border-red-400 p-3 rounded-xl flex items-start gap-2.5 transition shadow-xs';
+            apkNormalLabel.className = 'cursor-pointer border-2 border-blue-600 bg-blue-50/50 p-2 rounded-xl flex items-center gap-2 transition shadow-2xs';
+            apkEmergencyLabel.className = 'cursor-pointer border-2 border-slate-200 bg-white hover:border-red-400 p-2 rounded-xl flex items-center gap-2 transition shadow-2xs';
         }
     }
     if (apkNotice) {
@@ -3266,11 +3315,11 @@ function syncApkBookingTypeUI(isEmergency) {
     }
     if (apkSubmitBtn) {
         if (isEmergency) {
-            apkSubmitBtn.className = 'w-full bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-black text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-red-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-5';
+            apkSubmitBtn.className = 'w-full bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-black text-sm py-3 px-5 rounded-xl shadow-md shadow-red-500/25 transition flex items-center justify-center gap-2 cursor-pointer';
             apkSubmitBtn.innerHTML = '<i class="fa-solid fa-bolt text-yellow-300"></i> <span>₹५० भरा आणि १०-मिनिट इमर्जन्सी बुक करा</span>';
         } else {
-            apkSubmitBtn.className = 'w-full bg-[#1868fe] hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-base py-3.5 px-6 rounded-2xl shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-5';
-            apkSubmitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now</span>';
+            apkSubmitBtn.className = 'w-full bg-[#1868fe] hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2 cursor-pointer';
+            apkSubmitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now (फक्त ₹३/मि.)</span>';
         }
     }
 }
