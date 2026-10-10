@@ -853,6 +853,95 @@ function testAdminWhatsApp() {
     window.open(waUrl, '_blank');
 }
 
+// --- AI Customer Care Bot Settings ---
+function toggleAdminAiApiKeyVisibility() {
+    const input = document.getElementById('adminAiApiKey');
+    const eye = document.getElementById('adminAiApiKeyEye');
+    if (!input || !eye) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        eye.className = 'fa-solid fa-eye-slash';
+    } else {
+        input.type = 'password';
+        eye.className = 'fa-solid fa-eye';
+    }
+}
+
+function loadAdminAiBotSettings() {
+    const local = localStorage.getItem('gharmitra_ai_bot_settings');
+    let data = null;
+    if (local) {
+        try { data = JSON.parse(local); } catch(e) {}
+    }
+
+    if (typeof database !== 'undefined') {
+        database.ref('settings/aiBot').once('value').then(snap => {
+            const dbData = snap.val();
+            if (dbData) populateAiBotInputs(dbData);
+            else if (data) populateAiBotInputs(data);
+        }).catch(() => {
+            if (data) populateAiBotInputs(data);
+        });
+    } else if (data) {
+        populateAiBotInputs(data);
+    }
+}
+
+function populateAiBotInputs(cfg) {
+    if (!cfg) return;
+    const apiKey = document.getElementById('adminAiApiKey');
+    const model = document.getElementById('adminAiModel');
+    const botName = document.getElementById('adminAiBotName');
+    const welcome = document.getElementById('adminAiWelcomeMsg');
+    const sysPrompt = document.getElementById('adminAiSystemPrompt');
+    const voiceEnabled = document.getElementById('adminAiVoiceEnabled');
+    const autoSpeak = document.getElementById('adminAiAutoSpeak');
+
+    if (apiKey && typeof cfg.apiKey !== 'undefined') apiKey.value = cfg.apiKey;
+    if (model && cfg.model) model.value = cfg.model;
+    if (botName && cfg.botName) botName.value = cfg.botName;
+    if (welcome && cfg.welcomeMessage) welcome.value = cfg.welcomeMessage;
+    if (sysPrompt && cfg.systemPrompt) sysPrompt.value = cfg.systemPrompt;
+    if (voiceEnabled && typeof cfg.voiceEnabled !== 'undefined') voiceEnabled.checked = !!cfg.voiceEnabled;
+    if (autoSpeak && typeof cfg.autoSpeak !== 'undefined') autoSpeak.checked = !!cfg.autoSpeak;
+}
+
+function saveAdminAiBotSettings() {
+    const apiKeyEl = document.getElementById('adminAiApiKey');
+    const modelEl = document.getElementById('adminAiModel');
+    const botNameEl = document.getElementById('adminAiBotName');
+    const welcomeEl = document.getElementById('adminAiWelcomeMsg');
+    const sysPromptEl = document.getElementById('adminAiSystemPrompt');
+    const voiceEnabledEl = document.getElementById('adminAiVoiceEnabled');
+    const autoSpeakEl = document.getElementById('adminAiAutoSpeak');
+
+    const aiBotSettings = {
+        apiKey: apiKeyEl ? apiKeyEl.value.trim() : "",
+        model: modelEl ? modelEl.value : "gemini-3.8-flash",
+        botName: botNameEl ? botNameEl.value.trim() : "घरमित्र AI मदतनीस (Gharmitra Care)",
+        welcomeMessage: welcomeEl ? welcomeEl.value.trim() : "नमस्कार! मी घरमित्रचा २४x७ AI सहाय्यक आहे. मी तुम्हाला घरकाम, बुकिंग, कामगार किंवा इतर कोणत्याही विषयाचे उत्तर देऊ शकतो. बोला किंवा टाईप करा!",
+        systemPrompt: sysPromptEl ? sysPromptEl.value.trim() : "",
+        voiceEnabled: voiceEnabledEl ? voiceEnabledEl.checked : true,
+        autoSpeak: autoSpeakEl ? autoSpeakEl.checked : true,
+        updatedAt: Date.now()
+    };
+
+    localStorage.setItem('gharmitra_ai_bot_settings', JSON.stringify(aiBotSettings));
+
+    if (typeof database !== 'undefined') {
+        database.ref('settings/aiBot').set(aiBotSettings)
+            .then(() => {
+                alert("🤖 AI बॉट व व्हॉइस सेटिंग्ज यशस्वीरीत्या सेव्ह झाल्या!");
+            })
+            .catch(err => {
+                console.warn("Firebase AI Bot settings save error:", err);
+                alert("स्थानिक (LocalStorage) सेटिंग्ज सेव्ह झाल्या! Firebase एरर: " + err.message);
+            });
+    } else {
+        alert("🤖 AI बॉट व व्हॉइस सेटिंग्ज स्थानिकरीत्या सेव्ह झाल्या!");
+    }
+}
+
 // --- 2. Tab Navigation ---
 
 function switchTab(tabId) {
@@ -868,7 +957,11 @@ function switchTab(tabId) {
     if (tabId === 'workersTab') activeBtnId = 'tabBtnWorkers';
     if (tabId === 'reviewsTab') activeBtnId = 'tabBtnReviews';
     if (tabId === 'societyTab') activeBtnId = 'tabBtnSociety';
-    if (tabId === 'settingsTab') activeBtnId = 'tabBtnSettings';
+    if (tabId === 'settingsTab') {
+        activeBtnId = 'tabBtnSettings';
+        loadAdminWhatsAppSettings();
+        loadAdminAiBotSettings();
+    }
     if (tabId === 'pushTab') activeBtnId = 'tabBtnPush';
 
     const activeBtn = document.getElementById(activeBtnId);
@@ -886,6 +979,7 @@ function switchTab(tabId) {
 function initDashboard() {
     const savedComm = localStorage.getItem('gharmitra_admin_commission_rate') || '10';
     loadAdminWhatsAppSettings();
+    loadAdminAiBotSettings();
     const commEl = document.getElementById('adminCommissionRate');
     if (commEl) commEl.value = savedComm;
 
@@ -3474,6 +3568,9 @@ window.updateAdminPushPreview = updateAdminPushPreview;
 window.dispatchAdminBroadcastPush = dispatchAdminBroadcastPush;
 window.testAdminPushOnDevice = testAdminPushOnDevice;
 window.renderAdminPushBroadcastHistory = renderAdminPushBroadcastHistory;
+window.toggleAdminAiApiKeyVisibility = toggleAdminAiApiKeyVisibility;
+window.saveAdminAiBotSettings = saveAdminAiBotSettings;
+window.loadAdminAiBotSettings = loadAdminAiBotSettings;
 
 
 // =========================================================

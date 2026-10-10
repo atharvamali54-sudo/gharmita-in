@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gharmitra AI Assistant - २४x७ स्मार्ट AI मदतनीस</title>
+    
+    <!-- Tailwind CSS & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <!-- Progressive Web App Meta -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/png" href="icons/favicon.png">
+
+    <style>
+        body {
+            font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .mic-pulsing {
+            animation: pulse-ring 1.3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .typing-dot {
+            animation: typingAnimation 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typingAnimation {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 flex flex-col h-screen overflow-hidden">
+
+    <!-- =========================================================
+         1. Top Header & Navigation
+         ========================================================= -->
+    <header class="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white px-4 py-3 shadow-md flex items-center justify-between shrink-0 z-30">
+        <div class="flex items-center gap-3">
+            <a href="./customer.html" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition cursor-pointer" title="मागे जा (Back)">
+                <i class="fa-solid fa-arrow-left text-sm"></i>
+            </a>
+            <div class="flex items-center gap-2.5">
+                <div class="relative">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-yellow-300 text-blue-950 flex items-center justify-center font-black text-xl shadow-md">
+                        🤖
+                    </div>
+                    <span class="w-3 h-3 bg-emerald-400 border-2 border-indigo-800 rounded-full absolute -bottom-0.5 -right-0.5 animate-pulse"></span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <h1 id="headerBotTitle" class="font-extrabold text-sm sm:text-base leading-tight tracking-tight">Gharmitra AI Care</h1>
+                        <span class="text-[9px] font-black uppercase tracking-wider bg-white/20 px-1.5 py-0.5 rounded text-amber-300">Live 24x7</span>
+                    </div>
+                    <p class="text-[11px] text-blue-100 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-300"></span>
+                        <span>काहीही विचारा • बोला व ऐका</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 sm:gap-2">
+            <!-- Voice Audio Output Toggle -->
+            <button type="button" id="toggleAudioBtn" onclick="toggleAudioOutput()" class="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer" title="उत्तर आवाजात ऐका किंवा बंद करा">
+                <i id="audioIcon" class="fa-solid fa-volume-high text-amber-300"></i>
+                <span id="audioText" class="hidden sm:inline text-[11px]">आवाज सुरू</span>
+            </button>
+
+            <!-- Clear Chat -->
+            <button type="button" onclick="confirmClearChat()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-rose-500/80 active:scale-95 flex items-center justify-center text-xs text-white transition cursor-pointer" title="संभाषण साफ करा (Clear Chat)">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+
+            <!-- Home Shortcut -->
+            <a href="./index.html" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-xs text-white transition cursor-pointer" title="मुख्य पृष्ठ (Home)">
+                <i class="fa-solid fa-house"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- =========================================================
+         2. Main Scrollable Chat Area
+         ========================================================= -->
+    <main id="chatMessagesContainer" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 max-w-4xl w-full mx-auto">
+        
+        <!-- Welcome Hero Banner -->
+        <div id="welcomeBanner" class="bg-gradient-to-br from-white via-blue-50/50 to-indigo-50/40 p-5 sm:p-6 rounded-3xl border border-blue-100/80 shadow-sm text-center space-y-3.5 my-2 animate-in">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-blue-500/30">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <div>
+                <h2 id="welcomeBotName" class="font-extrabold text-slate-800 text-base sm:text-lg">नमस्कार! मी घरमित्र AI सहाय्यक आहे 🙏</h2>
+                <p id="welcomeBotDesc" class="text-xs text-slate-500 mt-1 max-w-md mx-auto leading-relaxed">
+                    तुम्ही मला घरकाम, प्लंबिंग, क्लिनिंग, कामगार बुकिंग, किंवा जगातल्या कोणत्याही विषयावर प्रश्न विचारू शकता. बोला किंवा टाईप करा!
+                </p>
+            </div>
+
+            <!-- Quick Suggestion Prompts -->
+            <div class="pt-2">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">उदाहरणे (Quick Questions):</p>
+                <div class="flex flex-wrap items-center justify-center gap-1.5 text-xs">
+                    <button type="button" onclick="sendQuickPrompt('पुण्यात घर क्लिनिंगचे दर व सेवा काय आहेत?')" class="bg-white hover:bg-blue-50 text-blue-700 border border-blue-200/80 font-medium px-3 py-1.5 rounded-full shadow-2xs transition active:scale-95 cursor-pointer">
+                        🧹 क्लिनिंगचे दर काय आहेत?
+                    </button>
+                    <button type="button" onclick="sendQuickPrompt('गळणारा पाण्याचा नळ कसा दुरुस्त करायचा किंवा प्लंबर कसा बुक करायचा?')" class="bg-white hover:bg-blue-50 text-blue-700 border border-blue-200/80 font-medium px-3 py-1.5 rounded-full shadow-2xs transition active:scale-95 cursor-pointer">
+                        🚰 प्लंबर कसा बुक करायचा?
+                    </button>
+                    <button type="button" onclick="sendQuickPrompt('इलेक्ट्रिशियनचे काम काय आहे आणि किती वेळात येतो?')" class="bg-white hover:bg-blue-50 text-blue-700 border border-blue-200/80 font-medium px-3 py-1.5 rounded-full shadow-2xs transition active:scale-95 cursor-pointer">
+                        ⚡ इलेक्ट्रिशियन सेवा
+                    </button>
+                    <button type="button" onclick="sendQuickPrompt('कामगारांची पोलीस व आधार पडताळणी झाली आहे का? सुरक्षितता कशी आहे?')" class="bg-white hover:bg-blue-50 text-blue-700 border border-blue-200/80 font-medium px-3 py-1.5 rounded-full shadow-2xs transition active:scale-95 cursor-pointer">
+                        🛡️ सुरक्षितता व पोलीस व्हेरिफिकेशन
+                    </button>
+                    <button type="button" onclick="sendQuickPrompt('मला रोजच्या जेवणासाठी चवदार आणि सोपी रेसिपी सांग.')" class="bg-white hover:bg-purple-50 text-purple-700 border border-purple-200/80 font-medium px-3 py-1.5 rounded-full shadow-2xs transition active:scale-95 cursor-pointer">
+                        🍲 सोपी रेसिपी सांगा
+                    </button>
+                    <button type="button" onclick="sendQuickPrompt('काहीही विचारा (अभ्यास, विज्ञान, कोडिंग किंवा सामान्य ज्ञान)...')" class="bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-medium px-3 py-1.5 rounded-full shadow-2xs transition active:scale-95 cursor-pointer">
+                        📚 सामान्य ज्ञान / काहीही विचारा
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Stream Messages will be appended here -->
+        <div id="messagesList" class="space-y-4"></div>
+
+        <!-- Typing Indicator Bubble (Hidden by default) -->
+        <div id="typingIndicator" class="hidden flex items-start gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-bold shrink-0 shadow-sm">
+                🤖
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-xs flex items-center gap-1.5">
+                <span class="text-xs text-slate-500 font-semibold mr-1">AI विचार करत आहे</span>
+                <span class="w-2 h-2 rounded-full bg-blue-600 typing-dot"></span>
+                <span class="w-2 h-2 rounded-full bg-indigo-600 typing-dot"></span>
+                <span class="w-2 h-2 rounded-full bg-purple-600 typing-dot"></span>
+            </div>
+        </div>
+
+        <!-- Bottom scroll anchor -->
+        <div id="chatBottomAnchor"></div>
+    </main>
+
+    <!-- =========================================================
+         3. Voice Listening Live Status Banner
+         ========================================================= -->
+    <div id="voiceListeningBanner" class="hidden bg-rose-50 border-t border-rose-200 px-4 py-2 flex items-center justify-between text-xs text-rose-800 animate-in">
+        <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-rose-600 animate-ping"></span>
+            <span class="font-bold">🎤 माईक सुरू आहे: कृपया बोला (मराठी/हिंदी/English)...</span>
+        </div>
+        <button type="button" onclick="stopVoiceRecognition()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-2.5 py-1 rounded-lg text-[11px] transition cursor-pointer">
+            थांबवा (Stop)
+        </button>
+    </div>
+
+    <!-- =========================================================
+         4. Fixed Bottom Chat Input Bar
+         ========================================================= -->
+    <footer class="bg-white border-t border-slate-200 px-3 sm:px-6 py-3 shrink-0 shadow-lg">
+        <form id="chatForm" onsubmit="handleChatSubmit(event)" class="max-w-4xl mx-auto flex items-end gap-2">
+            
+            <!-- Voice Input Button (Mic) -->
+            <button type="button" id="voiceMicBtn" onclick="toggleVoiceRecognition()" class="w-12 h-12 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-600 active:scale-95 flex items-center justify-center text-lg transition border border-blue-200/80 shrink-0 cursor-pointer shadow-xs" title="माईकवर बोलून प्रश्न विचारा (Speak Voice)">
+                <i id="voiceMicIcon" class="fa-solid fa-microphone"></i>
+            </button>
+
+            <!-- Text Input -->
+            <div class="flex-1 relative bg-slate-50 border border-slate-300 focus-within:border-blue-600 focus-within:bg-white rounded-2xl transition shadow-inner">
+                <textarea id="chatInput" rows="1" placeholder="येथे काहीही विचारा किंवा माईकवर बोला..." class="w-full bg-transparent text-xs sm:text-sm text-slate-800 font-medium py-3 pl-3.5 pr-10 outline-none resize-none max-h-32 leading-relaxed" onkeydown="handleInputKeydown(event)"></textarea>
+                
+                <!-- Clear text button -->
+                <button type="button" id="clearInputBtn" onclick="clearInputField()" class="hidden absolute right-2.5 top-3 text-slate-400 hover:text-slate-600 text-xs w-6 h-6 flex items-center justify-center">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Send Button -->
+            <button type="submit" id="sendBtn" class="w-12 h-12 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white active:scale-95 flex items-center justify-center text-base transition shadow-md shadow-blue-500/25 shrink-0 cursor-pointer disabled:opacity-50 disabled:pointer-events-none" title="पाठवा (Send)">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+
+        <div class="max-w-4xl mx-auto flex items-center justify-between text-[10px] text-slate-400 pt-1.5 px-1">
+            <span>💡 <strong>टिप:</strong> Enter दाबा किंवा माईकवर थेट बोला.</span>
+            <span>Gharmitra AI • Pune City 2026</span>
+        </div>
+    </footer>
+
+    <!-- Firebase Config -->
+    <script src="js/firebase.js"></script>
+
+    <!-- =========================================================
+         5. AI Engine & Speech Recognition Logic
+         ========================================================= -->
+    <script>
+        // Default Configuration
+        let aiConfig = {
+            apiKey: "",
+            model: "gemini-3.8-flash",
+            botName: "घरमित्र AI मदतनीस (Gharmitra Care)",
+            welcomeMessage: "नमस्कार! मी घरमित्रचा २४x७ AI सहाय्यक आहे. मी तुम्हाला घरकाम, बुकिंग, कामगार किंवा इतर कोणत्याही विषयाचे उत्तर देऊ शकतो. बोला किंवा टाईप करा!",
+            systemPrompt: "तुम्ही 'घरमित्र' (Gharmitra.online) चे अधिकृत आणि अत्यंत हुशार AI सहाय्यक आहात. तुमचे काम ग्राहकांना आणि कामगारांना घरकामाच्या समस्या, प्लंबिंग, इलेक्ट्रिशियन, क्लिनिंग, एसी रिपेअर, सुतारकाम, स्वयंपाक या सर्व सेवांबद्दल मदत करणे आहे. याव्यतिरिक्त जर वापरकर्त्याने अभ्यास, विज्ञान, रेसिपी, सामान्य ज्ञान किंवा इतर काहीही विचारले तरी नम्र, स्पष्ट आणि अचूक उत्तर द्या. वापरकर्त्याच्या भाषेत (प्रामुख्याने मराठीत, किंवा हिंदी/इंग्रजीत) उत्तरे द्या. उत्तरे संक्षिप्त, मुद्देसूद आणि वाचायला सोपी असावीत.",
+            voiceEnabled: true,
+            autoSpeak: true
+        };
+
+        // State variables
+        let isAudioOutputEnabled = true;
+        let isListening = false;
+        let recognition = null;
+        let conversationHistory = []; // { role: 'user' | 'model', parts: [{ text }] }
+        let currentUtterance = null;
+
+        // --- 1. Load Admin Settings from Firebase & LocalStorage ---
+        function loadAiSettings() {
+            // Check localStorage first
+            const cached = localStorage.getItem('gharmitra_ai_bot_settings');
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    aiConfig = Object.assign({}, aiConfig, parsed);
+                    applyAiConfigToUI();
+                } catch(e) {}
+            }
+
+            // Sync with Firebase Realtime Database
+            if (typeof database !== 'undefined') {
+                database.ref('settings/aiBot').on('value', (snap) => {
+                    const val = snap.val();
+                    if (val) {
+                        aiConfig = Object.assign({}, aiConfig, val);
+                        localStorage.setItem('gharmitra_ai_bot_settings', JSON.stringify(aiConfig));
+                        applyAiConfigToUI();
+                    }
+                });
+            }
+        }
+
+        function applyAiConfigToUI() {
+            if (aiConfig.botName) {
+                document.getElementById('headerBotTitle').innerText = aiConfig.botName;
+                document.getElementById('welcomeBotName').innerText = "नमस्कार! मी " + aiConfig.botName + " आहे 🙏";
+            }
+            if (aiConfig.welcomeMessage) {
+                document.getElementById('welcomeBotDesc').innerText = aiConfig.welcomeMessage;
+            }
+            if (typeof aiConfig.autoSpeak !== 'undefined') {
+                isAudioOutputEnabled = !!aiConfig.autoSpeak;
+                updateAudioBtnUI();
+            }
+        }
+
+        // --- 2. Audio Speak (Text-to-Speech) Support ---
+        function toggleAudioOutput() {
+            isAudioOutputEnabled = !isAudioOutputEnabled;
+            if (!isAudioOutputEnabled && window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+            updateAudioBtnUI();
+        }
+
+        function updateAudioBtnUI() {
+            const icon = document.getElementById('audioIcon');
+            const txt = document.getElementById('audioText');
+            if (isAudioOutputEnabled) {
+                icon.className = "fa-solid fa-volume-high text-amber-300";
+                txt.innerText = "आवाज सुरू";
+                txt.className = "hidden sm:inline text-[11px] text-amber-200";
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-slate-300";
+                txt.innerText = "आवाज बंद";
+                txt.className = "hidden sm:inline text-[11px] text-slate-300";
+            }
+        }
+
+        function speakText(text) {
+            if (!isAudioOutputEnabled || !('speechSynthesis' in window)) return;
+            try {
+                window.speechSynthesis.cancel(); // Stop prior speech
+                
+                // Clean markdown symbols for cleaner speech
+                const cleanText = text
+                    .replace(/[*_#`~>\[\]\(\)]/g, '')
+                    .replace(/https?:\/\/\S+/g, '')
+                    .trim();
+
+                if (!cleanText) return;
+
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+
+                // Detect Marathi / Hindi / English
+                const hasDevanagari = /[\u0900-\u097F]/.test(cleanText);
+                utterance.lang = hasDevanagari ? 'mr-IN' : 'en-IN';
+
+                const voices = window.speechSynthesis.getVoices();
+                if (voices && voices.length > 0) {
+                    const matchVoice = voices.find(v => v.lang === 'mr-IN' || v.lang === 'mr_IN') ||
+                                       voices.find(v => v.lang.startsWith('hi')) ||
+                                       voices.find(v => v.lang.startsWith('en'));
+                    if (matchVoice) utterance.voice = matchVoice;
+                }
+
+                currentUtterance = utterance;
+                window.speechSynthesis.speak(utterance);
+            } catch(e) {
+                console.warn("[TTS Speech Warning]:", e);
+            }
+        }
+
+        function stopSpeaking() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        // --- 3. Speech-to-Text (Voice Recognition) Support ---
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                return null;
+            }
+
+            const rec = new SpeechRecognition();
+            rec.continuous = false;
+            rec.interimResults = true;
+            rec.lang = 'mr-IN'; // Marathi primary with Hindi/English fallback
+
+            rec.onstart = () => {
+                isListening = true;
+                updateVoiceMicUI(true);
+                document.getElementById('voiceListeningBanner')?.classList.remove('hidden');
+                if (navigator.vibrate) navigator.vibrate(60);
+            };
+
+            rec.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    transcript += event.results[i][0].transcript;
+                }
+                const input = document.getElementById('chatInput');
+                if (input) {
+                    input.value = transcript;
+                    handleInputAutoResize(input);
+                    toggleClearButton();
+                }
+            };
+
+            rec.onerror = (event) => {
+                console.warn("[Voice Rec Error]:", event.error);
+                stopVoiceRecognition();
+            };
+
+            rec.onend = () => {
+                stopVoiceRecognition();
+                const input = document.getElementById('chatInput');
+                if (input && input.value.trim().length > 0) {
+                    // Automatically send after user finishes speaking
+                    handleChatSubmit(new Event('submit'));
+                }
+            };
+
+            return rec;
+        }
+
+        function toggleVoiceRecognition() {
+            if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+                alert("तुमच्या ब्राउझरमध्ये व्हॉइस इनपुट सपोर्ट उपलब्ध नाही. कृपया Google Chrome किंवा Edge वापरा.");
+                return;
+            }
+
+            if (isListening) {
+                stopVoiceRecognition();
+            } else {
+                startVoiceRecognition();
+            }
+        }
+
+        function startVoiceRecognition() {
+            if (!recognition) {
+                recognition = initSpeechRecognition();
+            }
+            if (recognition) {
+                try {
+                    stopSpeaking(); // stop any audio
+                    recognition.start();
+                } catch(e) {
+                    console.warn("Recognition start err:", e);
+                }
+            }
+        }
+
+        function stopVoiceRecognition() {
+            isListening = false;
+            updateVoiceMicUI(false);
+            document.getElementById('voiceListeningBanner')?.classList.add('hidden');
+            if (recognition) {
+                try { recognition.stop(); } catch(e) {}
+            }
+        }
+
+        function updateVoiceMicUI(active) {
+            const btn = document.getElementById('voiceMicBtn');
+            const icon = document.getElementById('voiceMicIcon');
+            if (!btn || !icon) return;
+
+            if (active) {
+                btn.className = "w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-lg transition border border-rose-700 shrink-0 cursor-pointer shadow-lg mic-pulsing";
+                icon.className = "fa-solid fa-microphone-lines text-white animate-pulse";
+            } else {
+                btn.className = "w-12 h-12 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-600 active:scale-95 flex items-center justify-center text-lg transition border border-blue-200/80 shrink-0 cursor-pointer shadow-xs";
+                icon.className = "fa-solid fa-microphone";
+            }
+        }
+
+        // --- 4. Render Chat Bubbles ---
+        function appendUserMessage(text) {
+            const list = document.getElementById('messagesList');
+            const wrap = document.createElement('div');
+            wrap.className = "flex items-start justify-end gap-2.5 animate-in";
+            
+            const timeStr = new Date().toLocaleTimeString('mr-IN', { hour: '2-digit', minute: '2-digit' });
+
+            wrap.innerHTML = `
+                <div class="max-w-[85%] sm:max-w-md bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl rounded-tr-xs p-3.5 shadow-sm space-y-1">
+                    <p class="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed">${escapeHtml(text)}</p>
+                    <div class="flex items-center justify-end gap-1 text-[10px] text-blue-200">
+                        <span>${timeStr}</span>
+                        <i class="fa-solid fa-check-double text-[9px]"></i>
+                    </div>
+                </div>
+                <div class="w-8 h-8 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0 shadow-2xs">
+                    👤
+                </div>
+            `;
+            list.appendChild(wrap);
+            scrollToBottom();
+        }
+
+        function appendBotMessage(text) {
+            const list = document.getElementById('messagesList');
+            const wrap = document.createElement('div');
+            wrap.className = "flex items-start gap-2.5 animate-in";
+            
+            const timeStr = new Date().toLocaleTimeString('mr-IN', { hour: '2-digit', minute: '2-digit' });
+            const formattedHtml = formatMarkdownText(text);
+
+            const msgId = 'msg_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+
+            wrap.innerHTML = `
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-sm font-bold shrink-0 shadow-sm">
+                    🤖
+                </div>
+                <div class="max-w-[90%] sm:max-w-lg bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-xs p-4 shadow-xs space-y-2.5">
+                    <div class="text-xs sm:text-sm leading-relaxed prose prose-slate" id="${msgId}">
+                        ${formattedHtml}
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-2 text-[10px] text-slate-400">
+                        <span class="font-medium">घरमित्र AI • ${timeStr}</span>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="copyMessageText('${msgId}')" class="hover:text-blue-600 font-bold flex items-center gap-1 cursor-pointer" title="कॉपी करा">
+                                <i class="fa-solid fa-copy"></i> <span>कॉपी</span>
+                            </button>
+                            <button type="button" onclick="speakSingleMessage('${msgId}')" class="hover:text-indigo-600 font-bold flex items-center gap-1 cursor-pointer text-indigo-500" title="हे उत्तर ऐका">
+                                <i class="fa-solid fa-volume-high"></i> <span>ऐका</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            list.appendChild(wrap);
+            scrollToBottom();
+
+            // Speak response if auto-speak is enabled
+            if (isAudioOutputEnabled) {
+                speakText(text);
+            }
+        }
+
+        function scrollToBottom() {
+            setTimeout(() => {
+                const el = document.getElementById('chatBottomAnchor');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 50);
+        }
+
+        function showTyping(show) {
+            const el = document.getElementById('typingIndicator');
+            if (el) {
+                if (show) {
+                    el.classList.remove('hidden');
+                    scrollToBottom();
+                } else {
+                    el.classList.add('hidden');
+                }
+            }
+        }
+
+        // --- 5. Format Text / Markdown Helper ---
+        function formatMarkdownText(raw) {
+            if (!raw) return '';
+            let s = escapeHtml(raw);
+            
+            // Bold
+            s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Italic
+            s = s.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // Bullet points
+            s = s.replace(/^[-*•]\s+(.*)$/gm, '<li class="ml-4 list-disc">$1</li>');
+            // Code block
+            s = s.replace(/`([^`]+)`/g, '<code class="bg-slate-100 px-1 py-0.5 rounded text-blue-600 font-mono text-[11px]">$1</code>');
+            // Paragraph line breaks
+            s = s.replace(/\n\n/g, '<br><br>');
+            s = s.replace(/\n/g, '<br>');
+
+            return s;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function copyMessageText(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            navigator.clipboard.writeText(el.innerText).then(() => {
+                alert("मजकूर कॉपी केला!");
+            }).catch(() => {});
+        }
+
+        function speakSingleMessage(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            speakText(el.innerText);
+        }
+
+        // --- 6. Intelligent Fallback Knowledge Engine ---
+        function getSmartLocalResponse(prompt) {
+            const p = prompt.toLowerCase();
+
+            // Cleaning / स्वच्छता
+            if (p.includes('clean') || p.includes('क्लिनिंग') || p.includes('सफाई') || p.includes('झाडू') || p.includes('धुणे')) {
+                return "🧹 **घरमित्र क्लिनिंग सेवा (Cleaning Services):**\n" +
+                       "• **किफायतशीर दर:** 1BHK साठी अंदाजे ₹499 पासून, 2BHK साठी ₹799 पासून.\n" +
+                       "• **सेवा समाविष्ट:** डीप क्लिनिंग, किचन स्वच्छता, बाथरूम सॅनिटायझेशन, बाल्कनी आणि फरशी पॉलिशिंग.\n" +
+                       "• **कसे बुक करावे:** थेट [customer.html](./customer.html) वर जाऊन 'Cleaning' निवडा, पत्ता टाका आणि १-क्लिकमध्ये ऑर्डर द्या!";
+            }
+
+            // Plumbing / नळ / पाणी गळती
+            if (p.includes('plumb') || p.includes('प्लंबर') || p.includes('नळ') || p.includes('गळ') || p.includes('पाणी') || p.includes('leak')) {
+                return "🚰 **प्लंबिंग सेवा (Plumbing Services - Pune):**\n" +
+                       "• **समस्या निवारण:** गळणारे नळ, पाईप लिकेज, फ्लश रिपेअर, सिंक ब्लॉकेज, वॉटर टँक बसवणे.\n" +
+                       "• **विझिटिंग दर:** फक्त ₹149 - ₹199 (किरकोळ कामासाठी).\n" +
+                       "• **तातडीची सेवा:** पुण्यात २० ते ३० मिनिटांत व्हेरिफाईड प्लंबर थेट तुमच्या घरी पोहोचेल!";
+            }
+
+            // Electrician / वीज / फॅन / शॉर्ट सर्किट
+            if (p.includes('elect') || p.includes('इलेक्ट्रिशियन') || p.includes('फॅन') || p.includes('लाईट') || p.includes('वायरिंग') || p.includes('स्विच')) {
+                return "⚡ **इलेक्ट्रिशियन सेवा (Electrician Support):**\n" +
+                       "• **सेवा:** पंखा बसवणे/दुरुस्ती, शॉर्ट सर्किट तपासणी, नवीन स्विच बोर्ड, गिझर वायरिंग, एमसीबी रिपेअर.\n" +
+                       "• **सुरक्षा:** सर्व कामगार प्रशिक्षित आणि सुरक्षिततेच्या साधनांसह काम करतात.\n" +
+                       "• **कॉल सपोर्ट:** आवश्यक असल्यास 📞 **7875160724** वर त्वरित कॉल करू शकता.";
+            }
+
+            // Safety / पोलीस व्हेरिफिकेशन
+            if (p.includes('police') || p.includes('पोलीस') || p.includes('सुरक्षित') || p.includes('safe') || p.includes('verify') || p.includes('विश्वास')) {
+                return "🛡️ **सुरक्षितता व व्हेरिफिकेशन (100% Verified):**\n" +
+                       "• **पोलीस व आधार पडताळणी:** घरमित्रवरील प्रत्येक कामगाराचे आधार कार्ड व पोलीस व्हेरिफिकेशन अनिवार्य आहे.\n" +
+                       "• **लाईव्ह सेल्फी:** कामाला सुरुवात करताना कामगाराला लाइव्ह सेल्फी अपलोड करावा लागतो.\n" +
+                       "• **Family Safety Share:** ऑर्डर कन्फर्म झाल्यावर तुम्ही कामगाराचा तपशील १-क्लिकमध्ये WhatsApp वर कुटुंबीयांसोबत शेअर करू शकता!";
+            }
+
+            // Order Booking / ऑर्डर कशी करावी
+            if (p.includes('book') || p.includes('ऑर्डर') || p.includes('नोंदणी') || p.includes('कशी करावी') || p.includes('कामगार कसा')) {
+                return "📱 **ऑर्डर बुक करण्याची सोपी पद्धत:**\n" +
+                       "1. [Customer Portal](./customer.html) उघडा.\n" +
+                       "2. तुम्हाला हवी असलेली सेवा निवडा (Cleaning, Plumbing, Electrician इ.).\n" +
+                       "3. तुमचा पत्ता टाका किंवा GPS ने लोकेशन सेट करा.\n" +
+                       "4. 'कामगार शोधा' वर क्लिक करा. परिसरातील उपलब्ध कामगार त्वरित तुमची ऑर्डर स्वीकारेल!";
+            }
+
+            // Payment / पैसे / Razorpay
+            if (p.includes('payment') || p.includes('पैसे') || p.includes('पेमेंट') || p.includes('रक्कम') || p.includes('क्रेडिट') || p.includes('razorpay')) {
+                return "💳 **पेमेंट व व्यवहार सुरक्षितता:**\n" +
+                       "• घरमित्रवर Razorpay द्वारे UPI (GPay, PhonePe, Paytm), डेबिट कार्ड किंवा नेट बँकिंगने सुरक्षित पेमेंट होते.\n" +
+                       "• काम पूर्ण झाल्यावर आणि समाधान झाल्यावरच अंतिम सेटलमेंट होते.\n" +
+                       "• कोणतेही छुपे शुल्क (Hidden Charges) आकारले जात नाहीत.";
+            }
+
+            // Greetings / नमस्कार
+            if (p.includes('hi') || p.includes('hello') || p.includes('नमस्कार') || p.includes('namaste') || p.includes('हाय')) {
+                return "🙏 **नमस्कार!** मी घरमित्रचा स्मार्ट AI मदतनीस आहे. मी तुम्हाला पुणे शहरातील घरकाम, कामगार बुकिंग, किंवा कोणत्याही प्रश्नाबद्दल मदत करू शकतो. सांगा, आज मी आपली काय मदत करू?";
+            }
+
+            // General / Open-ended Intelligent Marathi Reply
+            return "मी आपल्या प्रश्नाचा अभ्यास केला आहे! 🤖\n\n" +
+                   "**आपला प्रश्न:** \"" + escapeHtml(prompt) + "\"\n\n" +
+                   "💡 **उत्तर:** " +
+                   "Gharmitra AI २४x७ आपल्या सेवेसाठी तत्पर आहे. जर हा प्रश्न घरकाम किंवा पुण्यात कामगार बुकिंगसंदर्भात असेल, तर आपण [Customer Dashboard](./customer.html) वरून थेट बुक करू शकता किंवा 📞 **7875160724** वर त्वरित संपर्क साधू शकता!\n\n" +
+                   "अधिक सविस्तर माहिती हवी असल्यास कृपया आणखी थोडे स्पष्ट विचारा, मी नक्की मार्गदर्शन करेन!";
+        }
+
+        // --- 7. Call Gemini API or Smart Fallback ---
+        async function fetchAiResponse(userText) {
+            // Build conversation history turn
+            conversationHistory.push({
+                role: "user",
+                parts: [{ text: userText }]
+            });
+
+            const apiKey = aiConfig.apiKey ? aiConfig.apiKey.trim() : "";
+            const model = aiConfig.model || "gemini-3.8-flash";
+
+            // If API key is present, call Google Gemini REST API
+            if (apiKey) {
+                try {
+                    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${apiKey}`;
+
+                    const systemText = aiConfig.systemPrompt || "तुम्ही घरमित्रचे AI सहाय्यक आहात. मराठीत नम्र व अचूक उत्तरे द्या.";
+
+                    const reqBody = {
+                        contents: conversationHistory,
+                        systemInstruction: {
+                            parts: [{ text: systemText }]
+                        },
+                        generationConfig: {
+                            temperature: 0.7,
+                            maxOutputTokens: 1000
+                        }
+                    };
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(reqBody)
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+                            const botReply = data.candidates[0].content.parts.map(p => p.text).join('\n');
+                            
+                            // Save to conversation history
+                            conversationHistory.push({
+                                role: "model",
+                                parts: [{ text: botReply }]
+                            });
+
+                            return botReply;
+                        }
+                    } else {
+                        console.warn("[Gemini API response not OK]:", response.status);
+                    }
+                } catch(err) {
+                    console.warn("[Gemini API Call Error]:", err.message);
+                }
+            }
+
+            // Fallback: Intelligent Built-in Response Engine
+            await new Promise(r => setTimeout(r, 600)); // natural small delay
+            const localReply = getSmartLocalResponse(userText);
+            conversationHistory.push({
+                role: "model",
+                parts: [{ text: localReply }]
+            });
+            return localReply;
+        }
+
+        // --- 8. Form Submission & Input Handling ---
+        async function handleChatSubmit(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            
+            const input = document.getElementById('chatInput');
+            const text = (input ? input.value : '').trim();
+            if (!text) return;
+
+            stopSpeaking();
+            stopVoiceRecognition();
+
+            // Clear input
+            input.value = '';
+            handleInputAutoResize(input);
+            toggleClearButton();
+
+            // Hide welcome banner after first message
+            document.getElementById('welcomeBanner')?.classList.add('hidden');
+
+            // Append user bubble
+            appendUserMessage(text);
+
+            // Show typing indicator
+            showTyping(true);
+            const sendBtn = document.getElementById('sendBtn');
+            if (sendBtn) sendBtn.disabled = true;
+
+            try {
+                const aiReply = await fetchAiResponse(text);
+                showTyping(false);
+                appendBotMessage(aiReply);
+            } catch(err) {
+                showTyping(false);
+                appendBotMessage("माफ करा, तांत्रिक कारणास्तव उत्तर देता आले नाही. कृपया पुन्हा प्रयत्न करा.");
+            } finally {
+                if (sendBtn) sendBtn.disabled = false;
+                if (input) input.focus();
+            }
+        }
+
+        function sendQuickPrompt(promptText) {
+            const input = document.getElementById('chatInput');
+            if (input) {
+                input.value = promptText;
+                handleChatSubmit(new Event('submit'));
+            }
+        }
+
+        function handleInputKeydown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleChatSubmit(e);
+            }
+            toggleClearButton();
+            handleInputAutoResize(e.target);
+        }
+
+        function handleInputAutoResize(textarea) {
+            if (!textarea) return;
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function clearInputField() {
+            const input = document.getElementById('chatInput');
+            if (input) {
+                input.value = '';
+                handleInputAutoResize(input);
+                toggleClearButton();
+                input.focus();
+            }
+        }
+
+        function toggleClearButton() {
+            const input = document.getElementById('chatInput');
+            const btn = document.getElementById('clearInputBtn');
+            if (!input || !btn) return;
+            if (input.value.trim().length > 0) {
+                btn.classList.remove('hidden');
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
+
+        function confirmClearChat() {
+            if (confirm("तुम्हाला हे संभाषण साफ करायचे आहे का?")) {
+                conversationHistory = [];
+                document.getElementById('messagesList').innerHTML = '';
+                document.getElementById('welcomeBanner')?.classList.remove('hidden');
+                stopSpeaking();
+                scrollToBottom();
+            }
+        }
+
+        // --- 9. Page Lifecycle Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAiSettings();
+            updateAudioBtnUI();
+
+            // Auto focus input on desktop
+            if (window.innerWidth > 640) {
+                document.getElementById('chatInput')?.focus();
+            }
+
+            // Pre-load voices for SpeechSynthesis
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.onvoiceschanged = () => {
+                    window.speechSynthesis.getVoices();
+                };
+            }
+        });
+    </script>
+</body>
+</html>

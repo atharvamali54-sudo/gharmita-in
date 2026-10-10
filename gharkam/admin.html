@@ -612,8 +612,110 @@
                 </div>
 
                 <button onclick="saveAdminSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition text-xs shadow-md">
-                    सेटिंग्ज सेव्ह करा
+                    सामान्य सेटिंग्ज सेव्ह करा
                 </button>
+            </div>
+
+            <!-- =====================================================
+                 AI Customer Care & Voice Bot Settings Card
+                 ===================================================== -->
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b pb-3 border-slate-100">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-robot text-purple-600"></i> AI Customer Care व व्हॉइस बॉट सेटिंग्ज
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">ग्राहकांना आणि कामगारांना २४x७ उत्तर देणाऱ्या AI बॉटचे नियंत्रण</p>
+                    </div>
+                    <span class="text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Bot
+                    </span>
+                </div>
+
+                <!-- Google Gemini API Key -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <i class="fa-brands fa-google text-blue-500 mr-1"></i> Google Gemini API Key
+                        </label>
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-blue-600 hover:underline font-bold">
+                            मोफत API Key मिळवा ↗
+                        </a>
+                    </div>
+                    <div class="relative">
+                        <input type="password" id="adminAiApiKey" placeholder="AIzaSy... (रिकामे ठेवल्यास Built-in AI वापरले जाईल)" class="w-full bg-slate-50 border border-slate-300 text-slate-800 font-mono py-2.5 px-3 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-xs">
+                        <button type="button" onclick="toggleAdminAiApiKeyVisibility()" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs cursor-pointer">
+                            <i id="adminAiApiKeyEye" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1">Google AI Studio वरून घेतलेली Gemini API Key इथे टाका.</p>
+                </div>
+
+                <!-- Model Selector & Bot Name -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">AI मॉडेल (Gemini Model)</label>
+                        <select id="adminAiModel" class="w-full bg-slate-50 border border-slate-300 text-slate-800 font-bold py-2.5 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-xs">
+                            <option value="gemini-3.8-flash">gemini-3.8-flash (जलद व हुशार - शिफारस)</option>
+                            <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (अतिजलद)</option>
+                            <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite (किफायतशीर)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">AI चे नाव (Bot Name)</label>
+                        <input type="text" id="adminAiBotName" placeholder="उदा. घरमित्र AI मदतनीस" class="w-full bg-slate-50 border border-slate-300 text-slate-800 font-bold py-2.5 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-xs">
+                    </div>
+                </div>
+
+                <!-- Welcome Greeting -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">प्रारंभिक स्वागत संदेश (Welcome Greeting)</label>
+                    <input type="text" id="adminAiWelcomeMsg" placeholder="उदा. नमस्कार! मी घरमित्रचा २४x७ AI सहाय्यक आहे..." class="w-full bg-slate-50 border border-slate-300 text-slate-800 py-2.5 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-xs">
+                </div>
+
+                <!-- System Instructions / Custom Knowledge -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">
+                        AI चा स्वभाव, नियम व बिझनेस माहिती (System Instructions & Knowledge)
+                    </label>
+                    <textarea id="adminAiSystemPrompt" rows="4" placeholder="AI ला कसे वागावे, काय उत्तर द्यावे याबद्दल सूचना..." class="w-full bg-slate-50 border border-slate-300 text-slate-800 py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-xs leading-relaxed"></textarea>
+                    <p class="text-[10px] text-slate-400 mt-0.5">येथे तुम्ही घरमित्रच्या सेवांचे दर, कामाचे नियम, ऑफर किंवा कोणत्याही सूचना लिहू शकता.</p>
+                </div>
+
+                <!-- Voice Settings -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-700">🎙️ व्हॉइस इनपुट (Mic)</span>
+                            <span class="text-[10px] text-slate-400">ग्राहकांना बोलून विचारू द्या</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="adminAiVoiceEnabled" class="sr-only peer" checked>
+                            <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-700">🔊 उत्तर वाचून दाखवणे</span>
+                            <span class="text-[10px] text-slate-400">AI ने आवाजात बोलावे</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="adminAiAutoSpeak" class="sr-only peer" checked>
+                            <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="saveAdminAiBotSettings()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-floppy-disk"></i> <span>AI सेटिंग्ज सेव्ह करा</span>
+                    </button>
+                    <a href="ai-chat.html" target="_blank" class="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-center gap-1.5 cursor-pointer text-center">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>🤖 AI चॅट टेस्ट करा (Open)</span>
+                    </a>
+                </div>
             </div>
         </div>
 
