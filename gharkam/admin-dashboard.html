@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="mr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gharmitra - Super Admin & Owner Dashboard</title>
+    <title>GharBandhu - Super Admin & Owner Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -21,7 +21,7 @@
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Gharmitra">
+    <meta name="apple-mobile-web-app-title" content="GharBandhu">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
     <link rel="stylesheet" href="css/common.css">
@@ -40,7 +40,7 @@
                 var isStoredApp = sessionStorage.getItem('gharmitra_is_app') === 'true';
                 var ua = (window.navigator && window.navigator.userAgent) ? window.navigator.userAgent.toLowerCase() : '';
                 var isUaApp = ua.indexOf('gharmitraapp') !== -1 || ua.indexOf('; wv') !== -1 || ua.indexOf(';wv') !== -1;
-                var isNativeApp = !!(window.GharmitraNative || window.Android || window.AndroidBridge);
+                var isNativeApp = !!(window.GharBandhuNative || window.Android || window.AndroidBridge);
 
                 if (isStandalone || isIosStandalone || isAndroidApp || isUrlApp || isStoredApp || isUaApp || isNativeApp) {
                     document.documentElement.classList.add('is-app-env');
@@ -210,8 +210,8 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2 text-xl font-black tracking-tight text-white">
-                    <span class="bg-blue-600 text-white p-2 rounded-xl text-base flex items-center justify-center shadow-md">🏠 GK</span>
-                    <span>GHARMITRA<span class="text-blue-400 text-sm ml-1 font-bold">ADMIN</span></span>
+                    <span class="bg-blue-600 text-white p-2 rounded-xl text-base flex items-center justify-center shadow-md">🏠 GB</span>
+                    <span>GHARBANDHU<span class="text-blue-400 text-sm ml-1 font-bold">ADMIN</span></span>
                 </div>
                 <span class="hidden sm:inline-flex bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[11px] font-bold px-2.5 py-0.5 rounded-full items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Pune Live Server
@@ -758,7 +758,7 @@
                                 <span class="text-[10px] text-slate-500">कामावर जाण्यासाठी आधार कार्ड अपलोड करा.</span>
                             </button>
                             <button type="button" onclick="applyAdminPushPreset('SYSTEM_UPDATE')" class="p-2.5 text-left rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 transition">
-                                <span class="font-bold text-slate-800 block">📢 घरमित्र महत्त्वाची अपडेट</span>
+                                <span class="font-bold text-slate-800 block">📢 घरबंधू महत्त्वाची अपडेट</span>
                                 <span class="text-[10px] text-slate-500">नवीन सेवा व सुरक्षा फीचर्स आता लाइव्ह!</span>
                             </button>
                         </div>
@@ -848,7 +848,7 @@
                             <div class="flex items-center justify-between text-[10px] text-slate-400">
                                 <span class="flex items-center gap-1.5 font-bold text-slate-300">
                                     <img src="images/logo.png" alt="Logo" class="w-3.5 h-3.5 rounded" onerror="this.src='https://placehold.co/20x20?text=G'">
-                                    घरमित्र • आत्ताच
+                                    घरबंधू • आत्ताच
                                 </span>
                                 <i class="fa-solid fa-chevron-down text-[9px]"></i>
                             </div>

@@ -1,5 +1,5 @@
-// =========================================================
-// Gharmitra Progressive Web App (PWA) Service Worker
+﻿// =========================================================
+// GharBandhu Progressive Web App (PWA) Service Worker
 // Cache Version: gharmitra-pwa-v1
 // =========================================================
 
@@ -115,11 +115,11 @@ self.addEventListener('push', (event) => {
         try {
             payload = event.data.json();
         } catch (e) {
-            payload = { title: 'घरमित्र (Gharmitra) अपडेट', body: event.data.text() };
+            payload = { title: 'घरबंधू (GharBandhu) अपडेट', body: event.data.text() };
         }
     }
 
-    const title = payload.title || 'घरमित्र (Gharmitra) अलर्ट 🔔';
+    const title = payload.title || 'घरबंधू (GharBandhu) अलर्ट 🔔';
     const body = payload.body || 'नवीन ऑर्डर किंवा महत्त्वाचे अपडेट उपलब्ध आहे.';
     const targetUrl = payload.url || payload.click_action || './index.html';
     const tag = payload.tag || ('gharmitra-' + Date.now());
@@ -185,7 +185,7 @@ self.addEventListener('notificationclick', (event) => {
 // =========================================================
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
-        const title = event.data.title || 'घरमित्र (Gharmitra) अपडेट';
+        const title = event.data.title || 'घरबंधू (GharBandhu) अपडेट';
         const options = Object.assign({
             icon: './icons/icon-192x192.png',
             badge: './icons/favicon.png',

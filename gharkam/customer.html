@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="mr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gharmitra - Customer Booking</title>
+    <title>GharBandhu - Customer Booking</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
@@ -20,7 +20,7 @@
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Gharmitra">
+    <meta name="apple-mobile-web-app-title" content="GharBandhu">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
     <link rel="stylesheet" href="css/common.css?v=43">
@@ -40,7 +40,7 @@
                 var isStoredApp = sessionStorage.getItem('gharmitra_is_app') === 'true';
                 var ua = (window.navigator && window.navigator.userAgent) ? window.navigator.userAgent.toLowerCase() : '';
                 var isUaApp = ua.indexOf('gharmitraapp') !== -1 || ua.indexOf('; wv') !== -1 || ua.indexOf(';wv') !== -1;
-                var isNativeApp = !!(window.GharmitraNative || window.Android || window.AndroidBridge);
+                var isNativeApp = !!(window.GharBandhuNative || window.Android || window.AndroidBridge);
 
                 if (isStandalone || isIosStandalone || isAndroidApp || isUrlApp || isStoredApp || isUaApp || isNativeApp) {
                     document.documentElement.classList.add('is-app-env');
@@ -61,8 +61,8 @@
         <header class="bg-blue-600 px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 shadow-md">
             <div class="w-full md:w-auto flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2 text-xl sm:text-2xl font-black text-white shrink-0">
-                    <span class="bg-white text-blue-600 p-1.5 sm:p-2 rounded-xl text-base sm:text-lg flex items-center justify-center shadow-sm">🏠 GK</span>
-                    <span class="tracking-tight">GHARMITRA<span class="text-blue-200">.online</span></span>
+                    <span class="bg-white text-blue-600 p-1.5 sm:p-2 rounded-xl text-base sm:text-lg flex items-center justify-center shadow-sm">🏠 GB</span>
+                    <span class="tracking-tight">GHARBANDHU<span class="text-blue-200">.online</span></span>
                 </div>
             </div>
             <div class="w-full md:w-auto flex flex-wrap items-center justify-start md:justify-end gap-1.5 sm:gap-2">
@@ -135,7 +135,7 @@
                     </button>
                 </div>
 
-                <!-- GharMitra VIP Club Loyalty & Cashback Banner (Web) -->
+                <!-- GharBandhu VIP Club Loyalty & Cashback Banner (Web) -->
                 <div id="webVipClubCard" class="mb-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-indigo-500/10 border-2 border-amber-300/80 p-4 shadow-sm relative overflow-hidden">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div class="space-y-1">
@@ -454,7 +454,7 @@
                                 <span class="text-xs font-black text-red-700 bg-white border border-red-200 px-2 py-0.5 rounded-md">₹५० ॲडव्हान्स</span>
                             </div>
                             <p class="text-[11px] text-red-600 leading-relaxed">
-                                बुकिंग कन्फर्म करण्यासाठी ₹५० ॲडव्हान्स (घरमित्र फी) भरावे लागेल. पेमेंट होताच १-२ किमी मधील जवळच्या कारागिराला तात्काळ सायरन वाजवून पाठवले जाईल.
+                                बुकिंग कन्फर्म करण्यासाठी ₹५० ॲडव्हान्स (घरबंधू फी) भरावे लागेल. पेमेंट होताच १-२ किमी मधील जवळच्या कारागिराला तात्काळ सायरन वाजवून पाठवले जाईल.
                             </p>
                         </div>
                     </div>
@@ -465,7 +465,7 @@
                             <input type="checkbox" id="useWalletBalanceCheckbox" onchange="toggleWalletDeduction()" class="mt-0.5 text-emerald-600 focus:ring-emerald-500 rounded">
                             <div>
                                 <span class="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-coins text-amber-500"></i> घरमित्र वॉलेट वापरा (₹<span id="walletAvailableDeductAmount">०</span> शिल्लक उपलब्ध)
+                                    <i class="fa-solid fa-coins text-amber-500"></i> घरबंधू वॉलेट वापरा (₹<span id="walletAvailableDeductAmount">०</span> शिल्लक उपलब्ध)
                                 </span>
                                 <p class="text-[11px] text-emerald-700 mt-0.5">
                                     या बुकिंगमध्ये तुमचे वॉलेट बॅलन्स बिलातून वजा केले जाईल.
@@ -825,7 +825,7 @@
                 <a href="shipping-policy.html" class="hover:text-blue-600 transition underline">Service Delivery</a>
             </div>
             <p class="text-[11px] text-slate-400">
-                &copy; 2026 Gharmitra Home Services | Pune City • Secured by Razorpay
+                &copy; 2026 GharBandhu Home Services | Pune City • Secured by Razorpay
             </p>
         </footer>
     </div>
@@ -842,10 +842,10 @@
             <div class="w-full sm:w-auto flex items-center justify-between gap-2.5">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center p-1.5 shadow-sm shrink-0">
-                        <span class="text-xs font-black flex items-center gap-1">🏠 GK</span>
+                        <span class="text-xs font-black flex items-center gap-1">🏠 GB</span>
                     </div>
                     <div class="leading-tight">
-                        <h1 class="text-base font-black tracking-tight text-slate-900">GHARMITRA<span class="text-blue-600">.online</span></h1>
+                        <h1 class="text-base font-black tracking-tight text-slate-900">GHARBANDHU<span class="text-blue-600">.online</span></h1>
                         <p class="text-[11px] text-slate-400 font-medium">Pune City Services</p>
                     </div>
                 </div>
@@ -901,7 +901,7 @@
                     </button>
                 </div>
 
-                <!-- GharMitra VIP Club Loyalty & Cashback Card (Mobile APK - Sleek Collapsible) -->
+                <!-- GharBandhu VIP Club Loyalty & Cashback Card (Mobile APK - Sleek Collapsible) -->
                 <details id="apkVipClubCard" class="group rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-indigo-500/10 border border-amber-300/80 p-2 shadow-2xs">
                     <summary class="flex items-center justify-between cursor-pointer select-none list-none">
                         <div class="flex items-center gap-1.5">
@@ -1211,7 +1211,7 @@
                             <input type="checkbox" id="apkUseWalletCheckbox" onchange="toggleApkWalletDeduction()" class="mt-0.5 text-emerald-600 focus:ring-emerald-500 rounded">
                             <div>
                                 <span class="text-xs font-bold text-emerald-800 flex items-center gap-1">
-                                    <i class="fa-solid fa-coins text-amber-500"></i> घरमित्र वॉलेट वापरा (₹<span id="apkWalletAvailableDeductAmount">०</span> शिल्लक)
+                                    <i class="fa-solid fa-coins text-amber-500"></i> घरबंधू वॉलेट वापरा (₹<span id="apkWalletAvailableDeductAmount">०</span> शिल्लक)
                                 </span>
                                 <p class="text-[10px] text-emerald-700">बिलातून वॉलेट पैसे वजा केले जातील.</p>
                             </div>
@@ -1503,7 +1503,7 @@
                 <i class="fa-solid fa-headset"></i>
             </div>
             <div>
-                <h3 class="font-black text-slate-900 text-lg">Gharmitra Customer Support</h3>
+                <h3 class="font-black text-slate-900 text-lg">GharBandhu Customer Support</h3>
                 <p class="text-xs text-slate-500 mt-1">Contact us for any help regarding Pune home services.</p>
             </div>
             <div class="space-y-2.5 pt-2">
@@ -1514,7 +1514,7 @@
                 <a href="tel:7875160724" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-2">
                     <i class="fa-solid fa-phone"></i> Call Support (7875160724)
                 </a>
-                <a href="https://wa.me/917875160724?text=Hello%20Gharmitra%20Support,%20I%20need%20assistance." target="_blank" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-3 px-4 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-2">
+                <a href="https://wa.me/917875160724?text=Hello%20GharBandhu%20Support,%20I%20need%20assistance." target="_blank" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-3 px-4 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-2">
                     <i class="fa-brands fa-whatsapp text-lg"></i> Chat on WhatsApp
                 </a>
                 <a href="contact.html" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 border border-slate-200">
@@ -1535,7 +1535,7 @@
 
                 <div class="text-center space-y-1">
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
-                        🏢 Gharmitra Society AMC Portal
+                        🏢 GharBandhu Society AMC Portal
                     </span>
                     <h3 class="font-black text-slate-900 text-xl sm:text-2xl">सोसायटी मेंटेनन्स पार्टनरशिप पास</h3>
                     <p class="text-xs text-slate-500">बाणेर, खराडी, वाकड, कोथरूड, हिंजवडी इ. सोसायट्यांसाठी नियमित मेंटेनन्स योजना.</p>
@@ -1680,7 +1680,7 @@
                     <i class="fa-solid fa-wallet"></i>
                 </div>
                 <div>
-                    <h3 class="font-black text-slate-900 text-lg">घरमित्र वॉलेट व VIP रिवॉर्ड्स</h3>
+                    <h3 class="font-black text-slate-900 text-lg">घरबंधू वॉलेट व VIP रिवॉर्ड्स</h3>
                     <p class="text-xs text-slate-500">तुमची जमा शिल्लक व कॅशबॅक तपशील</p>
                 </div>
             </div>

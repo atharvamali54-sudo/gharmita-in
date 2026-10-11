@@ -1,9 +1,9 @@
-/**
- * Gharmitra - Direct Real Phone Calling System with Screen Privacy
+﻿/**
+ * GharBandhu - Direct Real Phone Calling System with Screen Privacy
  * Option 1: Direct cellular call to real number + on-screen masking.
  */
 
-const GharmitraCallMasking = (function() {
+const GharBandhuCallMasking = (function() {
     function maskDisplayNumber(phoneNumber) {
         if (!phoneNumber) return 'Not available';
         const cleaned = String(phoneNumber).replace(/\D/g, '');
@@ -30,5 +30,5 @@ const GharmitraCallMasking = (function() {
 
 // Global helper for HTML buttons
 function initiateDirectCall(realNumber, personName) {
-    GharmitraCallMasking.dialRealPhoneCall(realNumber, personName);
+    GharBandhuCallMasking.dialRealPhoneCall(realNumber, personName);
 }

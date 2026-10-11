@@ -1,5 +1,5 @@
-// =========================================================
-// Gharmitra Progressive Web App (PWA) & Instant Share System
+﻿// =========================================================
+// GharBandhu Progressive Web App (PWA) & Instant Share System
 // =========================================================
 
 let deferredInstallPrompt = null;
@@ -11,10 +11,10 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
             .then(reg => {
-                console.log('[Gharmitra PWA] SW registered:', reg.scope);
+                console.log('[GharBandhu PWA] SW registered:', reg.scope);
             })
             .catch(err => {
-                console.warn('[Gharmitra PWA] SW registration failed:', err);
+                console.warn('[GharBandhu PWA] SW registration failed:', err);
             });
     });
 }
@@ -23,8 +23,8 @@ if ('serviceWorker' in navigator) {
 function isAppAlreadyInstalled() {
     try {
         // 1. Explicit native bridge injected by Android/iOS wrapper
-        if (window.GharmitraNative || window.Android || window.AndroidBridge || 
-            (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.GharmitraNative)) {
+        if (window.GharBandhuNative || window.Android || window.AndroidBridge || 
+            (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.GharBandhuNative)) {
             return true;
         }
 
@@ -80,7 +80,7 @@ function isAppAlreadyInstalled() {
         }
 
     } catch (err) {
-        console.warn('[Gharmitra PWA] App detection error:', err);
+        console.warn('[GharBandhu PWA] App detection error:', err);
     }
 
     return false;
@@ -116,11 +116,11 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 // --- 5. App Installed Handler ---
 window.addEventListener('appinstalled', () => {
-    console.log('[Gharmitra PWA] App was successfully installed!');
+    console.log('[GharBandhu PWA] App was successfully installed!');
     deferredInstallPrompt = null;
     hidePwaInstallModal();
     hideInstallButtons();
-    showPwaToast("🎉 Great! Gharmitra App has been installed on your home screen.");
+    showPwaToast("🎉 Great! GharBandhu App has been installed on your home screen.");
 });
 
 // --- 6. PWA Install Modal / Banner ---
@@ -139,7 +139,7 @@ function ensurePwaModalHtml() {
 
             <!-- App Logo Preview -->
             <div class="relative mx-auto w-20 h-20 rounded-2xl shadow-lg border-2 border-blue-600/20 overflow-hidden bg-white p-1 flex items-center justify-center">
-                <img src="icons/icon-192x192.png" alt="Gharmitra App" class="w-full h-full object-contain rounded-xl">
+                <img src="icons/icon-192x192.png" alt="GharBandhu App" class="w-full h-full object-contain rounded-xl">
                 <span class="absolute -bottom-1 -right-1 bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">
                     ✓ PWA
                 </span>
@@ -149,7 +149,7 @@ function ensurePwaModalHtml() {
                 <span class="bg-blue-50 text-blue-700 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-1.5 border border-blue-200">
                     ⚡ Instant Web App (No Store Needed)
                 </span>
-                <h3 class="font-black text-slate-900 text-xl">Install Gharmitra App</h3>
+                <h3 class="font-black text-slate-900 text-xl">Install GharBandhu App</h3>
                 <p class="text-xs text-slate-600 mt-1 leading-relaxed">
                     Save to your phone home screen with 1 click. Runs fast, smooth, and lightweight just like a mobile app!
                 </p>
@@ -173,7 +173,7 @@ function ensurePwaModalHtml() {
 
             <!-- Action buttons -->
             <div class="space-y-2 pt-1">
-                <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/Gharmitra-Secure.apk" target="_blank" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
+                <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/GharBandhu-Secure.apk" target="_blank" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-brands fa-android text-emerald-400 text-base"></i> <span>Download Android APK</span>
                 </a>
                 <button onclick="dismissPwaModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-4 rounded-xl transition text-xs cursor-pointer">
@@ -215,7 +215,7 @@ function triggerPwaInstall() {
         deferredInstallPrompt.prompt();
         deferredInstallPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
-                console.log('[Gharmitra PWA] User accepted install prompt');
+                console.log('[GharBandhu PWA] User accepted install prompt');
                 showPwaToast("🎉 App is installing...");
             }
             deferredInstallPrompt = null;
@@ -230,7 +230,7 @@ function triggerPwaInstall() {
 }
 
 function showIosInstructions() {
-    alert("📱 To install Gharmitra App on iPhone:\n\n1. Tap the 'Share' (📤) button at the bottom of Safari.\n2. Scroll down and tap 'Add to Home Screen'.\n3. Tap 'Add' in the top-right corner.");
+    alert("📱 To install GharBandhu App on iPhone:\n\n1. Tap the 'Share' (📤) button at the bottom of Safari.\n2. Scroll down and tap 'Add to Home Screen'.\n3. Tap 'Add' in the top-right corner.");
 }
 
 function showInstallButtons() {
@@ -255,7 +255,7 @@ function showShareButtons() {
 }
 
 function hideShareButtons() {
-    document.querySelectorAll('.gharmitra-share-btn, [onclick*="shareGharmitraApp"], #pwaFloatingShareBtn').forEach(btn => {
+    document.querySelectorAll('.gharmitra-share-btn, [onclick*="shareGharBandhuApp"], #pwaFloatingShareBtn').forEach(btn => {
         btn.classList.add('hidden');
         btn.style.setProperty('display', 'none', 'important');
         btn.setAttribute('aria-hidden', 'true');
@@ -281,7 +281,7 @@ function applyAppOrBrowserVisibility() {
 
 // --- 7. App Sharing System (Direct WhatsApp, Native Share, and Modal) ---
 
-function getGharmitraShareUrl() {
+function getGharBandhuShareUrl() {
     try {
         let loc = window.location;
         if (loc.protocol === 'file:') return DEFAULT_FALLBACK_URL;
@@ -296,13 +296,13 @@ function getGharmitraShareUrl() {
     }
 }
 
-function getGharmitraShareMessage() {
-    const appUrl = getGharmitraShareUrl();
-    return `🏠 *Gharmitra - Pune City's Trusted Home & Repair Services!*\n\n⚡ Book Cleaning, Plumbing, Electrician, Painting and Home Services in 1 minute!\n\n✅ Live order tracking\n✅ Verified professional local workers\n✅ Instant Web App - runs directly on your phone!\n\n📲 *Open link and save to your home screen now:*\n${appUrl}`;
+function getGharBandhuShareMessage() {
+    const appUrl = getGharBandhuShareUrl();
+    return `🏠 *GharBandhu - Pune City's Trusted Home & Repair Services!*\n\n⚡ Book Cleaning, Plumbing, Electrician, Painting and Home Services in 1 minute!\n\n✅ Live order tracking\n✅ Verified professional local workers\n✅ Instant Web App - runs directly on your phone!\n\n📲 *Open link and save to your home screen now:*\n${appUrl}`;
 }
 
 // Main share trigger - opens the comprehensive share modal
-function shareGharmitraApp() {
+function shareGharBandhuApp() {
     openShareModal();
 }
 
@@ -324,7 +324,7 @@ function ensureShareModalHtml() {
             </div>
 
             <div>
-                <h3 class="font-black text-slate-900 text-xl">Share Gharmitra App</h3>
+                <h3 class="font-black text-slate-900 text-xl">Share GharBandhu App</h3>
                 <p class="text-xs text-slate-500 mt-1">Share with friends and family (Pune City)</p>
             </div>
 
@@ -366,7 +366,7 @@ function openShareModal() {
     ensureShareModalHtml();
     const modal = document.getElementById('gharmitraShareModal');
     const linkDisplay = document.getElementById('shareLinkDisplay');
-    if (linkDisplay) linkDisplay.innerText = getGharmitraShareUrl();
+    if (linkDisplay) linkDisplay.innerText = getGharBandhuShareUrl();
 
     if (modal) {
         modal.classList.remove('hidden');
@@ -383,7 +383,7 @@ function closeShareModal() {
 }
 
 function shareViaWhatsApp() {
-    const msg = getGharmitraShareMessage();
+    const msg = getGharBandhuShareMessage();
     // Direct WhatsApp share URL
     const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
     window.open(waUrl, '_blank');
@@ -391,18 +391,18 @@ function shareViaWhatsApp() {
 }
 
 function triggerNativeShare() {
-    const appUrl = getGharmitraShareUrl();
-    const shareText = `🏠 Gharmitra - Pune City's Trusted Home Services! Book cleaning, plumbing, repairs and more:\n${appUrl}`;
+    const appUrl = getGharBandhuShareUrl();
+    const shareText = `🏠 GharBandhu - Pune City's Trusted Home Services! Book cleaning, plumbing, repairs and more:\n${appUrl}`;
     
     if (navigator.share) {
         navigator.share({
-            title: 'Gharmitra - Home Services & Repairs',
+            title: 'GharBandhu - Home Services & Repairs',
             text: shareText,
             url: appUrl
         }).then(() => {
             closeShareModal();
         }).catch((err) => {
-            console.log('[Gharmitra Share] Native share dismissed:', err);
+            console.log('[GharBandhu Share] Native share dismissed:', err);
         });
     } else {
         // Fallback to copying link
@@ -411,16 +411,16 @@ function triggerNativeShare() {
 }
 
 function shareViaSms() {
-    const msg = getGharmitraShareMessage();
+    const msg = getGharBandhuShareMessage();
     window.location.href = `sms:?body=${encodeURIComponent(msg)}`;
     closeShareModal();
 }
 
 function copyAppShareLink() {
-    const appUrl = getGharmitraShareUrl();
+    const appUrl = getGharBandhuShareUrl();
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(appUrl).then(() => {
-            showPwaToast("✓ Gharmitra app link copied to clipboard!");
+            showPwaToast("✓ GharBandhu app link copied to clipboard!");
             closeShareModal();
         }).catch(() => fallbackCopy(appUrl));
     } else {
@@ -462,7 +462,7 @@ function showPwaToast(msg) {
 // --- 9. Global Window Attachments ---
 window.isAppAlreadyInstalled = isAppAlreadyInstalled;
 window.applyAppOrBrowserVisibility = applyAppOrBrowserVisibility;
-window.shareGharmitraApp = shareGharmitraApp;
+window.shareGharBandhuApp = shareGharBandhuApp;
 window.openShareModal = openShareModal;
 window.closeShareModal = closeShareModal;
 window.shareViaWhatsApp = shareViaWhatsApp;
@@ -582,11 +582,11 @@ if (window.matchMedia) {
 })();
 
 // =========================================================
-// 12. Gharmitra Native Web Push & Background Notification Bridge
+// 12. GharBandhu Native Web Push & Background Notification Bridge
 // Enables OS-level sound, vibration, lock-screen alerts
 // even when the website or PWA is closed / in background!
 // =========================================================
-window.GharmitraPush = (function() {
+window.GharBandhuPush = (function() {
     let swRegistration = null;
 
     async function getRegistration() {
@@ -648,7 +648,7 @@ window.GharmitraPush = (function() {
                 
                 // Show Welcome System Notification
                 showSystemNotification(
-                    "🎉 घरमित्र नोटिफिकेशन्स सुरू झाले!",
+                    "🎉 घरबंधू नोटिफिकेशन्स सुरू झाले!",
                     "आता ॲप बंद असतानाही आपल्याला नवीन कामे आणि ऑर्डरचे थेट अलर्ट्स मिळतील.",
                     window.location.href,
                     "welcome-alert"
@@ -709,7 +709,7 @@ window.GharmitraPush = (function() {
             targetUrl = titleOrObj.url || titleOrObj.targetUrl || targetUrl || window.location.href;
             tag = titleOrObj.tag || tag || ('gk-alert-' + Date.now());
             extraOptions = Object.assign({}, titleOrObj.options || {}, extraOptions);
-            title = titleOrObj.title || 'घरमित्र (Gharmitra) अपडेट';
+            title = titleOrObj.title || 'घरबंधू (GharBandhu) अपडेट';
         }
 
         // Native mobile vibration
@@ -761,7 +761,7 @@ window.GharmitraPush = (function() {
     function testPushNotification(role = 'user') {
         const title = role === 'worker'
             ? "⚡ नवीन काम उपलब्ध! ₹500"
-            : (role === 'customer' ? "🚗 कारागीर आपल्या घराकडे निघाला आहे!" : "🏠 घरमित्र टेस्ट पुश अलर्ट!");
+            : (role === 'customer' ? "🚗 कारागीर आपल्या घराकडे निघाला आहे!" : "🏠 घरबंधू टेस्ट पुश अलर्ट!");
         const body = role === 'worker'
             ? "कोथरूड, पुणे येथे दीप क्लिनिंगचे काम आले आहे. स्वीकारण्यासाठी त्वरित टॅप करा."
             : (role === 'customer' ? "सचिन शिंदे (प्लंबर) ५ मिनिटांत पोहोचत आहेत. स्टार्ट पिन तयार ठेवा." : "हे एक टेस्ट नोटिफिकेशन आहे. आपली सिस्टीम यशस्वीरित्या कार्यरत आहे!");
@@ -824,7 +824,7 @@ window.GharmitraPush = (function() {
 
             if (isAudience) {
                 showSystemNotification(
-                    b.title || '📢 घरमित्र ॲडमिन अलर्ट',
+                    b.title || '📢 घरबंधू ॲडमिन अलर्ट',
                     b.body || b.message || 'नवीन अपडेट उपलब्ध आहे.',
                     b.targetUrl || window.location.href,
                     'broadcast-' + snap.key
@@ -847,17 +847,17 @@ window.GharmitraPush = (function() {
 })();
 
 // Global window helpers for inline onclick handlers
-window.enablePushNotifications = () => window.GharmitraPush.requestPermission();
-window.testPushNotification = (role) => window.GharmitraPush.testPushNotification(role);
-window.dismissPushNotificationBanner = () => window.GharmitraPush.dismissBanner();
+window.enablePushNotifications = () => window.GharBandhuPush.requestPermission();
+window.testPushNotification = (role) => window.GharBandhuPush.testPushNotification(role);
+window.dismissPushNotificationBanner = () => window.GharBandhuPush.dismissBanner();
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.GharmitraPush) {
-        window.GharmitraPush.updateBannerUI();
+    if (window.GharBandhuPush) {
+        window.GharBandhuPush.updateBannerUI();
         const path = window.location.pathname;
         const role = path.includes('worker') ? 'worker' : (path.includes('customer') ? 'customer' : 'user');
-        window.GharmitraPush.initBroadcastListener(role);
+        window.GharBandhuPush.initBroadcastListener(role);
     }
 });
 

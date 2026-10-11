@@ -1,5 +1,5 @@
-// =========================================================
-// Gharmitra Super Admin & Owner Dashboard Logic (Hardened)
+﻿// =========================================================
+// GharBandhu Super Admin & Owner Dashboard Logic (Hardened)
 // =========================================================
 
 // Security: Strict HTML escaping against Stored XSS
@@ -33,7 +33,7 @@ let selectedWorkerForRecharge = null;
 
 // --- 1. Admin Backend Security Authentication & Route Guard (Dual Engine) ---
 
-const ADMIN_API_BASE = window.GHARMITRA_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000' : '');
+const ADMIN_API_BASE = window.GHARBANDHU_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000' : '');
 
 const RECIPIENT_EMAILS = ["atharvamali54@gmail.com", "prathameshr361@gmail.com"];
 const EMAILJS_PUBLIC_KEY = 'PfAaODZ_GPiBPHvOi';
@@ -152,7 +152,7 @@ async function sendAdminEmailOtpDual(otp) {
             user_email: email,
             to_name: email === "atharvamali54@gmail.com" ? "Atharva Mali" : "Prathamesh R",
             otp_code: otp,
-            message: `घरमित्र (Gharmitra) Super Admin Dashboard उघडण्यासाठी तुमचा ६-अंकी OTP आहे: ${otp}. हा OTP ५ मिनिटांसाठी वैध आहे. कोणाशीही शेअर करू नका.`
+            message: `घरबंधू (GharBandhu) Super Admin Dashboard उघडण्यासाठी तुमचा ६-अंकी OTP आहे: ${otp}. हा OTP ५ मिनिटांसाठी वैध आहे. कोणाशीही शेअर करू नका.`
         };
 
         if (window.emailjs && typeof emailjs.send === 'function') {
@@ -848,7 +848,7 @@ function testAdminWhatsApp() {
         alert("कृपया योग्य १० अंकी मोबाईल नंबर टाका.");
         return;
     }
-    const msg = "नमस्कार! घरमित्र (Gharmitra) ॲडमिन कडून हा टेस्ट व्हॉट्सॲप मेसेज आहे. सिस्टीम व्यवस्थित जोडली गेली आहे!";
+    const msg = "नमस्कार! घरबंधू (GharBandhu) ॲडमिन कडून हा टेस्ट व्हॉट्सॲप मेसेज आहे. सिस्टीम व्यवस्थित जोडली गेली आहे!";
     const waUrl = `https://wa.me/91${cleanNum.slice(-10)}?text=${encodeURIComponent(msg)}`;
     window.open(waUrl, '_blank');
 }
@@ -1357,7 +1357,7 @@ function renderOrdersTable() {
                 <strong class="text-slate-800 block">${escapeHtml(item.customerName || 'अज्ञात ग्राहक')}</strong>
                 <div class="flex items-center gap-1.5 mt-0.5">
                     <a href="tel:${item.customerMobile}" class="text-blue-600 hover:underline font-semibold text-[11px]"><i class="fa-solid fa-phone text-[10px]"></i> ${item.customerMobile || '-'}</a>
-                    ${item.customerMobile ? `<a href="https://wa.me/91${String(item.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (item.customerName || '') + ', घरमित्र (Gharmitra) कडून आपल्या ऑर्डर #' + item.id.slice(-6).toUpperCase() + ' बाबत...')}" target="_blank" title="व्हॉट्सॲपवर चॅट करा" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> चॅट</a>` : ''}
+                    ${item.customerMobile ? `<a href="https://wa.me/91${String(item.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (item.customerName || '') + ', घरबंधू (GharBandhu) कडून आपल्या ऑर्डर #' + item.id.slice(-6).toUpperCase() + ' बाबत...')}" target="_blank" title="व्हॉट्सॲपवर चॅट करा" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> चॅट</a>` : ''}
                 </div>
             </td>
             <td class="p-3.5">
@@ -1984,11 +1984,11 @@ function openAdminOrderModal(orderId) {
                 <i class="fa-solid fa-map-location-dot"></i> Google Maps
             </a>
             ${order.customerMobile ? `
-            <a href="https://wa.me/91${String(order.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (order.customerName || '') + ', घरमित्र (Gharmitra) कडून आपल्या ऑर्डर #' + orderId.slice(-6).toUpperCase() + ' बाबत: आपली ' + (order.service || 'काम') + ' सेवा सध्या ' + (order.status || 'Pending') + ' आहे. काही अडचण असल्यास संपर्क साधा.')}" target="_blank" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-300 inline-flex items-center gap-1">
+            <a href="https://wa.me/91${String(order.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (order.customerName || '') + ', घरबंधू (GharBandhu) कडून आपल्या ऑर्डर #' + orderId.slice(-6).toUpperCase() + ' बाबत: आपली ' + (order.service || 'काम') + ' सेवा सध्या ' + (order.status || 'Pending') + ' आहे. काही अडचण असल्यास संपर्क साधा.')}" target="_blank" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-300 inline-flex items-center gap-1">
                 <i class="fa-brands fa-whatsapp text-emerald-600"></i> ग्राहक WhatsApp
             </a>` : ''}
             ${order.workerMobile ? `
-            <a href="https://wa.me/91${String(order.workerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('घरमित्र ॲडमिन अलर्ट: ऑर्डर #' + orderId.slice(-6).toUpperCase() + ' साठी ग्राहक: ' + (order.customerName || '') + ' (' + (order.customerMobile || '') + '), पत्ता: ' + (order.address || order.area || 'Pune') + '. त्वरित सेवा द्या.')}" target="_blank" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-300 inline-flex items-center gap-1">
+            <a href="https://wa.me/91${String(order.workerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('घरबंधू ॲडमिन अलर्ट: ऑर्डर #' + orderId.slice(-6).toUpperCase() + ' साठी ग्राहक: ' + (order.customerName || '') + ' (' + (order.customerMobile || '') + '), पत्ता: ' + (order.address || order.area || 'Pune') + '. त्वरित सेवा द्या.')}" target="_blank" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-300 inline-flex items-center gap-1">
                 <i class="fa-brands fa-whatsapp text-emerald-600"></i> कामगार WhatsApp
             </a>` : ''}
         </div>
@@ -2237,7 +2237,7 @@ function downloadOrderInvoice(orderId) {
 
     const customerName = escapeHtml(order.customerName || 'सन्माननीय ग्राहक');
     const customerMobile = escapeHtml(order.customerMobile || '-');
-    const customerEmail = escapeHtml(order.customerEmail || 'support@gharmitra.online');
+    const customerEmail = escapeHtml(order.customerEmail || 'support@gharbandhu.online');
     const customerAddress = escapeHtml(order.address || order.area || 'Pune City');
     const serviceName = escapeHtml(order.service || 'Home Service & Maintenance');
     const areaName = escapeHtml(order.area || 'Pune');
@@ -2246,18 +2246,18 @@ function downloadOrderInvoice(orderId) {
     if (!invoiceContainer) return;
 
     invoiceContainer.innerHTML = `
-        <!-- Official Gharmitra Invoice Header -->
+        <!-- Official GharBandhu Invoice Header -->
         <div class="border-b-2 border-slate-900 pb-5">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div class="space-y-1">
                     <div class="flex items-center gap-2">
-                        <span class="bg-blue-600 text-white font-black text-sm px-2.5 py-1 rounded-lg shadow-sm">🏠 GK</span>
-                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">GHARMITRA HOME SERVICES</h2>
+                        <span class="bg-blue-600 text-white font-black text-sm px-2.5 py-1 rounded-lg shadow-sm">🏠 GB</span>
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">GHARBANDHU HOME SERVICES</h2>
                     </div>
-                    <p class="text-xs font-bold text-blue-700">घरमित्र - पुणेकरांचा विश्वासू ऑन-डिमांड घरकाम साथी</p>
+                    <p class="text-xs font-bold text-blue-700">घरबंधू - पुणेकरांचा विश्वासू ऑन-डिमांड घरकाम साथी</p>
                     <p class="text-[11px] text-slate-500">Govt. of India MSME Reg.: <strong class="text-slate-700">UDYAM-MH-26-0098412</strong> | GSTIN: <strong class="text-slate-700">27AAECG4821M1ZX</strong></p>
-                    <p class="text-[11px] text-slate-500">पत्ता: B-402, Gharmitra Hub, Baner-Pashan Link Road, Pune - 411045, Maharashtra</p>
-                    <p class="text-[11px] text-slate-500">हेल्पलाईन: <strong>+91 7875160724</strong> | ईमेल: contact@gharmitra.online | www.gharmitra.online</p>
+                    <p class="text-[11px] text-slate-500">पत्ता: B-402, GharBandhu Hub, Baner-Pashan Link Road, Pune - 411045, Maharashtra</p>
+                    <p class="text-[11px] text-slate-500">हेल्पलाईन: <strong>+91 7875160724</strong> | ईमेल: contact@gharbandhu.online | www.gharbandhu.online</p>
                 </div>
 
                 <div class="sm:text-right shrink-0">
@@ -2384,14 +2384,14 @@ function downloadOrderInvoice(orderId) {
             <div class="flex items-center gap-4 text-center">
                 <!-- Circular Verified Stamp -->
                 <div class="w-20 h-20 rounded-full border-2 border-dashed border-emerald-600 text-emerald-700 flex flex-col items-center justify-center p-1 text-[8px] font-black uppercase tracking-tighter leading-tight rotate-[-6deg] opacity-90 shrink-0">
-                    <span>★ GHARMITRA ★</span>
+                    <span>★ GHARBANDHU ★</span>
                     <span class="text-[9px] font-black">VERIFIED</span>
                     <span>PUNE CITY</span>
                     <span>OFFICIAL SEAL</span>
                 </div>
 
                 <div class="space-y-1">
-                    <div class="font-serif italic font-bold text-sm text-slate-800 tracking-wider">Gharmitra Pune</div>
+                    <div class="font-serif italic font-bold text-sm text-slate-800 tracking-wider">GharBandhu Pune</div>
                     <div class="border-t border-slate-400 w-32 mx-auto pt-0.5 text-[10px] font-bold text-slate-600 uppercase">
                         Authorized Signatory
                     </div>
@@ -2403,7 +2403,7 @@ function downloadOrderInvoice(orderId) {
         <!-- Terms Footer -->
         <div class="border-t border-slate-100 pt-3 text-[10px] text-slate-400 text-center space-y-0.5">
             <p>हा संगणक-निर्मित अधिकृत टॅक्स इनव्हॉइस आहे. यावर वेगळ्या स्वाक्षरीची आवश्यकता नाही.</p>
-            <p>&copy; 2026 Gharmitra Home Services, Pune City • Helpline: 7875160724 • Secured Operations</p>
+            <p>&copy; 2026 GharBandhu Home Services, Pune City • Helpline: 7875160724 • Secured Operations</p>
         </div>
     `;
 
@@ -2437,17 +2437,17 @@ function shareInvoiceOnWhatsApp() {
     const serviceName = currentInvoiceOrder.service || 'होम सर्व्हिस';
     const amount = currentInvoiceOrder.budget || '₹500';
 
-    const text = `*घरमित्र अधिकृत टॅक्स इनव्हॉइस (Gharmitra Invoice)* 🧾\n\n` +
+    const text = `*घरबंधू अधिकृत टॅक्स इनव्हॉइस (GharBandhu Invoice)* 🧾\n\n` +
         `नमस्कार *${customerName}* जी,\n` +
-        `आपल्या घरमित्र सेवेचे अधिकृत बिल तपशील खालीलप्रमाणे आहेत:\n\n` +
+        `आपल्या घरबंधू सेवेचे अधिकृत बिल तपशील खालीलप्रमाणे आहेत:\n\n` +
         `📦 *ऑर्डर आयडी:* #${cleanOrderId}\n` +
         `⚡ *सेवा:* ${serviceName}\n` +
         `📍 *पत्ता:* ${currentInvoiceOrder.address || currentInvoiceOrder.area || 'Pune'}\n` +
         `💰 *एकूण रक्कम:* ${amount}\n` +
-        `🛡️ *हमी:* ७ दिवसांची मोफत सर्व्हिस हमी (Gharmitra Guarantee)\n\n` +
-        `धन्यवाद! घरमित्र होम सर्व्हिसेस, पुणे.\n` +
+        `🛡️ *हमी:* ७ दिवसांची मोफत सर्व्हिस हमी (GharBandhu Guarantee)\n\n` +
+        `धन्यवाद! घरबंधू होम सर्व्हिसेस, पुणे.\n` +
         `📞 हेल्पलाईन: 7875160724\n` +
-        `🌐 www.gharmitra.online`;
+        `🌐 www.gharbandhu.online`;
 
     const waUrl = `https://wa.me/91${cleanMobile}?text=${encodeURIComponent(text)}`;
     window.open(waUrl, '_blank');
@@ -2498,12 +2498,12 @@ function renderQualityAlertCard(alert, isResolved = false) {
     const cleanWorkerMobile = String(alert.workerMobile || '').replace(/\D/g, '').slice(-10);
 
     const custWaText = isLowRating
-        ? `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरमित्र (Gharmitra) मॅनेजमेंटकडून हा मेसेज आहे. आपल्या ऑर्डर ${orderNum} (${alert.service || 'काम'}) वरील ${alert.rating}★ रेटिंग व तक्रारीबाबत आम्ही अत्यंत दिलगीर आहोत. आपल्या समस्येचे तातडीने निवारण करण्यासाठी आम्ही तत्पर आहोत. काय मदत करू शकतो किंवा आम्ही आपल्याला कॉल करू का? - घरमित्र सपोर्ट (पुणे)`
-        : `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरमित्र (Gharmitra) मॅनेजमेंटकडून हा मेसेज आहे. आपली ऑर्डर ${orderNum} (${alert.service || 'काम'}) रद्द झाल्याचे समजले. काय अडचण आली किंवा कारागिराबाबत काही तक्रार आहे का? आम्ही आपले समाधान करण्यासाठी कटिबद्ध आहोत. - घरमित्र सपोर्ट (पुणे)`;
+        ? `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरबंधू (GharBandhu) मॅनेजमेंटकडून हा मेसेज आहे. आपल्या ऑर्डर ${orderNum} (${alert.service || 'काम'}) वरील ${alert.rating}★ रेटिंग व तक्रारीबाबत आम्ही अत्यंत दिलगीर आहोत. आपल्या समस्येचे तातडीने निवारण करण्यासाठी आम्ही तत्पर आहोत. काय मदत करू शकतो किंवा आम्ही आपल्याला कॉल करू का? - घरबंधू सपोर्ट (पुणे)`
+        : `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरबंधू (GharBandhu) मॅनेजमेंटकडून हा मेसेज आहे. आपली ऑर्डर ${orderNum} (${alert.service || 'काम'}) रद्द झाल्याचे समजले. काय अडचण आली किंवा कारागिराबाबत काही तक्रार आहे का? आम्ही आपले समाधान करण्यासाठी कटिबद्ध आहोत. - घरबंधू सपोर्ट (पुणे)`;
 
     const workerWaText = isLowRating
-        ? `घरमित्र ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} वर ग्राहकाने ${alert.rating}★ रेटिंग देऊन गंभीर तक्रार नोंदवली आहे. याबाबत तातडीने ॲडमिनशी संपर्क साधावा, अन्यथा आपले खाते तात्पुरते सस्पेंड केले जाईल.`
-        : `घरमित्र ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} रद्द झाली आहे. याचे नेमके काय कारण होते? तातडीने ॲडमिनशी संपर्क साधावा.`;
+        ? `घरबंधू ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} वर ग्राहकाने ${alert.rating}★ रेटिंग देऊन गंभीर तक्रार नोंदवली आहे. याबाबत तातडीने ॲडमिनशी संपर्क साधावा, अन्यथा आपले खाते तात्पुरते सस्पेंड केले जाईल.`
+        : `घरबंधू ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} रद्द झाली आहे. याचे नेमके काय कारण होते? तातडीने ॲडमिनशी संपर्क साधावा.`;
 
     const custWaUrl = cleanCustMobile ? `https://wa.me/91${cleanCustMobile}?text=${encodeURIComponent(custWaText)}` : null;
     const workerWaUrl = cleanWorkerMobile ? `https://wa.me/91${cleanWorkerMobile}?text=${encodeURIComponent(workerWaText)}` : null;
@@ -3319,12 +3319,12 @@ function applyAdminPushPreset(type) {
 
     if (type === 'NEW_JOB') {
         titleEl.value = '⚡ नवीन घरकाम ऑर्डर उपलब्ध!';
-        bodyEl.value = 'तुमच्या भागात नवीन ऑर्डर आली आहे. त्वरित घरमित्र ॲप उघडा आणि ऑर्डर स्वीकारा!';
+        bodyEl.value = 'तुमच्या भागात नवीन ऑर्डर आली आहे. त्वरित घरबंधू ॲप उघडा आणि ऑर्डर स्वीकारा!';
         if (urlEl) urlEl.value = 'worker.html';
         if (radioWorkers) radioWorkers.checked = true;
     } else if (type === 'DISCOUNT') {
-        titleEl.value = '🎉 घरमित्र विशेष सवलत धमाका!';
-        bodyEl.value = 'आजच घरातील दुरुस्ती किंवा स्वच्छता सेवा बुक करा आणि मिळवा विशेष सवलत! घरमित्र सोबत घरकाम सोपे करा.';
+        titleEl.value = '🎉 घरबंधू विशेष सवलत धमाका!';
+        bodyEl.value = 'आजच घरातील दुरुस्ती किंवा स्वच्छता सेवा बुक करा आणि मिळवा विशेष सवलत! घरबंधू सोबत घरकाम सोपे करा.';
         if (urlEl) urlEl.value = 'customer.html';
         if (radioCustomers) radioCustomers.checked = true;
     } else if (type === 'KYC') {
@@ -3333,8 +3333,8 @@ function applyAdminPushPreset(type) {
         if (urlEl) urlEl.value = 'worker.html';
         if (radioWorkers) radioWorkers.checked = true;
     } else if (type === 'SYSTEM_UPDATE') {
-        titleEl.value = '📢 घरमित्र नवीन अपडेट उपलब्ध!';
-        bodyEl.value = 'सुरक्षितता आणि वेगवान सेवेसाठी नवीन फीचर्स जोडण्यात आले आहेत. घरमित्र वापरल्याबद्दल धन्यवाद!';
+        titleEl.value = '📢 घरबंधू नवीन अपडेट उपलब्ध!';
+        bodyEl.value = 'सुरक्षितता आणि वेगवान सेवेसाठी नवीन फीचर्स जोडण्यात आले आहेत. घरबंधू वापरल्याबद्दल धन्यवाद!';
         if (urlEl) urlEl.value = 'index.html';
         if (radioAll) radioAll.checked = true;
     }
@@ -3422,8 +3422,8 @@ async function dispatchAdminBroadcastPush() {
         await database.ref('broadcastNotifications').push(payload);
 
         // Also trigger on admin's local device for instant test confirmation
-        if (window.GharmitraPush && typeof window.GharmitraPush.showSystemNotification === 'function') {
-            window.GharmitraPush.showSystemNotification({
+        if (window.GharBandhuPush && typeof window.GharBandhuPush.showSystemNotification === 'function') {
+            window.GharBandhuPush.showSystemNotification({
                 title: `[ब्रॉडकास्ट पाठवले] ${title}`,
                 body: body,
                 url: targetUrl
@@ -3442,8 +3442,8 @@ async function dispatchAdminBroadcastPush() {
 }
 
 async function testAdminPushOnDevice() {
-    if (window.GharmitraPush && typeof window.GharmitraPush.testPushNotification === 'function') {
-        window.GharmitraPush.testPushNotification();
+    if (window.GharBandhuPush && typeof window.GharBandhuPush.testPushNotification === 'function') {
+        window.GharBandhuPush.testPushNotification();
         return;
     }
 
@@ -3454,7 +3454,7 @@ async function testAdminPushOnDevice() {
 
     if (Notification.permission === 'granted') {
         try {
-            new Notification('🔔 घरमित्र ॲडमिन टेस्ट अलर्ट', {
+            new Notification('🔔 घरबंधू ॲडमिन टेस्ट अलर्ट', {
                 body: 'तुमच्या डिव्हाइसवर पुश नोटिफिकेशन्स उत्तम रित्या सुरू आहेत!',
                 icon: 'images/logo.png',
                 vibrate: [200, 100, 200]
@@ -3708,7 +3708,7 @@ function exportOrdersToCsv() {
     const link = document.createElement("a");
     const todayStr = new Date().toISOString().slice(0, 10);
     link.setAttribute("href", url);
-    link.setAttribute("download", `Gharmitra_Orders_Report_${todayStr}.csv`);
+    link.setAttribute("download", `GharBandhu_Orders_Report_${todayStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="mr">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Gharmitra - Worker Portal</title>
+<title>GharBandhu - Worker Portal</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <!-- Chart.js for Earnings Graph -->
@@ -32,7 +32,7 @@
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Gharmitra">
+    <meta name="apple-mobile-web-app-title" content="GharBandhu">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
     <link rel="stylesheet" href="css/common.css?v=42">
@@ -52,7 +52,7 @@
                 var isStoredApp = sessionStorage.getItem('gharmitra_is_app') === 'true' || sessionStorage.getItem('gharmitra_mobile_app_mode') === 'true' || localStorage.getItem('gharmitra_mobile_app_mode') === 'true';
                 var ua = (window.navigator && window.navigator.userAgent) ? window.navigator.userAgent.toLowerCase() : '';
                 var isUaApp = ua.indexOf('gharmitraapp') !== -1 || ua.indexOf('; wv') !== -1 || ua.indexOf(';wv') !== -1;
-                var isNativeApp = !!(window.GharmitraNative || window.Android || window.AndroidBridge);
+                var isNativeApp = !!(window.GharBandhuNative || window.Android || window.AndroidBridge);
 
                 if (isStandalone || isIosStandalone || isAndroidApp || isUrlApp || isStoredApp || isUaApp || isNativeApp) {
                     document.documentElement.classList.add('is-app-env');
@@ -72,8 +72,8 @@
 <header class="bg-blue-600 px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-3 shadow-md select-none">
 <div class="w-full sm:w-auto flex items-center justify-between gap-2">
     <div class="flex items-center gap-2 text-xl sm:text-2xl font-black tracking-tight text-white shrink-0">
-        <span class="bg-white text-blue-600 p-1.5 sm:p-2 rounded-xl text-base sm:text-lg flex items-center justify-center shadow-sm">🏠 GK</span>
-        <span class="tracking-tight">GHARMITRA<span class="text-blue-200 text-sm sm:text-base font-bold">.online</span></span>
+        <span class="bg-white text-blue-600 p-1.5 sm:p-2 rounded-xl text-base sm:text-lg flex items-center justify-center shadow-sm">🏠 GB</span>
+        <span class="tracking-tight">GHARBANDHU<span class="text-blue-200 text-sm sm:text-base font-bold">.online</span></span>
     </div>
     <span class="hidden md:inline-block text-xs font-semibold bg-blue-700 text-blue-100 px-3 py-1 rounded-full border border-blue-500">
         Worker Dashboard
@@ -146,7 +146,7 @@
 
     <div class="space-y-1.5 w-full sm:w-auto text-left">
         <div class="flex items-center gap-2">
-            <h2 class="font-black text-xl tracking-wide text-white">Gharmitra Worker Panel</h2>
+            <h2 class="font-black text-xl tracking-wide text-white">GharBandhu Worker Panel</h2>
             <span id="workerKycHeaderBadge" class="bg-emerald-400/20 text-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-400/30 flex items-center gap-1">
                 <i class="fa-solid fa-shield-check"></i> <span id="workerKycHeaderBadgeText">Verified Partner</span>
             </span>
@@ -308,7 +308,7 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
 <a href="tel:7875160724" class="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 px-3 rounded-xl transition">
 <i class="fa-solid fa-phone text-blue-600"></i> Call Support
 </a>
-<a href="https://wa.me/917875160724?text=Hello%20Gharmitra%20Worker%20Support," target="_blank" class="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2.5 px-3 rounded-xl shadow-sm transition">
+<a href="https://wa.me/917875160724?text=Hello%20GharBandhu%20Worker%20Support," target="_blank" class="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2.5 px-3 rounded-xl shadow-sm transition">
 <i class="fa-brands fa-whatsapp text-white text-sm"></i> WhatsApp
 </a>
 </div>
@@ -328,7 +328,7 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
                 <a href="shipping-policy.html" class="hover:text-blue-600 transition underline">Service Delivery</a>
             </div>
             <p class="text-[11px] text-slate-400">
-                &copy; 2026 Gharmitra Home Services | Pune City • Secured by Razorpay
+                &copy; 2026 GharBandhu Home Services | Pune City • Secured by Razorpay
             </p>
         </footer>
     </div>
@@ -352,7 +352,7 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
                     <img src="icons/icon-192x192.png" alt="Logo" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/40x40?text=GK'">
                 </div>
                 <div class="leading-tight">
-                    <h1 class="text-base font-black tracking-wider uppercase">GHARMITRA</h1>
+                    <h1 class="text-base font-black tracking-wider uppercase">GHARBANDHU</h1>
                     <p class="text-[10px] text-white/80 font-medium">Gharachi Kaam, Vishwasachi Saath</p>
                 </div>
             </div>
@@ -884,7 +884,7 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
                 <strong id="completionSummaryTotalFare" class="text-emerald-600 text-lg">₹--</strong>
             </div>
             <p id="completionSummaryCommissionNote" class="text-[10px] text-emerald-800 font-semibold bg-emerald-50 p-1.5 rounded-lg border border-emerald-200">
-                🛡️ नोंद: घरमित्रचे कमिशन (₹१,००० पर्यंत ८%, मोठ्या कामांवर ९%-१०%) फक्त मजुरीवर वजा होईल. साहित्याचे १००% पैसे कामगाराचे राहतील.
+                🛡️ नोंद: घरबंधूचे कमिशन (₹१,००० पर्यंत ८%, मोठ्या कामांवर ९%-१०%) फक्त मजुरीवर वजा होईल. साहित्याचे १००% पैसे कामगाराचे राहतील.
             </p>
         </div>
 
@@ -1050,7 +1050,7 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
         <div>
             <h3 id="kycAlertTitle" class="font-black text-slate-800 text-base">आधार पडताळणी प्रलंबित आहे</h3>
             <p id="kycAlertDesc" class="text-xs text-slate-600 mt-2 leading-relaxed">
-                महिला व कौटुंबिक सुरक्षिततेसाठी घरमित्रच्या नियमानुसार ॲडमिनने आधार कार्ड मंजूर (Approve) केल्यावरच तुम्हाला काम सुरू करता येईल.
+                महिला व कौटुंबिक सुरक्षिततेसाठी घरबंधूच्या नियमानुसार ॲडमिनने आधार कार्ड मंजूर (Approve) केल्यावरच तुम्हाला काम सुरू करता येईल.
             </p>
         </div>
         <div id="kycAlertActionBox" class="space-y-2 pt-1">
@@ -1133,7 +1133,7 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
             <!-- Commission Info -->
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs space-y-1.5 text-slate-600">
                 <div class="font-bold text-slate-800 flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-info text-blue-600"></i> घरमित्र कमिशन स्लॅब नियम:
+                    <i class="fa-solid fa-circle-info text-blue-600"></i> घरबंधू कमिशन स्लॅब नियम:
                 </div>
                 <p>• <strong>छोट्या दुरुस्ती कामांवर (₹१,००० पर्यंत):</strong> फक्त <strong>८%</strong> प्लॅटफॉर्म कमिशन.</p>
                 <p>• <strong>मोठ्या कामांवर (₹१,००० ते ₹३,०००):</strong> <strong>९%</strong> आणि (₹३,०००+): <strong>१०%</strong> कमिशन.</p>
@@ -1205,7 +1205,7 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
                     <i class="fa-solid fa-headset"></i>
                 </div>
                 <div>
-                    <h3 class="font-black text-slate-800 text-sm">घरमित्र कामगार सपोर्ट (Support)</h3>
+                    <h3 class="font-black text-slate-800 text-sm">घरबंधू कामगार सपोर्ट (Support)</h3>
                     <p class="text-[10px] text-slate-400">कोणत्याही अडचणीत मदत मिळवा</p>
                 </div>
             </div>
@@ -1217,7 +1217,7 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
                 <i class="fa-solid fa-phone-volume text-sm"></i> थेट ॲडमिनला फोन लावा (Call 7875160724)
             </a>
 
-            <a href="https://wa.me/917875160724?text=Hello%20Gharmitra%20Support,%20I%20am%20a%20registered%20worker%20and%20need%20assistance." target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2.5 text-xs">
+            <a href="https://wa.me/917875160724?text=Hello%20GharBandhu%20Support,%20I%20am%20a%20registered%20worker%20and%20need%20assistance." target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2.5 text-xs">
                 <i class="fa-brands fa-whatsapp text-base"></i> व्हॉट्सॲपवर चॅट करा (WhatsApp)
             </a>
 
@@ -1315,8 +1315,8 @@ Today: ₹<span id="todayEarnings">0</span> (<span id="todayJobsCount">0</span> 
             <button type="button" onclick="closeWorkerIdCardModal()" class="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-xs transition cursor-pointer">✕</button>
             <div class="w-8 h-2 rounded-full bg-white/30 mx-auto mb-2"></div>
             <div class="flex items-center justify-center gap-1.5 text-xs font-bold">
-                <span class="bg-white text-blue-800 px-1.5 py-0.2 rounded font-black text-[10px]">🏠 GK</span>
-                <span>GHARMITRA PUNE</span>
+                <span class="bg-white text-blue-800 px-1.5 py-0.2 rounded font-black text-[10px]">🏠 GB</span>
+                <span>GHARBANDHU PUNE</span>
             </div>
             <h3 class="text-sm font-black tracking-wide mt-1">अधिकृत सेवा भागीदार (OFFICIAL PARTNER)</h3>
             <p class="text-[10px] text-blue-200">Doorstep & Society Gate Pass</p>
