@@ -1,4 +1,4 @@
-﻿// Security: Strict HTML escaping against Stored XSS
+// Security: Strict HTML escaping against Stored XSS
 function escapeHtml(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -2262,7 +2262,11 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                     if (apkSrv) apkSrv.innerText = data.service || "-";
                     if (apkBud) apkBud.innerText = data.budget || "-";
                     if (apkWork) apkWork.innerText = data.workerName || "Finding Worker...";
-                    if (apkBadgeText) apkBadgeText.innerText = data.status || "Pending";
+                    if (apkBadgeText) {
+                        apkBadgeText.innerText = (data.status === 'In Progress' && data.isWorkPaused)
+                            ? "काम पॉज आहे (सामान)"
+                            : (data.status || "Pending");
+                    }
 
                     if (apkOtpCard && apkOtpCode && data.completionOtp && data.status !== 'Completed' && data.status !== 'Cancelled') {
                         apkOtpCard.classList.remove('hidden');
@@ -2479,13 +2483,17 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                         document.getElementById('step4Dot').className = "w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 animate-pulse";
                     }
                     else if (data.status === 'In Progress') {
-                        badgeEl.className = "bg-emerald-100 text-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
+                        badgeEl.className = data.isWorkPaused
+                            ? "bg-amber-100 text-amber-800 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1"
+                            : "bg-emerald-100 text-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
                         badgeTextEl.innerText = data.isWorkPaused ? "काम पॉज आहे (सामान)" : "काम चालू आहे (₹३/मि.)";
                         workerMobileEl.innerHTML = workerInfo;
                         document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                         document.getElementById('step3Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
-                        document.getElementById('step4Dot').className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
+                        document.getElementById('step4Dot').className = data.isWorkPaused
+                            ? "w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5"
+                            : "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 animate-pulse";
                     }
                 }
 
@@ -3684,9 +3692,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // Pay-Per-Minute (₹3/min) Live QR, Work Meter & Material Engine
 // =========================================================
 let _customerLiveMeterInterval = null;
+let _currentLiveMeterOrderData = null;
 window._lastCustomerReceiptUrl = null;
 
 function handleCustomerPayPerMinuteState(orderId, data) {
+    _currentLiveMeterOrderData = data;
     const qrCardDesktop = document.getElementById('customerWorkStartQrCard');
     const qrCardMobile = document.getElementById('apkWorkStartQrCard');
     const meterCardDesktop = document.getElementById('customerLiveWorkMeterCard');
@@ -3726,11 +3736,12 @@ function handleCustomerPayPerMinuteState(orderId, data) {
         if (meterCardMobile) meterCardMobile.classList.remove('hidden');
 
         const updateLiveMeterUI = () => {
+            const curData = _currentLiveMeterOrderData || data;
             const now = Date.now();
-            const startedAt = Number(data.workStartedAt || now);
-            let pausedSec = Number(data.totalPausedSeconds || 0);
-            if (data.isWorkPaused && data.workCurrentPauseStartedAt) {
-                pausedSec += Math.floor((now - Number(data.workCurrentPauseStartedAt)) / 1000);
+            const startedAt = Number(curData.workStartedAt || now);
+            let pausedSec = Number(curData.totalPausedSeconds || 0);
+            if (curData.isWorkPaused && curData.workCurrentPauseStartedAt) {
+                pausedSec += Math.floor((now - Number(curData.workCurrentPauseStartedAt)) / 1000);
             }
             const netActiveSec = Math.max(0, Math.floor((now - startedAt) / 1000) - pausedSec);
 
@@ -3747,9 +3758,9 @@ function handleCustomerPayPerMinuteState(orderId, data) {
             }
 
             // Material Cost Breakdown
-            const matCost = Number(data.materialCost || 0);
-            const matItems = data.materialItems || 'साहित्य / स्पेअर पार्ट';
-            const matReceiptUrl = data.materialReceiptUrl || '';
+            const matCost = Number(curData.materialCost || 0);
+            const matItems = curData.materialItems || 'साहित्य / स्पेअर पार्ट';
+            const matReceiptUrl = curData.materialReceiptUrl || '';
 
             const dMatBox = document.getElementById('customerMaterialBreakdownBox');
             const mMatBox = document.getElementById('apkMaterialBreakdownBox');
@@ -3788,8 +3799,12 @@ function handleCustomerPayPerMinuteState(orderId, data) {
             const dAmt = document.getElementById('customerLiveWorkAmount');
             const mAmt = document.getElementById('apkLiveWorkAmount');
 
-            if (dTimer) dTimer.innerText = timeString;
-            if (mTimer) mTimer.innerText = timeString;
+            if (dTimer) {
+                dTimer.innerText = curData.isWorkPaused ? `${timeString} (पॉज)` : timeString;
+            }
+            if (mTimer) {
+                mTimer.innerText = curData.isWorkPaused ? `${timeString} (पॉज)` : timeString;
+            }
             if (dAmt) dAmt.innerText = `₹${totalCombinedFare}`;
             if (mAmt) mAmt.innerText = `₹${totalCombinedFare}`;
 
@@ -3799,7 +3814,7 @@ function handleCustomerPayPerMinuteState(orderId, data) {
             const dStatusText = document.getElementById('customerMeterStatusText');
             const mStatusText = document.getElementById('apkMeterStatusText');
 
-            if (data.isWorkPaused) {
+            if (curData.isWorkPaused) {
                 if (dPauseBanner) dPauseBanner.classList.remove('hidden');
                 if (mPauseBanner) mPauseBanner.classList.remove('hidden');
                 if (dStatusText) dStatusText.innerText = '⏸️ काम पॉज आहे (सामान खरेदी)';
@@ -3812,12 +3827,15 @@ function handleCustomerPayPerMinuteState(orderId, data) {
             }
         };
 
-        updateLiveMeterUI();
-        if (!_customerLiveMeterInterval) {
-            _customerLiveMeterInterval = setInterval(updateLiveMeterUI, 1000);
+        if (_customerLiveMeterInterval) {
+            clearInterval(_customerLiveMeterInterval);
+            _customerLiveMeterInterval = null;
         }
+        updateLiveMeterUI();
+        _customerLiveMeterInterval = setInterval(updateLiveMeterUI, 1000);
         return;
     } else {
+        _currentLiveMeterOrderData = null;
         if (meterCardDesktop) meterCardDesktop.classList.add('hidden');
         if (meterCardMobile) meterCardMobile.classList.add('hidden');
         if (_customerLiveMeterInterval) {
