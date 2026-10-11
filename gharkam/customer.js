@@ -228,6 +228,32 @@ function populateSavedAddress() {
     if (apkDateInput && !apkDateInput.value) {
         apkDateInput.valueAsDate = new Date();
     }
+    
+    // Sync to Pronto Header & Profile Displays
+    const apkHeaderAddr = document.getElementById('apkHeaderAddressText');
+    if (apkHeaderAddr) {
+        if (savedAddr) {
+            apkHeaderAddr.innerText = savedAddr.length > 32 ? savedAddr.substring(0, 30) + '...' : savedAddr;
+        } else if (savedArea) {
+            apkHeaderAddr.innerText = savedArea + ', Pune';
+        }
+    }
+    const profName = (customerProfile && (customerProfile.fullName || customerProfile.name)) || (apkNameInput && apkNameInput.value) || (nameInput && nameInput.value) || '';
+    const profMobile = (customerProfile && customerProfile.mobile) || (apkMobileInput && apkMobileInput.value) || (mobileInput && mobileInput.value) || '';
+    const apkProfName = document.getElementById('apkProfileNameDisplay');
+    const apkProfMob = document.getElementById('apkProfileMobileDisplay');
+    const apkProfAddr = document.getElementById('apkProfileAddressDisplay');
+    const apkProfLetter = document.getElementById('apkProfileAvatarLetter');
+    const apkHeadInit = document.getElementById('apkHeaderAvatarInitial');
+    if (apkProfName && profName) apkProfName.innerText = profName;
+    if (apkProfMob && profMobile) apkProfMob.innerText = profMobile.startsWith('+91') ? profMobile : '+91 ' + profMobile;
+    if (apkProfAddr && (savedAddr || savedArea)) apkProfAddr.innerText = savedAddr || (savedArea + ', Pune');
+    if (profName) {
+        const initial = profName.trim().charAt(0).toUpperCase();
+        if (apkProfLetter) apkProfLetter.innerText = initial;
+        if (apkHeadInit) apkHeadInit.innerText = initial;
+    }
+
     setupApkFieldSync();
 
     try {
@@ -2859,24 +2885,248 @@ _Sent securely via GharBandhu Family Safety Shield._`;
             }, 300);
         }
 
-        // Bottom Nav bar handler
+        // Bottom Nav bar handler (Pronto Style: Home, Bookings, Money)
         function customerNavTo(target) {
             document.querySelectorAll('.bottom-nav-item').forEach(btn => btn.classList.remove('active'));
             if (target === 'home') {
                 document.getElementById('cNavHome')?.classList.add('active');
+                if (typeof closeApkProfileView === 'function') closeApkProfileView();
                 closeMyOrdersModal();
+                if (typeof closeQuickBookingSheet === 'function') closeQuickBookingSheet();
                 if (typeof closeProfileModal === 'function') closeProfileModal();
+                if (typeof closeCustomerWalletModal === 'function') closeCustomerWalletModal();
                 if (typeof closeCustomerSupportModal === 'function') closeCustomerSupportModal();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (target === 'orders') {
                 document.getElementById('cNavOrders')?.classList.add('active');
                 openMyOrdersModal();
+            } else if (target === 'money') {
+                document.getElementById('cNavMoney')?.classList.add('active');
+                if (typeof openCustomerWalletModal === 'function') openCustomerWalletModal();
             } else if (target === 'profile') {
-                document.getElementById('cNavProfile')?.classList.add('active');
-                if (typeof openProfileModal === 'function') openProfileModal();
+                if (typeof openApkProfileView === 'function') openApkProfileView();
+                else if (typeof openProfileModal === 'function') openProfileModal();
             } else if (target === 'help') {
-                document.getElementById('cNavHelp')?.classList.add('active');
                 if (typeof openCustomerSupportModal === 'function') openCustomerSupportModal();
+            }
+        }
+
+        // ==========================================
+        // PRONTO-STYLE APK MOBILE APP CONTROLLER
+        // ==========================================
+        function quickSelectApkCatalogService(serviceName, defaultBudget) {
+            const select = document.getElementById('apkServiceSelect');
+            if (select) {
+                let matched = false;
+                for (let i = 0; i < select.options.length; i++) {
+                    const opt = select.options[i];
+                    if (opt.value.toLowerCase().includes(serviceName.toLowerCase()) ||
+                        opt.text.toLowerCase().includes(serviceName.toLowerCase()) ||
+                        serviceName.toLowerCase().includes(opt.value.toLowerCase())) {
+                        select.selectedIndex = i;
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched && select.options.length > 0) {
+                    for (let i = 0; i < select.options.length; i++) {
+                        if (select.options[i].value === serviceName) {
+                            select.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (defaultBudget) {
+                const budgetInput = document.getElementById('apkBudgetInput');
+                if (budgetInput) budgetInput.value = defaultBudget;
+            }
+            const titleEl = document.getElementById('apkSheetTitle');
+            if (titleEl) {
+                titleEl.innerText = `${serviceName} बुकिंग`;
+            }
+            openQuickBookingSheet();
+        }
+
+        function openQuickBookingSheet(mode) {
+            const sheet = document.getElementById('apkQuickBookingSheet');
+            if (!sheet) return;
+            sheet.classList.remove('hidden');
+            sheet.classList.add('flex');
+
+            const dateInput = document.getElementById('apkBookingDate');
+            const timeInput = document.getElementById('apkBookingTime');
+            const now = new Date();
+
+            if (mode === 'instant') {
+                const titleEl = document.getElementById('apkSheetTitle');
+                if (titleEl) titleEl.innerText = '⚡ जलद सेवा बुकिंग (५-१० मि.)';
+                if (dateInput) {
+                    const y = now.getFullYear();
+                    const m = String(now.getMonth() + 1).padStart(2, '0');
+                    const d = String(now.getDate()).padStart(2, '0');
+                    dateInput.value = `${y}-${m}-${d}`;
+                }
+                if (timeInput) {
+                    const hh = String(now.getHours()).padStart(2, '0');
+                    const mm = String(now.getMinutes()).padStart(2, '0');
+                    timeInput.value = `${hh}:${mm}`;
+                }
+            } else if (mode === 'scheduled') {
+                const titleEl = document.getElementById('apkSheetTitle');
+                if (titleEl) titleEl.innerText = '📅 सोयीनुसार वेळ ठरवून बुकिंग';
+                if (dateInput && !dateInput.value) {
+                    const y = now.getFullYear();
+                    const m = String(now.getMonth() + 1).padStart(2, '0');
+                    const d = String(now.getDate()).padStart(2, '0');
+                    dateInput.value = `${y}-${m}-${d}`;
+                }
+            }
+        }
+
+        function closeQuickBookingSheet() {
+            const sheet = document.getElementById('apkQuickBookingSheet');
+            if (!sheet) return;
+            sheet.classList.remove('flex');
+            sheet.classList.add('hidden');
+        }
+
+        function filterApkCatalog(category, btn) {
+            document.querySelectorAll('.apk-filter-pill').forEach(p => {
+                p.classList.remove('active', 'bg-[#0b5f3a]', 'text-white');
+                p.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+            });
+            if (btn) {
+                btn.classList.add('active', 'bg-[#0b5f3a]', 'text-white');
+                btn.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+            }
+
+            const cards = document.querySelectorAll('.apk-catalog-card');
+            cards.forEach(card => {
+                const cats = (card.getAttribute('data-category') || '').toLowerCase();
+                if (category === 'all' || cats.includes(category.toLowerCase())) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function openApkProfileView() {
+            const homeView = document.getElementById('apkHomeView');
+            const profileScreen = document.getElementById('apkDedicatedProfileScreen');
+            if (homeView) homeView.classList.add('hidden');
+            if (profileScreen) profileScreen.classList.remove('hidden');
+
+            const sess = typeof readCustomerSession === 'function' ? readCustomerSession() : null;
+            const name = (sess && (sess.fullName || sess.name)) || localStorage.getItem('gharmitra_user_name') || 'GharBandhu User';
+            const mobile = (sess && sess.mobile) || localStorage.getItem('gharmitra_user_mobile') || '';
+            const addr = (sess && sess.address) || localStorage.getItem('gharmitra_saved_address') || 'Pune, Maharashtra';
+
+            const nameEl = document.getElementById('apkProfileNameDisplay');
+            const mobileEl = document.getElementById('apkProfileMobileDisplay');
+            const addrEl = document.getElementById('apkProfileAddressDisplay');
+            const avatarLetter = document.getElementById('apkProfileAvatarLetter');
+            const walletBalEl = document.getElementById('apkProfileWalletBal');
+
+            if (nameEl) nameEl.innerText = name;
+            if (mobileEl) mobileEl.innerText = mobile ? (mobile.startsWith('+91') ? mobile : '+91 ' + mobile) : '+91 7875160724';
+            if (addrEl) addrEl.innerText = addr;
+            if (avatarLetter && name) avatarLetter.innerText = name.trim().charAt(0).toUpperCase();
+            if (walletBalEl) walletBalEl.innerText = (typeof customerWalletBalance !== 'undefined' ? customerWalletBalance : 0).toLocaleString('en-IN');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function closeApkProfileView() {
+            const homeView = document.getElementById('apkHomeView');
+            const profileScreen = document.getElementById('apkDedicatedProfileScreen');
+            if (profileScreen) profileScreen.classList.add('hidden');
+            if (homeView) homeView.classList.remove('hidden');
+            document.querySelectorAll('.bottom-nav-item').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('cNavHome')?.classList.add('active');
+        }
+
+        function openApkAddressSelectorModal() {
+            const modal = document.getElementById('apkAddressSelectorModal');
+            if (!modal) return;
+            const curArea = document.getElementById('apkAreaSelect')?.value || 'Dhankawadi';
+            const curAddr = document.getElementById('apkCustomerAddress')?.value || '';
+            const modalArea = document.getElementById('apkModalAreaSelect');
+            const modalAddr = document.getElementById('apkModalAddressInput');
+            if (modalArea) modalArea.value = curArea;
+            if (modalAddr) modalAddr.value = curAddr;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeApkAddressSelectorModal() {
+            const modal = document.getElementById('apkAddressSelectorModal');
+            if (!modal) return;
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function syncApkAreaSelection(val) {
+            const apkArea = document.getElementById('apkAreaSelect');
+            if (apkArea) apkArea.value = val;
+        }
+
+        function saveApkModalAddress() {
+            const modalArea = document.getElementById('apkModalAreaSelect');
+            const modalAddr = document.getElementById('apkModalAddressInput');
+            const apkArea = document.getElementById('apkAreaSelect');
+            const apkAddr = document.getElementById('apkCustomerAddress');
+            const headerAddr = document.getElementById('apkHeaderAddressText');
+            const profAddr = document.getElementById('apkProfileAddressDisplay');
+
+            if (modalArea && apkArea) apkArea.value = modalArea.value;
+            if (modalAddr && apkAddr) apkAddr.value = modalAddr.value.trim();
+
+            const finalAddr = (modalAddr && modalAddr.value.trim()) || (modalArea ? modalArea.value + ', Pune' : 'Pune');
+            if (headerAddr) {
+                headerAddr.innerText = finalAddr.length > 32 ? finalAddr.substring(0, 30) + '...' : finalAddr;
+            }
+            if (profAddr) profAddr.innerText = finalAddr;
+
+            try {
+                if (modalAddr && modalAddr.value.trim()) localStorage.setItem('gharmitra_saved_address', modalAddr.value.trim());
+                if (modalArea && modalArea.value) localStorage.setItem('gharmitra_saved_area', modalArea.value);
+            } catch(e) {}
+
+            closeApkAddressSelectorModal();
+        }
+
+        function shareReferralCode() {
+            const text = "घरबंधू ॲपवरून कोणतीही घरगुती सेवा (प्लंबिंग, इलेक्ट्रिक, सफाई) फक्त ₹३/मिनिटात बुक करा! पहिल्या बुकिंगवर ₹१०० कॅशबॅक: https://gharbandhu.online";
+            if (navigator.share) {
+                navigator.share({
+                    title: 'GharBandhu Home Services',
+                    text: text,
+                    url: 'https://gharbandhu.online'
+                }).catch(() => {});
+            } else {
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+            }
+        }
+
+        function showAboutInfoModal() {
+            alert("GharBandhu (घरबंधू) - पुणे शहरातील अग्रगण्य जलद घरगुती सेवा प्लॅटफॉर्म. प्लंबिंग, इलेक्ट्रिशियन, क्लिनिंग आणि सर्व प्रकारच्या घरगुती कामांसाठी ५-१० मिनिटांत अनुभवी कारागीर.");
+        }
+
+        function showTermsInfoModal() {
+            alert("नियम व अटी (Terms of Service):\n१. कामाचे बिलिंग डिजिटल टायमरवर अचूक वेळेनुसार (₹३/मि.) होते.\n२. काम समाधानकारक न झाल्यास ७ दिवसांत मोफत रिव्हिजिट.\n३. ऑन द वे स्टेटस नंतर ऑर्डर रद्द करता येत नाही.");
+        }
+
+        function showPrivacyInfoModal() {
+            alert("गोपनीयता धोरण (Privacy Policy):\nतुमचा फोन नंबर व पत्ता सुरक्षित ठेवला जातो आणि केवळ नियुक्त कारागिराशी काम पूर्ण करण्यासाठी जोडला जातो.");
+        }
+
+        function handleApkSignOut() {
+            if (confirm("तुम्हाला नक्की लॉग आउट करायचे आहे का?")) {
+                localStorage.removeItem('current_user_session');
+                localStorage.removeItem('gharmitra_current_order_id');
+                window.location.reload();
             }
         }
 
@@ -2897,6 +3147,22 @@ _Sent securely via GharBandhu Family Safety Shield._`;
         window.initCustomerPinMap = initCustomerPinMap;
         window.updateCustomerPinMapLocation = updateCustomerPinMapLocation;
         window.setupAreaSelectMapSync = setupAreaSelectMapSync;
+
+        window.quickSelectApkCatalogService = quickSelectApkCatalogService;
+        window.openQuickBookingSheet = openQuickBookingSheet;
+        window.closeQuickBookingSheet = closeQuickBookingSheet;
+        window.filterApkCatalog = filterApkCatalog;
+        window.openApkProfileView = openApkProfileView;
+        window.closeApkProfileView = closeApkProfileView;
+        window.openApkAddressSelectorModal = openApkAddressSelectorModal;
+        window.closeApkAddressSelectorModal = closeApkAddressSelectorModal;
+        window.syncApkAreaSelection = syncApkAreaSelection;
+        window.saveApkModalAddress = saveApkModalAddress;
+        window.shareReferralCode = shareReferralCode;
+        window.showAboutInfoModal = showAboutInfoModal;
+        window.showTermsInfoModal = showTermsInfoModal;
+        window.showPrivacyInfoModal = showPrivacyInfoModal;
+        window.handleApkSignOut = handleApkSignOut;
 
 
 // =========================================================
@@ -3509,6 +3775,8 @@ function updateCustomerWalletUI() {
     if (apkVipCardBal) apkVipCardBal.innerText = balText;
     if (webDeductBal) webDeductBal.innerText = balText;
     if (apkDeductBal) apkDeductBal.innerText = balText;
+    const apkProfBal = document.getElementById('apkProfileWalletBal');
+    if (apkProfBal) apkProfBal.innerText = balText;
 
     if (customerWalletBalance > 0) {
         if (webDeductBox) webDeductBox.classList.remove('hidden');

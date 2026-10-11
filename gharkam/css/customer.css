@@ -408,3 +408,53 @@ html.is-mobile-app body::after {
     display: none !important;
 }
 
+/* Pronto-style APK Mobile App enhancements (Scoped to mobile app) */
+@keyframes apkSlideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0.7;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.animate-slide-up {
+    animation: apkSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.apk-filter-pill {
+    transition: all 0.18s ease;
+    cursor: pointer;
+}
+.apk-filter-pill.active {
+    background-color: #0b5f3a !important;
+    color: #ffffff !important;
+    border-color: #0b5f3a !important;
+    box-shadow: 0 2px 8px rgba(11, 95, 58, 0.25);
+}
+
+.apk-catalog-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+}
+.apk-catalog-card:active {
+    transform: scale(0.97);
+}
+
+.apk-add-btn {
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.apk-add-btn:active {
+    transform: scale(0.88);
+}
+

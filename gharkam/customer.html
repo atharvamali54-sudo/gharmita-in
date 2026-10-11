@@ -838,540 +838,1158 @@
          DEDICATED CUSTOMER APK DASHBOARD (Active in APK App Only)
          Matches custom native app mockup (media_1790873863847.png) with full functionality
          ========================================================= -->
-    <div id="apkCustomerAppContainer" class="w-full max-w-2xl mx-auto min-h-screen bg-[#f8fafc] text-slate-800 relative pb-28 font-sans select-none overflow-x-hidden">
+    <div id="apkCustomerAppContainer" class="w-full max-w-md mx-auto min-h-screen bg-[#f8fafc] text-slate-800 relative pb-24 font-sans select-none overflow-x-hidden">
         
-        <!-- White Header matching media_1790873863847.png -->
-        <header class="bg-white px-4 sm:px-6 py-3 border-b border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-            <div class="w-full sm:w-auto flex items-center justify-between gap-2.5">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center p-1.5 shadow-sm shrink-0">
-                        <span class="text-xs font-black flex items-center gap-1">🏠 GB</span>
+        <!-- ==========================================
+             1. PRONTO-STYLE TOP LOCATION & PROFILE HEADER
+             (Deep Emerald Green Gradient: #0b5f3a -> #137446)
+             ========================================== -->
+        <header class="bg-gradient-to-r from-[#0b5f3a] via-[#0d6b42] to-[#137446] text-white px-4 pt-3.5 pb-4 shadow-md sticky top-0 z-30">
+            <div class="flex items-center justify-between gap-3">
+                <!-- Location Dropdown (Home ⌵) -->
+                <button type="button" onclick="openApkAddressSelectorModal()" class="flex items-center gap-2.5 text-left group cursor-pointer max-w-[62%] transition active:opacity-80">
+                    <div class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center shrink-0 border border-white/20 shadow-xs">
+                        <i class="fa-solid fa-location-dot text-amber-300 text-sm"></i>
                     </div>
-                    <div class="leading-tight">
-                        <h1 class="text-base font-black tracking-tight text-slate-900">GHARBANDHU<span class="text-blue-600">.online</span></h1>
-                        <p class="text-[11px] text-slate-400 font-medium">Pune City Services</p>
+                    <div class="truncate leading-tight">
+                        <div class="flex items-center gap-1 font-black text-sm tracking-tight text-white">
+                            <span>Home</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] text-emerald-200 group-hover:translate-y-0.5 transition-transform"></i>
+                        </div>
+                        <p id="apkHeaderAddressText" class="text-[11px] text-emerald-100/90 truncate font-medium mt-0.5">1, Sai satyam society, Pune...</p>
                     </div>
-                </div>
-            </div>
+                </button>
 
-            <div class="w-full sm:w-auto flex flex-wrap items-center justify-start sm:justify-end gap-1.5 sm:gap-2">
-                <button type="button" onclick="showPwaInstallModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-1.5 px-3 rounded-xl transition shadow flex items-center gap-1.5 shrink-0 cursor-pointer">
-                    <i class="fa-solid fa-download"></i> <span>Install App</span>
-                </button>
-                <button type="button" onclick="openCustomerWalletModal()" id="apkWalletBtn" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs py-1.5 px-3 rounded-xl transition shadow flex items-center gap-1.5 shrink-0 cursor-pointer">
-                    <i class="fa-solid fa-wallet text-amber-900"></i> <span>₹<span id="apkWalletBalance">०</span></span>
-                </button>
-                <button type="button" onclick="openProfileModal()" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-1.5 px-3.5 rounded-xl transition flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer">
-                    <i class="fa-solid fa-user-pen"></i> <span>Edit Profile</span>
-                </button>
-                <button type="button" onclick="openMyOrdersModal()" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-1.5 px-3.5 rounded-xl transition flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer">
-                    <i class="fa-solid fa-box-archive"></i> <span>Your Orders</span>
-                </button>
-                <span class="text-xs bg-amber-400 text-slate-950 px-3 py-1.5 rounded-full font-bold shadow-xs shrink-0 flex items-center gap-1">
-                    📍 Pune Verified
-                </span>
+                <!-- Right Action Icons: Wallet Pill + Profile Avatar -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <!-- Wallet Pill -->
+                    <button type="button" onclick="openCustomerWalletModal()" id="apkWalletBtn" class="bg-white hover:bg-emerald-50 text-slate-900 font-black text-xs py-1.5 px-3 rounded-full transition shadow-xs flex items-center gap-1.5 border border-emerald-200 cursor-pointer active:scale-95">
+                        <i class="fa-solid fa-wallet text-amber-500"></i>
+                        <span>₹<span id="apkWalletBalance">०</span></span>
+                    </button>
+
+                    <!-- Profile Avatar Circle (Opens Dedicated Profile Screen) -->
+                    <button type="button" onclick="openApkProfileView()" class="w-9 h-9 rounded-full bg-emerald-900 border-2 border-emerald-300/80 text-white font-black text-xs flex items-center justify-center shadow-xs cursor-pointer hover:scale-105 active:scale-95 transition" title="Profile">
+                        <span id="apkHeaderAvatarInitial"><i class="fa-solid fa-user text-xs"></i></span>
+                    </button>
+                </div>
             </div>
         </header>
 
-        <!-- Notification / Announcement Banner -->
-        <div id="apkAlertBanner" class="bg-blue-50 border-b border-blue-100 px-4 py-2.5 flex items-center justify-between text-blue-700 text-xs font-medium">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-bullhorn text-blue-600 text-sm shrink-0"></i>
-                <span>अर्ज त्या कामासाठी ऑर्डर अपलोडसाठी निवडा, कामगार मिळण्यासाठी व निर्गतीसाठी नोटिफिकेशन भेटेल.</span>
-            </div>
-            <button type="button" onclick="document.getElementById('apkAlertBanner').classList.add('hidden')" class="text-blue-500 hover:text-blue-800 text-xs px-1 cursor-pointer font-bold shrink-0 ml-2" title="Dismiss">✕</button>
-        </div>
+        <!-- ==========================================
+             MAIN HOME VIEW (#apkHomeView)
+             ========================================== -->
+        <main id="apkHomeView" class="p-3.5 space-y-3.5">
 
-        <!-- Booking Form Container -->
-        <div class="p-2 sm:p-4">
-            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-3 sm:p-4 space-y-2.5">
-                
-                <!-- Compact Header Row -->
-                <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+            <!-- Dedicated Live Booking Status Card (Shows if active order exists) -->
+            <div id="apkCustomerLiveStatusCard" class="hidden bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3.5">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
                     <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shadow-xs shrink-0">
-                            <i class="fa-solid fa-bolt"></i>
-                        </div>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <h4 class="font-black text-slate-900 text-sm">📦 Live Booking Status</h4>
+                    </div>
+                    <span id="apkStatusBadge" class="bg-amber-100 text-amber-800 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                        ⏳ <span id="apkStatusBadgeText">Finding Worker</span>
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <div><span class="text-slate-400 block text-[10px]">Service</span><strong id="apkStatusService" class="text-slate-800 font-bold">-</strong></div>
+                    <div><span class="text-slate-400 block text-[10px]">Budget</span><strong id="apkStatusBudget" class="text-emerald-600 font-bold">-</strong></div>
+                    <div><span class="text-slate-400 block text-[10px]">Assigned Worker</span><span id="apkStatusWorker" class="text-blue-600 font-bold">Finding Worker...</span></div>
+                    <div><span class="text-slate-400 block text-[10px]">Worker Rating</span><span id="apkStatusWorkerRating" class="text-amber-600 font-bold">--</span></div>
+                </div>
+
+                <!-- Mobile Work Start QR & PIN Card (When Worker Arrives) -->
+                <div id="apkWorkStartQrCard" class="hidden rounded-2xl bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-4 shadow-lg border border-indigo-500/30 text-center space-y-3">
+                    <div class="flex items-center justify-between border-b border-indigo-700/50 pb-2">
+                        <span class="text-xs font-black text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> 📍 कामगार पत्त्यावर पोहोचला!
+                        </span>
+                        <span class="bg-indigo-600/60 text-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded-full">Start QR</span>
+                    </div>
+                    <p class="text-xs text-indigo-100">काम सुरू करण्यासाठी खालील QR कोड कामगाराला स्कॅन करू द्या:</p>
+                    <div class="bg-white p-3 rounded-2xl inline-block shadow-inner mx-auto">
+                        <div id="apkWorkStartQrContainer" class="flex items-center justify-center min-w-[150px] min-h-[150px]"></div>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-2.5 backdrop-blur-xs">
+                        <span class="text-[11px] text-indigo-200 block">किंवा कामगाराला हा ४-अंकी स्टार्ट पिन सांगा:</span>
+                        <span id="apkStartOtpDisplay" class="text-2xl font-black font-mono tracking-widest text-emerald-400 block mt-0.5">----</span>
+                    </div>
+                    <p class="text-[10px] text-slate-300">स्कॅन होताच टायमर सुरू होईल आणि मिनिटांचे बिलिंग (₹३/मि.) चालू होईल.</p>
+                </div>
+
+                <!-- Mobile Live Work Meter Card -->
+                <div id="apkLiveWorkMeterCard" class="hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-4 shadow-xl border border-emerald-500/30 text-center space-y-3">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                        <span class="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span id="apkMeterStatusText">🟢 काम चालू आहे</span>
+                        </span>
+                        <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black px-2.5 py-0.5 rounded-full">₹३ / मिनिट</span>
+                    </div>
+
+                    <!-- Running Digital Timer -->
+                    <div class="py-1">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider block">कामाची वेळ (TIME ELAPSED)</span>
+                        <div id="apkLiveWorkTimer" class="text-3xl font-black font-mono tracking-widest text-emerald-400 drop-shadow-sm my-1">00:00:00</div>
+                    </div>
+
+                    <!-- Live Bill Accumulator -->
+                    <div class="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center justify-around">
                         <div>
-                            <h2 class="text-sm font-black text-slate-900 leading-tight">जलद सेवा बुकिंग <span class="text-blue-600 text-xs font-bold">(₹३/मि.)</span></h2>
-                            <p class="text-[10px] text-slate-400">१ मिनिटात बुकिंग करा • ५-१० मिनिटांत कारागीर घरी</p>
+                            <span class="text-[10px] text-slate-400 uppercase block font-semibold">चालू बिल (Live Bill)</span>
+                            <span class="text-2xl font-black text-white" id="apkLiveWorkAmount">₹६०</span>
+                        </div>
+                        <div class="border-l border-white/10 pl-3 text-left">
+                            <span class="text-[10px] text-slate-400 uppercase block font-semibold">दर (Rate)</span>
+                            <span class="text-xs font-bold text-slate-200 block">₹३ / मिनिट</span>
+                            <span class="text-[10px] text-emerald-400 block">(बेस फेअर ₹६०, पहिली २० मि.)</span>
                         </div>
                     </div>
 
-                    <button type="button" onclick="openSocietyPassModal()" class="shrink-0 bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white font-bold text-[10px] py-1 px-2.5 rounded-lg shadow-xs transition flex items-center gap-1 cursor-pointer">
-                        <i class="fa-solid fa-gift text-amber-300"></i>
-                        <span>सोसायटी पास</span>
+                    <!-- Material Cost Breakdown Box -->
+                    <div id="apkMaterialBreakdownBox" class="hidden bg-white/10 border border-amber-400/30 rounded-xl p-3 text-left space-y-1.5 text-xs text-slate-100">
+                        <div class="flex justify-between items-center text-amber-300 font-bold border-b border-white/10 pb-1">
+                            <span>🛍️ साहित्य/मटेरियल खर्च:</span>
+                            <span id="apkMaterialCostDisplay" class="text-sm font-black text-amber-300">₹0</span>
+                        </div>
+                        <div class="text-[11px] text-slate-200 flex items-center justify-between">
+                            <span>वस्तू: <strong id="apkMaterialItemsDisplay" class="text-white">-</strong></span>
+                            <button type="button" id="apkMaterialReceiptBtn" onclick="openCustomerReceiptModal()" class="hidden bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[10px] px-2.5 py-1 rounded-lg transition shadow">
+                                🧾 पावती पहा
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Paused Alert Banner -->
+                    <div id="apkWorkPausedBanner" class="hidden bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs font-bold p-2.5 rounded-xl flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-pause text-amber-400"></i>
+                        <span>सामान आणण्यासाठी काम पॉज आहे</span>
+                    </div>
+                </div>
+
+                <!-- OTP Display Card -->
+                <div id="apkCompletionOtpCard" class="hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-3.5 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-black uppercase text-emerald-200">काम पूर्ण करण्यासाठी OTP</span>
+                        <p class="text-[11px] text-white/90">काम पूर्ण झाल्यावरच कारागिराला द्या</p>
+                    </div>
+                    <div class="bg-white text-emerald-900 font-black text-xl tracking-[0.2em] px-3.5 py-1.5 rounded-lg border-2 border-emerald-300">
+                        <span id="apkOtpCodeDisplay">----</span>
+                    </div>
+                </div>
+
+                <!-- Worker Call & Chat Actions -->
+                <div id="apkCommActions" class="hidden grid grid-cols-2 gap-2">
+                    <a id="apkCallWorkerBtn" href="#" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs">
+                        <i class="fa-solid fa-phone"></i> Call Worker
+                    </a>
+                    <button type="button" id="apkChatWorkerBtn" onclick="openCustomerChatModal(currentOrderId)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs">
+                        <i class="fa-solid fa-message"></i> Chat
                     </button>
                 </div>
 
-                <!-- GharBandhu VIP Club Loyalty & Cashback Card (Mobile APK - Sleek Collapsible) -->
-                <details id="apkVipClubCard" class="group rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-indigo-500/10 border border-amber-300/80 p-2 shadow-2xs">
-                    <summary class="flex items-center justify-between cursor-pointer select-none list-none">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[10px] font-black shadow-xs">
-                                <i class="fa-solid fa-crown"></i>
-                            </span>
-                            <h4 class="font-extrabold text-[11px] text-slate-900">VIP क्लब: ३ ऱ्या ऑर्डरवर १०% कॅशबॅक</h4>
-                            <span class="text-[9px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.2 rounded">ऑफर</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <button type="button" onclick="event.stopPropagation(); openCustomerWalletModal();" class="text-[10px] font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md transition flex items-center gap-1 cursor-pointer">
-                                <i class="fa-solid fa-wallet text-[9px]"></i> ₹<span id="apkVipCardWalletBal">०</span>
-                            </button>
-                            <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 group-open:rotate-180 transition-transform"></i>
-                        </div>
-                    </summary>
+                <!-- APK Cancel Order Button (Only allowed before 'On The Way') -->
+                <div id="apkCancelContainer" class="hidden pt-2 border-t border-slate-100">
+                    <button type="button" id="apkCancelOrderBtn" onclick="cancelCurrentOrder()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 px-3 rounded-xl text-xs transition border border-red-200 flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                        <i class="fa-solid fa-xmark"></i> ऑर्डर रद्द करा (Cancel Order)
+                    </button>
+                </div>
 
-                    <!-- 3 Stamps on Mobile -->
-                    <div class="mt-2 pt-2 border-t border-amber-200/60 space-y-1.5">
-                        <div class="flex items-center justify-between gap-1.5">
-                            <div id="apkStamp1" class="flex-1 rounded-lg border border-dashed border-slate-300 bg-white p-1 text-center transition">
-                                <span class="text-xs block" id="apkStamp1Icon">⚪</span>
-                                <span class="text-[9px] font-bold text-slate-600 block mt-0.5">ऑर्डर १</span>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
-                            <div id="apkStamp2" class="flex-1 rounded-lg border border-dashed border-slate-300 bg-white p-1 text-center transition">
-                                <span class="text-xs block" id="apkStamp2Icon">⚪</span>
-                                <span class="text-[9px] font-bold text-slate-600 block mt-0.5">ऑर्डर २</span>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
-                            <div id="apkStamp3" class="flex-1 rounded-lg border border-amber-400 bg-amber-50 p-1 text-center relative shadow-xs">
-                                <span class="text-xs block animate-bounce" id="apkStamp3Icon">🎁</span>
-                                <span class="text-[9px] font-black text-amber-800 block mt-0.5">१०% कॅशबॅक</span>
-                            </div>
-                        </div>
+                <div class="flex items-center justify-between pt-2 border-t border-slate-200">
+                    <button type="button" onclick="closeLiveStatusView()" class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer">
+                        ✕ स्थिती लपवा (Hide)
+                    </button>
+                    <button type="button" onclick="openMyOrdersModal()" class="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer">
+                        सर्व ऑर्डर्स पहा <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
 
-                        <p id="apkVipStatusText" class="text-[10px] text-slate-600 text-center font-medium bg-white/70 py-1 px-2 rounded-lg border border-slate-200/60">
-                            तुम्ही ० ऑर्डर्स पूर्ण केल्या आहेत. आणखी ३ कामे पूर्ण केल्यावर १०% कॅशबॅक अनलॉक होईल!
+            <!-- Hero Section: Pronto Style (Screenshot 1) -->
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-white border border-emerald-200/80 p-4 shadow-2xs">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="space-y-1 max-w-[68%]">
+                        <span class="inline-flex items-center gap-1 bg-[#0b5f3a] text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
+                            <i class="fa-solid fa-bolt text-amber-300"></i> जलद घरपोच सेवा
+                        </span>
+                        <h2 class="text-[15px] font-black text-slate-900 leading-snug">
+                            One professional, 16+ home services
+                        </h2>
+                        <p class="text-[11px] text-slate-600 font-medium">
+                            फक्त ₹३ प्रति मिनिट • ५-१० मिनिटांत कारागीर घरी
                         </p>
                     </div>
-                </details>
+                    <div class="shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#0b5f3a] to-emerald-500 flex items-center justify-center text-white text-3xl shadow-sm border-2 border-white">
+                        👨‍🔧
+                    </div>
+                </div>
 
-                <form id="apkBookingForm" onsubmit="handleApkFormSubmit(event)" class="space-y-2.5">
-                    
-                    <!-- Row 1: Select Service & Pune Area (2 Columns) -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                                <i class="fa-solid fa-wrench text-blue-600 mr-0.5"></i> सेवा (Service) *
-                            </label>
-                            <select id="apkServiceSelect" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold py-2 px-2 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white transition truncate cursor-pointer">
-                                <option value="Plumbing">🔧 Plumbing (प्लंबिंग)</option>
-                                <option value="Electrician">⚡ Electrician (इलेक्ट्रिशियन)</option>
-                                <option value="Carpenter">🪚 Carpenter (सुतारकाम)</option>
-                                <option value="Painting">🎨 Painting (रंगकाम)</option>
-                                <option value="Cleaning">🧹 Cleaning (सफाई)</option>
-                                <option value="AC Repair">❄️ AC Repair (एसी दुरुस्ती)</option>
-                                <option value="Appliance Repair">🔌 Appliance Repair (उपकरणे)</option>
-                                <option value="Masonry">🧱 Masonry (बांधकाम)</option>
-                                <option value="Locksmith">🔑 Locksmith (कुलूप)</option>
-                                <option value="Pest Control">🦟 Pest Control (पेस्ट कंट्रोल)</option>
-                                <option value="Gardening">🌿 Gardening (बागकाम)</option>
-                                <option value="Glass & Aluminium">🪟 Glass & Aluminium</option>
-                                <option value="TV & DTH">📺 TV & DTH</option>
-                                <option value="Moving & Shifting">📦 Moving & Shifting</option>
-                                <option value="Bathroom Services">🚿 Bathroom Services</option>
-                            </select>
+                <!-- 2 Big Touch Cards: Get Instant Service vs Schedule for Later -->
+                <div class="grid grid-cols-2 gap-2.5 mt-3.5">
+                    <!-- Instant Service Card -->
+                    <button type="button" onclick="openQuickBookingSheet('instant')" class="bg-gradient-to-br from-[#0b5f3a] to-[#127a4a] text-white p-3 rounded-2xl shadow-sm text-left relative overflow-hidden group hover:brightness-105 active:scale-[0.98] transition cursor-pointer border border-emerald-700/50">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-xs font-bold">⚡</span>
+                            <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded-full shadow-2xs">5-10 min</span>
                         </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                                <i class="fa-solid fa-location-dot text-rose-500 mr-0.5"></i> परिसर (Pune Area) *
-                            </label>
-                            <select id="apkAreaSelect" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold py-2 px-2 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white transition truncate cursor-pointer">
-                                <option value="Dhankawadi">📍 Dhankawadi</option>
-                                <option value="Swargate">📍 Swargate</option>
-                                <option value="Hadapsar">📍 Hadapsar</option>
-                                <option value="Katraj">📍 Katraj</option>
-                                <option value="Kothrud">📍 Kothrud</option>
-                                <option value="Baner">📍 Baner</option>
-                                <option value="Wakad">📍 Wakad</option>
-                                <option value="Hinjawadi">📍 Hinjawadi</option>
-                                <option value="Viman Nagar">📍 Viman Nagar</option>
-                                <option value="Kharadi">📍 Kharadi</option>
-                                <option value="Aundh">📍 Aundh</option>
-                                <option value="Shivajinagar">📍 Shivajinagar</option>
-                                <option value="Koregaon Park">📍 Koregaon Park</option>
-                                <option value="Kondhwa">📍 Kondhwa</option>
-                                <option value="Bibwewadi">📍 Bibwewadi</option>
-                                <option value="Pimple Saudagar">📍 Pimple Saudagar</option>
-                                <option value="Pimpri">📍 Pimpri</option>
-                                <option value="Chinchwad">📍 Chinchwad</option>
-                                <option value="Yerawada">📍 Yerawada</option>
-                                <option value="Wagholi">📍 Wagholi</option>
-                                <option value="Dhanori">📍 Dhanori</option>
-                                <option value="Lohegaon">📍 Lohegaon</option>
-                                <option value="Camp">📍 Camp</option>
-                                <option value="Deccan">📍 Deccan</option>
-                                <option value="Sinhagad Road">📍 Sinhagad Road</option>
-                                <option value="Warje">📍 Warje</option>
-                                <option value="Bavdhan">📍 Bavdhan</option>
-                                <option value="NIBM">📍 NIBM</option>
-                                <option value="Vishrantwadi">📍 Vishrantwadi</option>
-                                <option value="Magarpatta">📍 Magarpatta</option>
-                            </select>
+                        <h3 class="font-black text-xs text-white leading-tight">Get Instant Service</h3>
+                        <p class="text-[10px] text-emerald-100 font-medium mt-0.5">₹३/मि. • तात्काळ घरी</p>
+                    </button>
+
+                    <!-- Schedule for Later Card -->
+                    <button type="button" onclick="openQuickBookingSheet('scheduled')" class="bg-white border-2 border-emerald-600/30 text-slate-900 p-3 rounded-2xl shadow-2xs text-left relative overflow-hidden group hover:border-emerald-600 active:scale-[0.98] transition cursor-pointer">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-bold">📅</span>
+                            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded-full">Slot</span>
+                        </div>
+                        <h3 class="font-black text-xs text-slate-900 leading-tight">Schedule for Later</h3>
+                        <p class="text-[10px] text-slate-500 font-medium mt-0.5">सोयीनुसार वेळ ठरवा</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pronto / GharBandhu Pass Banner (Screenshot 1 & 4) -->
+            <div onclick="openSocietyPassModal()" class="cursor-pointer bg-gradient-to-r from-[#0b5f3a] via-[#0d6b42] to-[#147a4d] text-white rounded-2xl p-3.5 shadow-xs flex items-center justify-between gap-2.5 border border-emerald-600/50 hover:brightness-105 active:scale-[0.99] transition">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
+                        ⭐
+                    </div>
+                    <div class="leading-tight">
+                        <div class="flex items-center gap-1.5">
+                            <h4 class="font-black text-xs tracking-tight text-white">GHARBANDHU PASS</h4>
+                            <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.2 rounded">Save 50%</span>
+                        </div>
+                        <p class="text-[11px] text-emerald-100 font-medium mt-0.5">Get 3 Visits for ₹99 only • नो व्हिजिटिंग चार्ज</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-xs text-emerald-200 shrink-0"></i>
+            </div>
+
+            <!-- GharBandhu VIP Club Loyalty Card -->
+            <details id="apkVipClubCard" class="group rounded-2xl bg-white border border-amber-300/80 p-2.5 shadow-2xs">
+                <summary class="flex items-center justify-between cursor-pointer select-none list-none">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[10px] font-black shadow-xs">
+                            <i class="fa-solid fa-crown"></i>
+                        </span>
+                        <h4 class="font-black text-[11px] text-slate-900">VIP क्लब: ३ ऱ्या ऑर्डरवर १०% कॅशबॅक</h4>
+                        <span class="text-[9px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded">ऑफर</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="event.stopPropagation(); openCustomerWalletModal();" class="text-[10px] font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md transition flex items-center gap-1 cursor-pointer">
+                            <i class="fa-solid fa-wallet text-[9px]"></i> ₹<span id="apkVipCardWalletBal">०</span>
+                        </button>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 group-open:rotate-180 transition-transform"></i>
+                    </div>
+                </summary>
+
+                <!-- 3 Stamps on Mobile -->
+                <div class="mt-2 pt-2 border-t border-amber-200/60 space-y-1.5">
+                    <div class="flex items-center justify-between gap-1.5">
+                        <div id="apkStamp1" class="flex-1 rounded-lg border border-dashed border-slate-300 bg-white p-1 text-center transition">
+                            <span class="text-xs block" id="apkStamp1Icon">⚪</span>
+                            <span class="text-[9px] font-bold text-slate-600 block mt-0.5">ऑर्डर १</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
+                        <div id="apkStamp2" class="flex-1 rounded-lg border border-dashed border-slate-300 bg-white p-1 text-center transition">
+                            <span class="text-xs block" id="apkStamp2Icon">⚪</span>
+                            <span class="text-[9px] font-bold text-slate-600 block mt-0.5">ऑर्डर २</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
+                        <div id="apkStamp3" class="flex-1 rounded-lg border border-amber-400 bg-amber-50 p-1 text-center relative shadow-xs">
+                            <span class="text-xs block animate-bounce" id="apkStamp3Icon">🎁</span>
+                            <span class="text-[9px] font-black text-amber-800 block mt-0.5">१०% कॅशबॅक</span>
                         </div>
                     </div>
 
-                    <!-- Row 2: Customer Name & Mobile (2 Columns) -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                                <i class="fa-solid fa-user text-slate-400 mr-0.5"></i> पूर्ण नाव *
-                            </label>
-                            <input type="text" id="apkCustomerName" placeholder="तुमचे नाव" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-medium py-1.5 px-2.5 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    <p id="apkVipStatusText" class="text-[10px] text-slate-600 text-center font-medium bg-white/70 py-1 px-2 rounded-lg border border-slate-200/60">
+                        तुम्ही ० ऑर्डर्स पूर्ण केल्या आहेत. आणखी ३ कामे पूर्ण केल्यावर १०% कॅशबॅक अनलॉक होईल!
+                    </p>
+                </div>
+            </details>
+
+            <!-- Category Filter Pills (Horizontal Scroll) -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between px-0.5">
+                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">
+                        सेवा कॅटलॉग (Services)
+                    </h3>
+                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        १-टॅप + बुकिंग
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                    <button type="button" onclick="filterApkCatalog('all', this)" class="apk-filter-pill active shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-[#0b5f3a] text-white shadow-xs transition">
+                        All
+                    </button>
+                    <button type="button" onclick="filterApkCatalog('hourly', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Hourly Service (₹30)
+                    </button>
+                    <button type="button" onclick="filterApkCatalog('cleaning', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Cleaning
+                    </button>
+                    <button type="button" onclick="filterApkCatalog('electric', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Electric
+                    </button>
+                    <button type="button" onclick="filterApkCatalog('plumbing', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Plumbing
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3-Column Service Catalog Grid (Pronto Screenshots 1 & 2) -->
+            <div id="apkCatalogGrid" class="grid grid-cols-3 gap-2">
+                
+                <!-- Card 1: Bathroom Cleaning -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(66k)</span>
                         </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                                <i class="fa-solid fa-phone text-slate-400 mr-0.5"></i> मोबाईल नंबर *
-                            </label>
-                            <input type="tel" id="apkCustomerMobile" pattern="[0-9]{10}" placeholder="१० अंकी मोबाईल" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-medium py-1.5 px-2.5 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-2xl shadow-inner">
+                            🚿
                         </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Bathroom Cleaning</h4>
                     </div>
-
-                    <!-- Row 3: Address & GPS (Integrated Row) -->
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between text-[10px]">
-                            <label class="font-bold text-slate-600 uppercase tracking-wider">
-                                <i class="fa-solid fa-house text-slate-400 mr-0.5"></i> पूर्ण पत्ता (घर, सोसायटी, रस्ता) *
-                            </label>
-                            <button type="button" id="apkDetectGpsBtn" onclick="detectCustomerExactLocation()" class="font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 py-0.5 px-2 rounded-lg flex items-center gap-1 text-[10px] cursor-pointer transition active:scale-95">
-                                <i class="fa-solid fa-crosshairs text-blue-600"></i>
-                                <span>अचूक GPS</span>
-                            </button>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
                         </div>
-                        <div class="relative">
-                            <textarea id="apkCustomerAddress" oninput="handleApkAddressChange()" rows="1" placeholder="घर नं., विंग, सोसायटी, जवळची खूण (Landmark)" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-medium py-1.5 px-2.5 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white transition resize-none"></textarea>
-                        </div>
-                        <div class="flex items-center justify-between text-[10px] text-slate-500 pt-0.5">
-                            <label class="flex items-center gap-1 cursor-pointer">
-                                <input type="checkbox" id="apkSaveAddressCheckbox" checked class="rounded text-blue-600 focus:ring-blue-500 text-[10px]">
-                                <span>पत्ता सेव्ह ठेवा</span>
-                            </label>
-                            <button type="button" onclick="focusApkAddressForEdit()" class="text-blue-600 hover:underline font-bold cursor-pointer">✏ Edit</button>
-                            <span id="apkGpsLocationBadge" class="hidden items-center gap-1 font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.2 rounded-full">
-                                <i class="fa-solid fa-location-dot text-emerald-600 text-[9px]"></i>
-                                <span id="apkGpsLocationText">GPS शोधले</span>
-                                <button type="button" onclick="resetCustomerGpsLocation()" class="text-blue-600 underline font-semibold ml-0.5 cursor-pointer">रीसेट</button>
-                            </span>
-                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Bathroom Services', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
                     </div>
+                </div>
 
-                    <!-- Row 4: Collapsible Map & Pin (On Demand) -->
-                    <details id="apkMapAccordion" class="group border border-slate-200/90 rounded-xl bg-slate-50/70 overflow-hidden text-xs" ontoggle="if(this.open && customerPinMap) setTimeout(() => customerPinMap.invalidateSize(), 200);">
-                        <summary class="px-2.5 py-1.5 font-bold text-slate-700 flex items-center justify-between cursor-pointer select-none hover:bg-slate-100/70 transition list-none">
-                            <span class="flex items-center gap-1.5 text-[11px] text-blue-600 font-bold">
-                                <i class="fa-solid fa-map-pin"></i>
-                                <span>नकाशावर अचूक पिन तपासा (पर्यायी)</span>
-                            </span>
-                            <div class="flex items-center gap-1.5">
-                                <span id="apkPinCoordsText" class="font-mono text-[9px] text-slate-400">18.46317, 73.83731</span>
-                                <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 group-open:rotate-180 transition-transform"></i>
-                            </div>
-                        </summary>
-                        <div class="p-2 bg-white border-t border-slate-100 space-y-1">
-                            <div id="apkCustomerPinMap" class="w-full h-36 rounded-lg border border-slate-200 overflow-hidden"></div>
-                            <div class="flex items-center justify-between text-[10px] text-slate-500">
-                                <span id="apkPinAccuracyInfo">नकाशा हलवून पिन अचूक ठिकाणी ठेवा</span>
-                            </div>
+                <!-- Card 2: Dusting & Wiping -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(66k)</span>
                         </div>
-                    </details>
-
-                    <!-- Row 5: Date and Time (2 Columns) -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                                <i class="fa-regular fa-calendar text-blue-600 mr-0.5"></i> तारीख (Date) *
-                            </label>
-                            <input type="date" id="apkBookingDate" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold py-1.5 px-2 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white transition cursor-pointer">
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl shadow-inner">
+                            🧽
                         </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                                <i class="fa-regular fa-clock text-blue-600 mr-0.5"></i> वेळ (Time) *
-                            </label>
-                            <input type="time" id="apkBookingTime" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold py-1.5 px-2 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white transition cursor-pointer">
-                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Dusting & Wiping</h4>
                     </div>
-
-                    <!-- Row 6: Pricing Badge & Booking Type (Normal vs SOS) -->
-                    <div class="space-y-1.5">
-                        <div class="bg-gradient-to-r from-blue-50 via-indigo-50 to-emerald-50 border border-blue-200/80 rounded-xl px-2.5 py-1.5 flex items-center justify-between">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black">₹</span>
-                                <div class="leading-tight">
-                                    <strong class="text-xs font-black text-slate-900">फक्त ₹३ प्रति मिनिट</strong>
-                                    <span class="text-[10px] text-slate-500 ml-1">(बेस ₹६० / पहिली २० मि.)</span>
-                                </div>
-                            </div>
-                            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full">QR स्कॅनवर चालू</span>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
                         </div>
-                        <input type="hidden" id="apkBudgetInput" value="₹3/min">
+                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
 
+                <!-- Card 3: Sweeping & Mopping -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(66k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-inner">
+                            🧹
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Sweeping & Mopping</h4>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 4: Utensil Cleaning -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(42k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl shadow-inner">
+                            🍽️
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Utensil Cleaning</h4>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 5: Fridge Cleaning -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(31k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-2xl shadow-inner">
+                            🧊
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Fridge Cleaning</h4>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 6: Kitchen Deep Clean -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(58k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl shadow-inner">
+                            🍳
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Kitchen Deep Clean</h4>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 7: Fan & Wiring Repair -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="electric hourly">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(84k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center text-2xl shadow-inner">
+                            ⚡
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Fan & Electric Repair</h4>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Electrician', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 8: Tap & Plumbing Repair -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="plumbing hourly">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(75k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl shadow-inner">
+                            🔧
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Tap & Pipe Repair</h4>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Plumbing', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 9: Appliance Repair -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="electric">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(39k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl shadow-inner">
+                            🔌
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Appliance Repair</h4>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Appliance Repair', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 10: Carpenter Work -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="hourly">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(29k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-2xl shadow-inner">
+                            🪚
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Carpenter & Wood</h4>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Carpenter', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 11: AC Servicing -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="electric">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(51k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-2xl shadow-inner">
+                            ❄️
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">AC Servicing</h4>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('AC Repair', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 12: Painting & Touchup -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="hourly">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(18k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center text-2xl shadow-inner">
+                            🎨
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Painting Touchup</h4>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-xs font-black text-slate-900">₹30</span>
+                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Painting', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Trust & Social Proof Section (Screenshots 3 & 5) -->
+            <div class="rounded-2xl bg-white border border-slate-200/90 p-4 space-y-3 shadow-2xs">
+                <div class="text-center space-y-0.5">
+                    <h3 class="font-black text-sm text-slate-900 leading-snug">
+                        Relax, your home is in professional hands
+                    </h3>
+                    <p class="text-[11px] text-slate-500 font-medium">
+                        निश्चिंत राहा, तुमचे घर अनुभवी व सुरक्षित कारागिरांच्या हातात आहे
+                    </p>
+                </div>
+
+                <!-- Laurel Badges -->
+                <div class="flex items-center justify-around py-2.5 border-y border-slate-100 text-center">
+                    <div class="flex flex-col items-center">
+                        <span class="text-lg">🌿</span>
+                        <strong class="text-xs font-black text-slate-900">15 Lakh+</strong>
+                        <span class="text-[9px] text-slate-500 font-medium">Families in Pune</span>
+                    </div>
+                    <div class="w-px h-8 bg-slate-200"></div>
+                    <div class="flex flex-col items-center">
+                        <span class="text-lg">⭐</span>
+                        <strong class="text-xs font-black text-slate-900">4.8 Rating</strong>
+                        <span class="text-[9px] text-slate-500 font-medium">3 Lakh+ Reviews</span>
+                    </div>
+                    <div class="w-px h-8 bg-slate-200"></div>
+                    <div class="flex flex-col items-center">
+                        <span class="text-lg">🛡️</span>
+                        <strong class="text-xs font-black text-slate-900">7-Day</strong>
+                        <span class="text-[9px] text-slate-500 font-medium">Revisit Guarantee</span>
+                    </div>
+                </div>
+
+                <!-- 4 Trust Pillars -->
+                <div class="grid grid-cols-2 gap-2 text-left">
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                        <div class="flex items-center gap-1.5 text-emerald-700 font-black text-xs">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>१००% खात्री</span>
+                        </div>
+                        <p class="text-[10px] text-slate-600 leading-tight">कामात दोष आढळल्यास ७ दिवसांत मोफत रिव्हिजिट.</p>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                        <div class="flex items-center gap-1.5 text-blue-700 font-black text-xs">
+                            <i class="fa-solid fa-id-card-clip"></i>
+                            <span>व्हेरिफाईड</span>
+                        </div>
+                        <p class="text-[10px] text-slate-600 leading-tight">सर्व कारागीर पोलीस व आधार तपासणी केलेले.</p>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                        <div class="flex items-center gap-1.5 text-amber-700 font-black text-xs">
+                            <i class="fa-solid fa-stopwatch"></i>
+                            <span>पारदर्शक मीटर</span>
+                        </div>
+                        <p class="text-[10px] text-slate-600 leading-tight">फक्त ₹३/मि. अचूक डिजिटल टायमरवर बिलिंग.</p>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                        <div class="flex items-center gap-1.5 text-purple-700 font-black text-xs">
+                            <i class="fa-solid fa-headset"></i>
+                            <span>पुणे सपोर्ट</span>
+                        </div>
+                        <p class="text-[10px] text-slate-600 leading-tight">कधीही कॉल करा, तत्पर मराठी व हिंदी सहाय्य.</p>
+                    </div>
+                </div>
+            </div>
+
+        </main><!-- /#apkHomeView -->
+
+        <!-- ==========================================
+             DEDICATED PROFILE VIEW SCREEN (#apkDedicatedProfileScreen)
+             (Matching Screenshot 4)
+             ========================================== -->
+        <div id="apkDedicatedProfileScreen" class="hidden p-4 space-y-3.5 bg-slate-50 min-h-screen">
+            <!-- Header with Back Arrow -->
+            <div class="flex items-center gap-3 pb-2 border-b border-slate-200">
+                <button type="button" onclick="closeApkProfileView()" class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-700 shadow-2xs cursor-pointer active:scale-95">
+                    <i class="fa-solid fa-arrow-left text-xs"></i>
+                </button>
+                <h2 class="text-base font-black text-slate-900">Profile</h2>
+            </div>
+
+            <!-- Profile Info Card -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-[#0b5f3a] text-white font-black text-lg flex items-center justify-center shadow-xs">
+                        <span id="apkProfileAvatarLetter">A</span>
+                    </div>
+                    <div>
+                        <h3 id="apkProfileNameDisplay" class="font-black text-sm text-slate-900">User</h3>
+                        <p id="apkProfileMobileDisplay" class="text-xs text-slate-500 font-medium">+91 0000000000</p>
+                        <p id="apkProfileAddressDisplay" class="text-[10px] text-slate-400 truncate max-w-[180px]">Pune</p>
+                    </div>
+                </div>
+                <button type="button" onclick="openProfileModal()" class="text-emerald-700 font-extrabold text-xs flex items-center gap-1 hover:underline cursor-pointer">
+                    <span>Edit profile</span>
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+            </div>
+
+            <!-- PRONTO / GHARBANDHU PASS Card (Screenshot 4) -->
+            <div onclick="openSocietyPassModal()" class="cursor-pointer bg-gradient-to-r from-[#0b5f3a] via-[#0d6b42] to-[#127a4a] text-white rounded-2xl p-4 shadow-sm flex items-center justify-between border border-emerald-500/40">
+                <div class="space-y-1">
+                    <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full uppercase">Pass</span>
+                    <h4 class="font-black text-sm text-white">GHARBANDHU PASS</h4>
+                    <p class="text-xs text-emerald-100">Get 3 Visits for ₹99 only</p>
+                </div>
+                <button type="button" class="bg-white text-emerald-900 font-black text-xs py-1.5 px-3 rounded-xl shadow-xs">
+                    View
+                </button>
+            </div>
+
+            <!-- 3 Quick Boxes: My Bookings | GharBandhu Money | Help & Support -->
+            <div class="grid grid-cols-3 gap-2">
+                <button type="button" onclick="openMyOrdersModal()" class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs text-center space-y-1 cursor-pointer active:scale-95 transition">
+                    <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto text-sm">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                    </div>
+                    <span class="text-[11px] font-black text-slate-800 block">My Bookings</span>
+                </button>
+
+                <button type="button" onclick="openCustomerWalletModal()" class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs text-center space-y-1 cursor-pointer active:scale-95 transition">
+                    <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-sm">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <span class="text-[11px] font-black text-slate-800 block">Money (₹<span id="apkProfileWalletBal">०</span>)</span>
+                </button>
+
+                <button type="button" onclick="if(typeof openCustomerSupportModal==='function') openCustomerSupportModal(); else openCustomerChatModal();" class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs text-center space-y-1 cursor-pointer active:scale-95 transition">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto text-sm">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <span class="text-[11px] font-black text-slate-800 block">Help & Support</span>
+                </button>
+            </div>
+
+            <!-- Menu List (Screenshot 4) -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100 overflow-hidden">
+                <button type="button" onclick="shareReferralCode()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-50 transition cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-gift text-purple-600 text-sm w-4"></i>
+                        <span class="text-xs font-bold text-slate-800">Refer & earn (₹100)</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                </button>
+
+                <button type="button" onclick="openApkAddressSelectorModal()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-50 transition cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-location-dot text-rose-500 text-sm w-4"></i>
+                        <span class="text-xs font-bold text-slate-800">Saved addresses</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                </button>
+
+                <button type="button" onclick="showAboutInfoModal()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-50 transition cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-circle-info text-blue-500 text-sm w-4"></i>
+                        <span class="text-xs font-bold text-slate-800">About us</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                </button>
+
+                <button type="button" onclick="showTermsInfoModal()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-50 transition cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-file-contract text-slate-500 text-sm w-4"></i>
+                        <span class="text-xs font-bold text-slate-800">Terms of services</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                </button>
+
+                <button type="button" onclick="showPrivacyInfoModal()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-50 transition cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-lock text-emerald-600 text-sm w-4"></i>
+                        <span class="text-xs font-bold text-slate-800">Privacy policy</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                </button>
+
+                <button type="button" onclick="handleApkSignOut()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-rose-50 text-rose-600 transition cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-rose-500 text-sm w-4"></i>
+                        <span class="text-xs font-bold text-rose-600">Sign out (लॉग आउट)</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-rose-400"></i>
+                </button>
+            </div>
+        </div><!-- /#apkDedicatedProfileScreen -->
+
+        <!-- ==========================================
+             SLIDE-UP QUICK BOOKING SHEET (#apkQuickBookingSheet)
+             Contains #apkBookingForm with ALL preserved inputs & functionality
+             ========================================== -->
+        <div id="apkQuickBookingSheet" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex-col justify-end transition-all">
+            <div class="bg-white rounded-t-3xl max-w-md w-full mx-auto max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-slide-up">
+                
+                <!-- Sheet Header -->
+                <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="apkSheetTitle" class="text-sm font-black text-slate-900">सेवा बुकिंग</h3>
+                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full">फक्त ₹३/मि.</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400">१ मिनिटात बुकिंग करा • ५-१० मिनिटांत कारागीर घरी</p>
+                    </div>
+                    <button type="button" onclick="closeQuickBookingSheet()" class="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-600 flex items-center justify-center text-xs font-bold transition cursor-pointer">
+                        ✕
+                    </button>
+                </div>
+
+                <!-- Scrollable Form Container -->
+                <div class="overflow-y-auto p-4 space-y-3 pb-8">
+                    <form id="apkBookingForm" onsubmit="handleApkFormSubmit(event)" class="space-y-2.5">
+                        
+                        <!-- Row 1: Select Service & Pune Area (2 Columns) -->
                         <div class="grid grid-cols-2 gap-2">
-                            <label id="apkNormalBookingLabel" class="cursor-pointer border-2 border-blue-600 bg-blue-50/50 p-2 rounded-xl flex items-center gap-2 transition shadow-2xs">
-                                <input type="radio" name="apkBookingType" value="normal" checked onchange="toggleApkBookingType('normal')" class="text-blue-600 focus:ring-blue-500">
-                                <div class="leading-tight">
-                                    <strong class="text-xs font-bold text-slate-900 block">📅 नियमित</strong>
-                                    <span class="text-[9px] text-slate-500">नो ॲडव्हान्स</span>
-                                </div>
-                            </label>
-                            <label id="apkEmergencyBookingLabel" class="cursor-pointer border-2 border-slate-200 bg-white hover:border-red-400 p-2 rounded-xl flex items-center gap-2 transition shadow-2xs">
-                                <input type="radio" name="apkBookingType" value="emergency" onchange="toggleApkBookingType('emergency')" class="text-red-600 focus:ring-red-500">
-                                <div class="leading-tight">
-                                    <strong class="text-xs font-bold text-slate-900 block flex items-center gap-1">
-                                        <span>🚨 १०-Min SOS</span>
-                                        <span class="text-[8px] bg-red-600 text-white px-1 rounded font-black">तात्काळ</span>
-                                    </strong>
-                                    <span class="text-[9px] text-slate-500">₹५० ॲडव्हान्स</span>
-                                </div>
-                            </label>
-                        </div>
-
-                        <!-- APK Emergency Notice -->
-                        <div id="apkEmergencyBookingNotice" class="hidden p-2 bg-red-50 border border-red-300 rounded-xl space-y-0.5 text-xs">
-                            <div class="flex items-center justify-between font-bold text-red-700">
-                                <span class="flex items-center gap-1 text-[11px]"><i class="fa-solid fa-triangle-exclamation animate-pulse"></i> १०-मिनिट इमर्जन्सी SOS:</span>
-                                <span class="bg-white border border-red-200 px-1.5 py-0.2 rounded text-[10px] font-black">₹५० ॲडव्हान्स</span>
-                            </div>
-                            <p class="text-[10px] text-red-600">पेमेंट होताच १-२ किमी मधील जवळच्या कारागिराला तात्काळ सायरन वाजवून पाठवले जाईल.</p>
-                        </div>
-                    </div>
-
-                    <!-- Row 7: Attachments (Photo & Voice Note - Compact) -->
-                    <div class="border border-dashed border-slate-200 rounded-xl p-2 bg-slate-50/50 space-y-1.5">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                <i class="fa-solid fa-paperclip mr-0.5"></i> अतिरिक्त माहिती (ऐच्छिक / Optional)
-                            </span>
-                            <span id="apkVoiceNoteBadge" class="hidden text-[9px] font-bold px-2 py-0.2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full items-center gap-1">
-                                <i class="fa-solid fa-check-circle text-emerald-600 text-[9px]"></i> व्हॉइस जोडला
-                            </span>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2">
-                            <!-- Photo Upload -->
                             <div>
-                                <label class="w-full bg-white border border-slate-200 hover:border-blue-400 py-1.5 px-2 rounded-lg text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs hover:bg-slate-50 transition truncate">
-                                    <i class="fa-solid fa-camera text-blue-600 text-xs"></i>
-                                    <span class="text-[11px]" id="apkPhotoBtnText">फोटो जोडा</span>
-                                    <input type="file" id="apkJobPhoto" accept="image/*" class="hidden" onchange="const f=this.files[0]; const t=document.getElementById('apkPhotoBtnText'); if(t && f){t.innerText=f.name.length>10?f.name.substring(0,8)+'...':f.name;}">
+                                <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                                    <i class="fa-solid fa-wrench text-emerald-700 mr-0.5"></i> सेवा (Service) *
+                                </label>
+                                <select id="apkServiceSelect" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold py-2 px-2 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:bg-white transition truncate cursor-pointer">
+                                    <option value="Plumbing">🔧 Plumbing (प्लंबिंग)</option>
+                                    <option value="Electrician">⚡ Electrician (इलेक्ट्रिशियन)</option>
+                                    <option value="Carpenter">🪚 Carpenter (सुतारकाम)</option>
+                                    <option value="Painting">🎨 Painting (रंगकाम)</option>
+                                    <option value="Cleaning">🧹 Cleaning (सफाई)</option>
+                                    <option value="AC Repair">❄️ AC Repair (एसी दुरुस्ती)</option>
+                                    <option value="Appliance Repair">🔌 Appliance Repair (उपकरणे)</option>
+                                    <option value="Masonry">🧱 Masonry (बांधकाम)</option>
+                                    <option value="Locksmith">🔑 Locksmith (कुलूप)</option>
+                                    <option value="Pest Control">🦟 Pest Control (पेस्ट कंट्रोल)</option>
+                                    <option value="Gardening">🌿 Gardening (बागकाम)</option>
+                                    <option value="Glass & Aluminium">🪟 Glass & Aluminium</option>
+                                    <option value="TV & DTH">📺 TV & DTH</option>
+                                    <option value="Moving & Shifting">📦 Moving & Shifting</option>
+                                    <option value="Bathroom Services">🚿 Bathroom Services</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                                    <i class="fa-solid fa-location-dot text-rose-500 mr-0.5"></i> परिसर (Pune Area) *
+                                </label>
+                                <select id="apkAreaSelect" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold py-2 px-2 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:bg-white transition truncate cursor-pointer">
+                                    <option value="Dhankawadi">📍 Dhankawadi</option>
+                                    <option value="Swargate">📍 Swargate</option>
+                                    <option value="Hadapsar">📍 Hadapsar</option>
+                                    <option value="Katraj">📍 Katraj</option>
+                                    <option value="Kothrud">📍 Kothrud</option>
+                                    <option value="Baner">📍 Baner</option>
+                                    <option value="Wakad">📍 Wakad</option>
+                                    <option value="Hinjawadi">📍 Hinjawadi</option>
+                                    <option value="Viman Nagar">📍 Viman Nagar</option>
+                                    <option value="Kharadi">📍 Kharadi</option>
+                                    <option value="Aundh">📍 Aundh</option>
+                                    <option value="Shivajinagar">📍 Shivajinagar</option>
+                                    <option value="Koregaon Park">📍 Koregaon Park</option>
+                                    <option value="Kondhwa">📍 Kondhwa</option>
+                                    <option value="Bibwewadi">📍 Bibwewadi</option>
+                                    <option value="Pimple Saudagar">📍 Pimple Saudagar</option>
+                                    <option value="Pimpri">📍 Pimpri</option>
+                                    <option value="Chinchwad">📍 Chinchwad</option>
+                                    <option value="Yerawada">📍 Yerawada</option>
+                                    <option value="Wagholi">📍 Wagholi</option>
+                                    <option value="Dhanori">📍 Dhanori</option>
+                                    <option value="Lohegaon">📍 Lohegaon</option>
+                                    <option value="Camp">📍 Camp</option>
+                                    <option value="Deccan">📍 Deccan</option>
+                                    <option value="Sinhagad Road">📍 Sinhagad Road</option>
+                                    <option value="Warje">📍 Warje</option>
+                                    <option value="Bavdhan">📍 Bavdhan</option>
+                                    <option value="NIBM">📍 NIBM</option>
+                                    <option value="Vishrantwadi">📍 Vishrantwadi</option>
+                                    <option value="Magarpatta">📍 Magarpatta</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Customer Name & Mobile (2 Columns) -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                                    <i class="fa-solid fa-user text-slate-400 mr-0.5"></i> पूर्ण नाव *
+                                </label>
+                                <input type="text" id="apkCustomerName" placeholder="तुमचे नाव" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-medium py-1.5 px-2.5 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                                    <i class="fa-solid fa-phone text-slate-400 mr-0.5"></i> मोबाईल नंबर *
+                                </label>
+                                <input type="tel" id="apkCustomerMobile" pattern="[0-9]{10}" placeholder="१० अंकी मोबाईल" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-medium py-1.5 px-2.5 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:bg-white transition">
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Address & GPS (Integrated Row) -->
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between text-[10px]">
+                                <label class="font-bold text-slate-600 uppercase tracking-wider">
+                                    <i class="fa-solid fa-house text-slate-400 mr-0.5"></i> पूर्ण पत्ता (घर, सोसायटी, रस्ता) *
+                                </label>
+                                <button type="button" id="apkDetectGpsBtn" onclick="detectCustomerExactLocation()" class="font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 py-0.5 px-2 rounded-lg flex items-center gap-1 text-[10px] cursor-pointer transition active:scale-95">
+                                    <i class="fa-solid fa-crosshairs text-emerald-600"></i>
+                                    <span>अचूक GPS</span>
+                                </button>
+                            </div>
+                            <div class="relative">
+                                <textarea id="apkCustomerAddress" oninput="handleApkAddressChange()" rows="1" placeholder="घर नं., विंग, सोसायटी, जवळची खूण (Landmark)" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-medium py-1.5 px-2.5 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:bg-white transition resize-none"></textarea>
+                            </div>
+                            <div class="flex items-center justify-between text-[10px] text-slate-500 pt-0.5">
+                                <label class="flex items-center gap-1 cursor-pointer">
+                                    <input type="checkbox" id="apkSaveAddressCheckbox" checked class="rounded text-emerald-600 focus:ring-emerald-500 text-[10px]">
+                                    <span>पत्ता सेव्ह ठेवा</span>
+                                </label>
+                                <button type="button" onclick="focusApkAddressForEdit()" class="text-emerald-700 hover:underline font-bold cursor-pointer">✏ Edit</button>
+                                <span id="apkGpsLocationBadge" class="hidden items-center gap-1 font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.2 rounded-full">
+                                    <i class="fa-solid fa-location-dot text-emerald-600 text-[9px]"></i>
+                                    <span id="apkGpsLocationText">GPS शोधले</span>
+                                    <button type="button" onclick="resetCustomerGpsLocation()" class="text-emerald-700 underline font-semibold ml-0.5 cursor-pointer">रीसेट</button>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Collapsible Map & Pin (On Demand) -->
+                        <details id="apkMapAccordion" class="group border border-slate-200/90 rounded-xl bg-slate-50/70 overflow-hidden text-xs" ontoggle="if(this.open && customerPinMap) setTimeout(() => customerPinMap.invalidateSize(), 200);">
+                            <summary class="px-2.5 py-1.5 font-bold text-slate-700 flex items-center justify-between cursor-pointer select-none hover:bg-slate-100/70 transition list-none">
+                                <span class="flex items-center gap-1.5 text-[11px] text-emerald-700 font-bold">
+                                    <i class="fa-solid fa-map-pin"></i>
+                                    <span>नकाशावर अचूक पिन तपासा (पर्यायी)</span>
+                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    <span id="apkPinCoordsText" class="font-mono text-[9px] text-slate-400">18.46317, 73.83731</span>
+                                    <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 group-open:rotate-180 transition-transform"></i>
+                                </div>
+                            </summary>
+                            <div class="p-2 bg-white border-t border-slate-100 space-y-1">
+                                <div id="apkCustomerPinMap" class="w-full h-36 rounded-lg border border-slate-200 overflow-hidden"></div>
+                                <div class="flex items-center justify-between text-[10px] text-slate-500">
+                                    <span id="apkPinAccuracyInfo">नकाशा हलवून पिन अचूक ठिकाणी ठेवा</span>
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- Row 5: Date and Time (2 Columns) -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                                    <i class="fa-regular fa-calendar text-emerald-700 mr-0.5"></i> तारीख (Date) *
+                                </label>
+                                <input type="date" id="apkBookingDate" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold py-1.5 px-2 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:bg-white transition cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                                    <i class="fa-regular fa-clock text-emerald-700 mr-0.5"></i> वेळ (Time) *
+                                </label>
+                                <input type="time" id="apkBookingTime" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold py-1.5 px-2 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:bg-white transition cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Row 6: Pricing Badge & Booking Type (Normal vs SOS) -->
+                        <div class="space-y-1.5">
+                            <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200/80 rounded-xl px-2.5 py-1.5 flex items-center justify-between">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">₹</span>
+                                    <div class="leading-tight">
+                                        <strong class="text-xs font-black text-slate-900">फक्त ₹३ प्रति मिनिट</strong>
+                                        <span class="text-[10px] text-slate-500 ml-1">(बेस ₹६० / पहिली २० मि.)</span>
+                                    </div>
+                                </div>
+                                <span class="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full">QR स्कॅनवर चालू</span>
+                            </div>
+                            <input type="hidden" id="apkBudgetInput" value="₹3/min">
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <label id="apkNormalBookingLabel" class="cursor-pointer border-2 border-emerald-600 bg-emerald-50/50 p-2 rounded-xl flex items-center gap-2 transition shadow-2xs">
+                                    <input type="radio" name="apkBookingType" value="normal" checked onchange="toggleApkBookingType('normal')" class="text-emerald-600 focus:ring-emerald-500">
+                                    <div class="leading-tight">
+                                        <strong class="text-xs font-bold text-slate-900 block">📅 नियमित</strong>
+                                        <span class="text-[9px] text-slate-500">नो ॲडव्हान्स</span>
+                                    </div>
+                                </label>
+                                <label id="apkEmergencyBookingLabel" class="cursor-pointer border-2 border-slate-200 bg-white hover:border-red-400 p-2 rounded-xl flex items-center gap-2 transition shadow-2xs">
+                                    <input type="radio" name="apkBookingType" value="emergency" onchange="toggleApkBookingType('emergency')" class="text-red-600 focus:ring-red-500">
+                                    <div class="leading-tight">
+                                        <strong class="text-xs font-bold text-slate-900 block flex items-center gap-1">
+                                            <span>🚨 १०-Min SOS</span>
+                                            <span class="text-[8px] bg-red-600 text-white px-1 rounded font-black">तात्काळ</span>
+                                        </strong>
+                                        <span class="text-[9px] text-slate-500">₹५० ॲडव्हान्स</span>
+                                    </div>
                                 </label>
                             </div>
 
-                            <!-- Voice Note Prompt -->
-                            <div id="apkVoiceRecordPrompt">
-                                <button type="button" onclick="startVoiceRecording()" class="w-full bg-white border border-slate-200 hover:border-blue-400 py-1.5 px-2 rounded-lg text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs hover:bg-slate-50 transition">
-                                    <i class="fa-solid fa-microphone text-rose-500 text-xs"></i>
-                                    <span class="text-[11px]">व्हॉइस रेकॉर्ड</span>
-                                </button>
+                            <!-- APK Emergency Notice -->
+                            <div id="apkEmergencyBookingNotice" class="hidden p-2 bg-red-50 border border-red-300 rounded-xl space-y-0.5 text-xs">
+                                <div class="flex items-center justify-between font-bold text-red-700">
+                                    <span class="flex items-center gap-1 text-[11px]"><i class="fa-solid fa-triangle-exclamation animate-pulse"></i> १०-मिनिट इमर्जन्सी SOS:</span>
+                                    <span class="bg-white border border-red-200 px-1.5 py-0.2 rounded text-[10px] font-black">₹५० ॲडव्हान्स</span>
+                                </div>
+                                <p class="text-[10px] text-red-600">पेमेंट होताच १-२ किमी मधील जवळच्या कारागिराला तात्काळ सायरन वाजवून पाठवले जाईल.</p>
                             </div>
                         </div>
 
-                        <!-- Active Recording State -->
-                        <div id="apkVoiceRecordingActive" class="hidden p-2 bg-rose-50 border border-rose-200 rounded-lg items-center justify-between gap-2">
-                            <div class="flex items-center gap-2">
-                                <span class="relative flex h-2.5 w-2.5 shrink-0">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600"></span>
+                        <!-- Row 7: Attachments (Photo & Voice Note - Compact) -->
+                        <div class="border border-dashed border-slate-200 rounded-xl p-2 bg-slate-50/50 space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <i class="fa-solid fa-paperclip mr-0.5"></i> अतिरिक्त माहिती (ऐच्छिक / Optional)
                                 </span>
-                                <span id="apkVoiceRecordTimer" class="font-mono text-xs font-bold text-rose-600">00:00 / 00:30</span>
+                                <span id="apkVoiceNoteBadge" class="hidden text-[9px] font-bold px-2 py-0.2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full items-center gap-1">
+                                    <i class="fa-solid fa-check-circle text-emerald-600 text-[9px]"></i> व्हॉइस जोडला
+                                </span>
                             </div>
-                            <button type="button" onclick="stopVoiceRecording()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] py-1 px-2 rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer">
-                                <i class="fa-solid fa-stop text-[9px]"></i> Stop &amp; Save
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <!-- Photo Upload -->
+                                <div>
+                                    <label class="w-full bg-white border border-slate-200 hover:border-emerald-500 py-1.5 px-2 rounded-lg text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs hover:bg-slate-50 transition truncate">
+                                        <i class="fa-solid fa-camera text-emerald-600 text-xs"></i>
+                                        <span class="text-[11px]" id="apkPhotoBtnText">फोटो जोडा</span>
+                                        <input type="file" id="apkJobPhoto" accept="image/*" class="hidden" onchange="const f=this.files[0]; const t=document.getElementById('apkPhotoBtnText'); if(t && f){t.innerText=f.name.length>10?f.name.substring(0,8)+'...':f.name;}">
+                                    </label>
+                                </div>
+
+                                <!-- Voice Note Prompt -->
+                                <div id="apkVoiceRecordPrompt">
+                                    <button type="button" onclick="startVoiceRecording()" class="w-full bg-white border border-slate-200 hover:border-emerald-500 py-1.5 px-2 rounded-lg text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs hover:bg-slate-50 transition">
+                                        <i class="fa-solid fa-microphone text-rose-500 text-xs"></i>
+                                        <span class="text-[11px]">व्हॉइस रेकॉर्ड</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Active Recording State -->
+                            <div id="apkVoiceRecordingActive" class="hidden p-2 bg-rose-50 border border-rose-200 rounded-lg items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="relative flex h-2.5 w-2.5 shrink-0">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600"></span>
+                                    </span>
+                                    <span id="apkVoiceRecordTimer" class="font-mono text-xs font-bold text-rose-600">00:00 / 00:30</span>
+                                </div>
+                                <button type="button" onclick="stopVoiceRecording()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] py-1 px-2 rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer">
+                                    <i class="fa-solid fa-stop text-[9px]"></i> Stop &amp; Save
+                                </button>
+                            </div>
+
+                            <!-- Audio Preview Player -->
+                            <div id="apkVoiceAudioPreviewCard" class="hidden p-2 bg-emerald-50/70 border border-emerald-200 rounded-lg space-y-1 transition">
+                                <div class="flex items-center justify-between text-xs">
+                                    <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-900">
+                                        <i class="fa-solid fa-waveform-lines text-emerald-600"></i> व्हॉइस जोडला
+                                        <span id="apkVoiceAudioDurationBadge" class="text-[9px] font-mono text-emerald-800 bg-white px-1 py-0.2 rounded border border-emerald-200">00:00</span>
+                                    </div>
+                                    <button type="button" onclick="deleteVoiceNote()" class="text-[10px] text-rose-600 hover:text-rose-700 font-semibold cursor-pointer">
+                                        <i class="fa-solid fa-trash-can text-[9px]"></i> हटवा
+                                    </button>
+                                </div>
+                                <div class="bg-white p-1.5 rounded-md border border-emerald-100 flex items-center gap-2">
+                                    <button type="button" onclick="togglePlayVoicePreview()" class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs shrink-0 cursor-pointer">
+                                        <i id="apkVoicePlayIcon" class="fa-solid fa-play text-[9px]"></i>
+                                    </button>
+                                    <div class="flex-1 space-y-0.5">
+                                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden cursor-pointer" onclick="seekVoicePreview(event)">
+                                            <div id="apkVoiceProgressBar" class="bg-emerald-500 h-full w-0 rounded-full transition-all duration-100"></div>
+                                        </div>
+                                        <div class="flex justify-between text-[8px] font-mono text-slate-400">
+                                            <span id="apkVoiceCurrentTime">00:00</span>
+                                            <span id="apkVoiceTotalTime">00:30</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Wallet Balance Deduction Option (APK) -->
+                        <div id="apkWalletDeductionBox" class="hidden p-2 bg-emerald-50 border border-emerald-300 rounded-xl space-y-0.5 text-xs">
+                            <label class="flex items-start gap-2 cursor-pointer">
+                                <input type="checkbox" id="apkUseWalletCheckbox" onchange="toggleApkWalletDeduction()" class="mt-0.5 text-emerald-600 focus:ring-emerald-500 rounded">
+                                <div>
+                                    <span class="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                                        <i class="fa-solid fa-coins text-amber-500"></i> घरबंधू वॉलेट वापरा (₹<span id="apkWalletAvailableDeductAmount">०</span> शिल्लक)
+                                    </span>
+                                    <p class="text-[10px] text-emerald-700">बिलातून वॉलेट पैसे वजा केले जातील.</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- 7-Day Guarantee Badge -->
+                        <div class="p-2 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-xl flex items-center gap-2 shadow-2xs">
+                            <div class="w-7 h-7 rounded-lg bg-[#0b5f3a] text-white flex items-center justify-center text-sm shrink-0">
+                                🛡️
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h5 class="font-extrabold text-[11px] text-emerald-950 flex items-center gap-1">
+                                    <span>१००% काम समाधान खात्री</span>
+                                    <span class="text-[8px] bg-emerald-200 text-emerald-900 font-bold px-1 rounded">७ दिवस गॅरंटी</span>
+                                </h5>
+                                <p class="text-[10px] text-slate-600 leading-tight truncate">
+                                    काम आवडले नाही किंवा पुन्हा दोष आढळल्यास ७ दिवसांत मोफत रिव्हिजिट!
+                                </p>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="apkSubmitBtn" class="w-full bg-[#0b5f3a] hover:bg-[#094c2e] active:scale-[0.99] text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-md shadow-emerald-900/20 transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Book Appointment Now (फक्त ₹३/मि.)</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             QUICK ADDRESS SELECTOR MODAL (#apkAddressSelectorModal)
+             ========================================== -->
+        <div id="apkAddressSelectorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 space-y-3.5">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <h4 class="font-black text-sm text-slate-900">तुमचा पत्ता निवडा</h4>
+                    </div>
+                    <button type="button" onclick="closeApkAddressSelectorModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs transition cursor-pointer">✕</button>
+                </div>
+
+                <div class="space-y-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">परिसर (Area)</label>
+                        <select id="apkModalAreaSelect" onchange="syncApkAreaSelection(this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold py-2 px-2.5 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600">
+                            <option value="Dhankawadi">📍 Dhankawadi</option>
+                            <option value="Swargate">📍 Swargate</option>
+                            <option value="Hadapsar">📍 Hadapsar</option>
+                            <option value="Katraj">📍 Katraj</option>
+                            <option value="Kothrud">📍 Kothrud</option>
+                            <option value="Baner">📍 Baner</option>
+                            <option value="Wakad">📍 Wakad</option>
+                            <option value="Hinjawadi">📍 Hinjawadi</option>
+                            <option value="Viman Nagar">📍 Viman Nagar</option>
+                            <option value="Kharadi">📍 Kharadi</option>
+                            <option value="Aundh">📍 Aundh</option>
+                            <option value="Shivajinagar">📍 Shivajinagar</option>
+                            <option value="Koregaon Park">📍 Koregaon Park</option>
+                            <option value="Kondhwa">📍 Kondhwa</option>
+                            <option value="Bibwewadi">📍 Bibwewadi</option>
+                            <option value="Pimple Saudagar">📍 Pimple Saudagar</option>
+                            <option value="Pimpri">📍 Pimpri</option>
+                            <option value="Chinchwad">📍 Chinchwad</option>
+                            <option value="Yerawada">📍 Yerawada</option>
+                            <option value="Wagholi">📍 Wagholi</option>
+                            <option value="Dhanori">📍 Dhanori</option>
+                            <option value="Lohegaon">📍 Lohegaon</option>
+                            <option value="Camp">📍 Camp</option>
+                            <option value="Deccan">📍 Deccan</option>
+                            <option value="Sinhagad Road">📍 Sinhagad Road</option>
+                            <option value="Warje">📍 Warje</option>
+                            <option value="Bavdhan">📍 Bavdhan</option>
+                            <option value="NIBM">📍 NIBM</option>
+                            <option value="Vishrantwadi">📍 Vishrantwadi</option>
+                            <option value="Magarpatta">📍 Magarpatta</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">पूर्ण पत्ता</label>
+                            <button type="button" onclick="detectCustomerExactLocation()" class="text-[10px] font-bold text-emerald-700 flex items-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-crosshairs"></i> अचूक GPS
                             </button>
                         </div>
-
-                        <!-- Audio Preview Player -->
-                        <div id="apkVoiceAudioPreviewCard" class="hidden p-2 bg-emerald-50/70 border border-emerald-200 rounded-lg space-y-1 transition">
-                            <div class="flex items-center justify-between text-xs">
-                                <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-900">
-                                    <i class="fa-solid fa-waveform-lines text-emerald-600"></i> व्हॉइस जोडला
-                                    <span id="apkVoiceAudioDurationBadge" class="text-[9px] font-mono text-emerald-800 bg-white px-1 py-0.2 rounded border border-emerald-200">00:00</span>
-                                </div>
-                                <button type="button" onclick="deleteVoiceNote()" class="text-[10px] text-rose-600 hover:text-rose-700 font-semibold cursor-pointer">
-                                    <i class="fa-solid fa-trash-can text-[9px]"></i> हटवा
-                                </button>
-                            </div>
-                            <div class="bg-white p-1.5 rounded-md border border-emerald-100 flex items-center gap-2">
-                                <button type="button" onclick="togglePlayVoicePreview()" class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs shrink-0 cursor-pointer">
-                                    <i id="apkVoicePlayIcon" class="fa-solid fa-play text-[9px]"></i>
-                                </button>
-                                <div class="flex-1 space-y-0.5">
-                                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden cursor-pointer" onclick="seekVoicePreview(event)">
-                                        <div id="apkVoiceProgressBar" class="bg-emerald-500 h-full w-0 rounded-full transition-all duration-100"></div>
-                                    </div>
-                                    <div class="flex justify-between text-[8px] font-mono text-slate-400">
-                                        <span id="apkVoiceCurrentTime">00:00</span>
-                                        <span id="apkVoiceTotalTime">00:30</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Wallet Balance Deduction Option (APK) -->
-                    <div id="apkWalletDeductionBox" class="hidden p-2 bg-emerald-50 border border-emerald-300 rounded-xl space-y-0.5 text-xs">
-                        <label class="flex items-start gap-2 cursor-pointer">
-                            <input type="checkbox" id="apkUseWalletCheckbox" onchange="toggleApkWalletDeduction()" class="mt-0.5 text-emerald-600 focus:ring-emerald-500 rounded">
-                            <div>
-                                <span class="text-xs font-bold text-emerald-800 flex items-center gap-1">
-                                    <i class="fa-solid fa-coins text-amber-500"></i> घरबंधू वॉलेट वापरा (₹<span id="apkWalletAvailableDeductAmount">०</span> शिल्लक)
-                                </span>
-                                <p class="text-[10px] text-emerald-700">बिलातून वॉलेट पैसे वजा केले जातील.</p>
-                            </div>
-                        </label>
-                    </div>
-
-                    <!-- 7-Day Workmanship Warranty Badge (Zero Risk, High Trust) -->
-                    <div class="p-2 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-xl flex items-center gap-2 shadow-2xs">
-                        <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-sm shrink-0">
-                            🛡️
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h5 class="font-extrabold text-[11px] text-emerald-950 flex items-center gap-1">
-                                <span>१००% काम समाधान खात्री</span>
-                                <span class="text-[8px] bg-emerald-200 text-emerald-900 font-bold px-1 rounded">७ दिवस गॅरंटी</span>
-                            </h5>
-                            <p class="text-[10px] text-slate-600 leading-tight truncate">
-                                काम आवडले नाही किंवा पुन्हा दोष आढळल्यास ७ दिवसांत मोफत रिव्हिजिट!
-                            </p>
-                        </div>
-                    </div>
-
-                    <button type="submit" id="apkSubmitBtn" class="w-full bg-[#1868fe] hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-paper-plane"></i>
-                        <span>Book Appointment Now (फक्त ₹३/मि.)</span>
-                    </button>
-                </form>
-
-                <!-- Dedicated Live Booking Status Card in APK mode -->
-                <div id="apkCustomerLiveStatusCard" class="hidden mt-6 bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <h4 class="font-black text-slate-900 text-sm">📦 Live Booking Status</h4>
-                        </div>
-                        <span id="apkStatusBadge" class="bg-amber-100 text-amber-800 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                            ⏳ <span id="apkStatusBadgeText">Finding Worker</span>
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 text-xs bg-white p-3 rounded-xl border border-slate-100">
-                        <div><span class="text-slate-400 block text-[10px]">Service</span><strong id="apkStatusService" class="text-slate-800 font-bold">-</strong></div>
-                        <div><span class="text-slate-400 block text-[10px]">Budget</span><strong id="apkStatusBudget" class="text-emerald-600 font-bold">-</strong></div>
-                        <div><span class="text-slate-400 block text-[10px]">Assigned Worker</span><span id="apkStatusWorker" class="text-blue-600 font-bold">Finding Worker...</span></div>
-                        <div><span class="text-slate-400 block text-[10px]">Worker Rating</span><span id="apkStatusWorkerRating" class="text-amber-600 font-bold">--</span></div>
-                    </div>
-
-                                        <!-- Mobile Work Start QR & PIN Card (When Worker Arrives) -->
-                    <div id="apkWorkStartQrCard" class="hidden rounded-2xl bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-4 shadow-lg border border-indigo-500/30 text-center space-y-3">
-                        <div class="flex items-center justify-between border-b border-indigo-700/50 pb-2">
-                            <span class="text-xs font-black text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> 📍 कामगार पत्त्यावर पोहोचला!
-                            </span>
-                            <span class="bg-indigo-600/60 text-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded-full">Start QR</span>
-                        </div>
-                        <p class="text-xs text-indigo-100">काम सुरू करण्यासाठी खालील QR कोड कामगाराला स्कॅन करू द्या:</p>
-                        <div class="bg-white p-3 rounded-2xl inline-block shadow-inner mx-auto">
-                            <div id="apkWorkStartQrContainer" class="flex items-center justify-center min-w-[150px] min-h-[150px]"></div>
-                        </div>
-                        <div class="bg-white/10 rounded-xl p-2.5 backdrop-blur-xs">
-                            <span class="text-[11px] text-indigo-200 block">किंवा कामगाराला हा ४-अंकी स्टार्ट पिन सांगा:</span>
-                            <span id="apkStartOtpDisplay" class="text-2xl font-black font-mono tracking-widest text-emerald-400 block mt-0.5">----</span>
-                        </div>
-                        <p class="text-[10px] text-slate-300">स्कॅन होताच टायमर सुरू होईल आणि मिनिटांचे बिलिंग (₹३/मि.) चालू होईल.</p>
-                    </div>
-
-                    <!-- Mobile Live Work Meter Card -->
-                    <div id="apkLiveWorkMeterCard" class="hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-4 shadow-xl border border-emerald-500/30 text-center space-y-3">
-                        <div class="flex items-center justify-between border-b border-white/10 pb-2">
-                            <span class="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span id="apkMeterStatusText">🟢 काम चालू आहे</span>
-                            </span>
-                            <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black px-2.5 py-0.5 rounded-full">₹३ / मिनिट</span>
-                        </div>
-
-                        <!-- Running Digital Timer -->
-                        <div class="py-1">
-                            <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider block">कामाची वेळ (TIME ELAPSED)</span>
-                            <div id="apkLiveWorkTimer" class="text-3xl font-black font-mono tracking-widest text-emerald-400 drop-shadow-sm my-1">00:00:00</div>
-                        </div>
-
-                        <!-- Live Bill Accumulator -->
-                        <div class="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center justify-around">
-                            <div>
-                                <span class="text-[10px] text-slate-400 uppercase block font-semibold">चालू बिल (Live Bill)</span>
-                                <span class="text-2xl font-black text-white" id="apkLiveWorkAmount">₹६०</span>
-                            </div>
-                            <div class="border-l border-white/10 pl-3 text-left">
-                                <span class="text-[10px] text-slate-400 uppercase block font-semibold">दर (Rate)</span>
-                                <span class="text-xs font-bold text-slate-200 block">₹३ / मिनिट</span>
-                                <span class="text-[10px] text-emerald-400 block">(बेस फेअर ₹६०, पहिली २० मि.)</span>
-                            </div>
-                        </div>
-
-                        <!-- Material Cost Breakdown Box -->
-                        <div id="apkMaterialBreakdownBox" class="hidden bg-white/10 border border-amber-400/30 rounded-xl p-3 text-left space-y-1.5 text-xs text-slate-100">
-                            <div class="flex justify-between items-center text-amber-300 font-bold border-b border-white/10 pb-1">
-                                <span>🛍️ साहित्य/मटेरियल खर्च:</span>
-                                <span id="apkMaterialCostDisplay" class="text-sm font-black text-amber-300">₹0</span>
-                            </div>
-                            <div class="text-[11px] text-slate-200 flex items-center justify-between">
-                                <span>वस्तू: <strong id="apkMaterialItemsDisplay" class="text-white">-</strong></span>
-                                <button type="button" id="apkMaterialReceiptBtn" onclick="openCustomerReceiptModal()" class="hidden bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[10px] px-2.5 py-1 rounded-lg transition shadow">
-                                    🧾 पावती पहा
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Paused Alert Banner -->
-                        <div id="apkWorkPausedBanner" class="hidden bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs font-bold p-2.5 rounded-xl flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-pause text-amber-400"></i>
-                            <span>सामान आणण्यासाठी काम पॉज आहे</span>
-                        </div>
-                    </div>
-
-                    <!-- OTP Display Card -->
-                    <div id="apkCompletionOtpCard" class="hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-3.5 flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] font-black uppercase text-emerald-200">काम पूर्ण करण्यासाठी OTP</span>
-                            <p class="text-[11px] text-white/90">काम पूर्ण झाल्यावरच कारागिराला द्या</p>
-                        </div>
-                        <div class="bg-white text-emerald-900 font-black text-xl tracking-[0.2em] px-3.5 py-1.5 rounded-lg border-2 border-emerald-300">
-                            <span id="apkOtpCodeDisplay">----</span>
-                        </div>
-                    </div>
-
-                    <!-- Worker Call & Chat Actions -->
-                    <div id="apkCommActions" class="hidden grid grid-cols-2 gap-2">
-                        <a id="apkCallWorkerBtn" href="#" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs">
-                            <i class="fa-solid fa-phone"></i> Call Worker
-                        </a>
-                        <button type="button" id="apkChatWorkerBtn" onclick="openCustomerChatModal(currentOrderId)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs">
-                            <i class="fa-solid fa-message"></i> Chat
-                        </button>
-                    </div>
-
-                    <!-- APK Cancel Order Button (Only allowed before 'On The Way') -->
-                    <div id="apkCancelContainer" class="hidden pt-2 border-t border-slate-100">
-                        <button type="button" id="apkCancelOrderBtn" onclick="cancelCurrentOrder()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 px-3 rounded-xl text-xs transition border border-red-200 flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-                            <i class="fa-solid fa-xmark"></i> ऑर्डर रद्द करा (Cancel Order)
-                        </button>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-200">
-                        <button type="button" onclick="closeLiveStatusView()" class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer">
-                            ✕ स्थिती लपवा (Hide)
-                        </button>
-                        <button type="button" onclick="openMyOrdersModal()" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer">
-                            सर्व ऑर्डर्स पहा <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </button>
+                        <textarea id="apkModalAddressInput" rows="2" placeholder="घर नं., विंग, सोसायटी, जवळची खूण" class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-medium p-2 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 resize-none"></textarea>
                     </div>
                 </div>
 
+                <div class="pt-2 flex items-center gap-2">
+                    <button type="button" onclick="saveApkModalAddress()" class="flex-1 bg-[#0b5f3a] hover:bg-emerald-800 text-white font-black text-xs py-2.5 px-3 rounded-xl transition shadow-xs cursor-pointer">
+                        सेव्ह करा (Save Address)
+                    </button>
+                </div>
             </div>
         </div>
+
     </div><!-- /#apkCustomerAppContainer -->
+
 
         <!-- Customer Profile Modal -->
     <div id="profileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
@@ -1662,15 +2280,11 @@
         </button>
         <button type="button" class="bottom-nav-item" id="cNavOrders" onclick="customerNavTo('orders')">
             <i class="fa-solid fa-clipboard-list"></i>
-            <span>Orders</span>
+            <span>Bookings</span>
         </button>
-        <button type="button" class="bottom-nav-item" id="cNavProfile" onclick="customerNavTo('profile')">
-            <i class="fa-solid fa-user"></i>
-            <span>Profile</span>
-        </button>
-        <button type="button" class="bottom-nav-item" id="cNavHelp" onclick="customerNavTo('help')">
-            <i class="fa-solid fa-headset"></i>
-            <span>Support</span>
+        <button type="button" class="bottom-nav-item" id="cNavMoney" onclick="customerNavTo('money')">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Money</span>
         </button>
     </nav>
 
