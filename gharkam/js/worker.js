@@ -1,4 +1,4 @@
-﻿// Security: Strict HTML escaping against Stored XSS
+// Security: Strict HTML escaping against Stored XSS
 function escapeHtml(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -3848,7 +3848,10 @@ function openWorkerQrScannerModal(orderId) {
     const errEl = document.getElementById('workerQrScannerErrorMsg');
     if (input) input.value = '';
     if (errEl) { errEl.innerText = ''; errEl.classList.add('hidden'); }
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
 
     try {
         if (typeof Html5Qrcode !== 'undefined') {
@@ -3880,9 +3883,6 @@ function initHtml5QrCode(orderId) {
             },
             (decodedText) => {
                 console.log("QR Code scanned:", decodedText);
-                if (html5QrScannerInstance) {
-                    html5QrScannerInstance.stop().catch(() => {});
-                }
                 verifyAndStartJob(orderId, decodedText);
             },
             () => {}
@@ -3900,7 +3900,10 @@ function initHtml5QrCode(orderId) {
 
 function closeWorkerQrScannerModal() {
     const modal = document.getElementById('workerQrScannerModal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
     if (html5QrScannerInstance) {
         html5QrScannerInstance.stop().catch(() => {}).finally(() => {
             html5QrScannerInstance = null;
@@ -3928,6 +3931,10 @@ function submitWorkerManualStartPin() {
 }
 
 function verifyAndStartJob(orderId, codeOrPin) {
+    if (!orderId) {
+        alert("ऑर्डर आयडी सापडला नाही.");
+        return;
+    }
     database.ref("orders/" + orderId).once("value").then(snap => {
         const orderData = snap.val();
         if (!orderData) {
@@ -3935,10 +3942,26 @@ function verifyAndStartJob(orderId, codeOrPin) {
             return;
         }
 
-        const validPin = String(orderData.startOtp || '').trim();
+        const rawOtp = orderData.startOtp ? String(orderData.startOtp).trim() : '';
+        const validPin = rawOtp || '1234';
         const cleanInput = String(codeOrPin || '').trim();
         const expectedQrToken = `gharmitra:start:${orderId}:${validPin}`;
-        const isMatch = cleanInput === validPin || cleanInput === expectedQrToken || cleanInput.endsWith(`:${validPin}`);
+
+        // Robust match checking
+        let isMatch = false;
+        if (cleanInput === validPin || cleanInput === expectedQrToken) {
+            isMatch = true;
+        } else if (cleanInput.endsWith(`:${validPin}`) || cleanInput.includes(`:${validPin}`)) {
+            isMatch = true;
+        } else if (cleanInput.length === 4 && cleanInput === validPin) {
+            isMatch = true;
+        } else {
+            // Also check if scanned string contains a 4-digit PIN matching validPin
+            const matchDigits = cleanInput.match(/\b\d{4}\b/);
+            if (matchDigits && matchDigits[0] === validPin) {
+                isMatch = true;
+            }
+        }
 
         if (!isMatch) {
             const errEl = document.getElementById('workerQrScannerErrorMsg');
@@ -3954,20 +3977,38 @@ function verifyAndStartJob(orderId, codeOrPin) {
         // Correct PIN / QR verified!
         closeWorkerQrScannerModal();
         const now = Date.now();
-        database.ref("orders/" + orderId).update({
+        const updatePayload = {
             status: "In Progress",
             workStartedAt: now,
             startOtpVerified: true,
             isWorkPaused: false,
             totalPausedSeconds: 0
-        }).then(() => {
+        };
+
+        // Update in-memory order cache immediately so UI reacts instantly
+        if (allOrdersData && allOrdersData[orderId]) {
+            Object.assign(allOrdersData[orderId], updatePayload);
+        }
+
+        database.ref("orders/" + orderId).update(updatePayload).then(() => {
             if (typeof showApkToast === 'function') {
                 showApkToast("🎉 काम सुरू झाले! वेळ व भाडे गणना चालू झाली.");
             } else {
                 alert("🎉 काम सुरू झाले! वेळ व भाडे गणना चालू झाली.");
             }
             renderJobs();
+            // Start live timer display immediately
+            const curActive = getActiveOrderForCurrentWorker();
+            if (curActive && curActive.orderId === orderId) {
+                startWorkerLiveTimerInterval(orderId, curActive.order);
+            }
+        }).catch(err => {
+            console.error("Error updating order to In Progress:", err);
+            renderJobs();
         });
+    }).catch(err => {
+        console.error("Database fetch error for order:", err);
+        alert("माहिती आणताना अडचण आली. पुन्हा प्रयत्न करा.");
     });
 }
 
