@@ -490,6 +490,11 @@ html.is-mobile-app #customerLiveStatusColumn.show-tracking {
     color: #2563eb;
 }
 
+#customerBottomNav .bottom-nav-item.active,
+#customerBottomNav .bottom-nav-item:hover {
+    color: #0b5f3a !important;
+}
+
 .bottom-nav-item i {
     font-size: 1.2rem;
     line-height: 1;
@@ -499,6 +504,10 @@ html.is-mobile-app #customerLiveStatusColumn.show-tracking {
 .bottom-nav-item.active i {
     transform: scale(1.12);
     color: #2563eb;
+}
+
+#customerBottomNav .bottom-nav-item.active i {
+    color: #0b5f3a !important;
 }
 
 .bottom-nav-item span {

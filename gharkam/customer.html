@@ -844,36 +844,56 @@
              1. PRONTO-STYLE TOP LOCATION & PROFILE HEADER
              (Deep Emerald Green Gradient: #0b5f3a -> #137446)
              ========================================== -->
-        <header class="bg-gradient-to-r from-[#0b5f3a] via-[#0d6b42] to-[#137446] text-white px-4 pt-3.5 pb-4 shadow-md sticky top-0 z-30">
-            <div class="flex items-center justify-between gap-3">
-                <!-- Location Dropdown (Home ⌵) -->
-                <button type="button" onclick="openApkAddressSelectorModal()" class="flex items-center gap-2.5 text-left group cursor-pointer max-w-[62%] transition active:opacity-80">
-                    <div class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center shrink-0 border border-white/20 shadow-xs">
-                        <i class="fa-solid fa-location-dot text-amber-300 text-sm"></i>
+        <!-- ==========================================
+             1. PRONTO-STYLE TOP LOCATION & PROFILE HEADER
+             (Deep Emerald Green Gradient: #0b5f3a -> #137446)
+             ========================================== -->
+        <header class="bg-gradient-to-r from-[#07472a] via-[#0b5f3a] to-[#127a4a] text-white px-4 pt-3.5 pb-3.5 shadow-md sticky top-0 z-30">
+            <!-- Top Row: Logo & Right Badges -->
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-emerald-200 text-sm">
+                        <i class="fa-solid fa-leaf"></i>
                     </div>
-                    <div class="truncate leading-tight">
-                        <div class="flex items-center gap-1 font-black text-sm tracking-tight text-white">
-                            <span>Home</span>
-                            <i class="fa-solid fa-chevron-down text-[10px] text-emerald-200 group-hover:translate-y-0.5 transition-transform"></i>
-                        </div>
-                        <p id="apkHeaderAddressText" class="text-[11px] text-emerald-100/90 truncate font-medium mt-0.5">1, Sai satyam society, Pune...</p>
+                    <div class="leading-none">
+                        <span class="font-black text-sm tracking-tight text-white block">Gharbandhu</span>
+                        <span class="text-[9px] text-emerald-200/90 font-semibold tracking-wider uppercase">Gharmitra</span>
                     </div>
-                </button>
+                </div>
 
                 <!-- Right Action Icons: Wallet Pill + Profile Avatar -->
                 <div class="flex items-center gap-2 shrink-0">
                     <!-- Wallet Pill -->
-                    <button type="button" onclick="openCustomerWalletModal()" id="apkWalletBtn" class="bg-white hover:bg-emerald-50 text-slate-900 font-black text-xs py-1.5 px-3 rounded-full transition shadow-xs flex items-center gap-1.5 border border-emerald-200 cursor-pointer active:scale-95">
-                        <i class="fa-solid fa-wallet text-amber-500"></i>
+                    <button type="button" onclick="openCustomerWalletModal()" id="apkWalletBtn" class="bg-white/15 hover:bg-white/25 text-white font-black text-xs py-1 px-3 rounded-full transition shadow-xs flex items-center gap-1.5 border border-white/20 cursor-pointer active:scale-95">
+                        <i class="fa-solid fa-wallet text-amber-300 text-[11px]"></i>
                         <span>₹<span id="apkWalletBalance">०</span></span>
                     </button>
 
-                    <!-- Profile Avatar Circle (Opens Dedicated Profile Screen) -->
-                    <button type="button" onclick="openApkProfileView()" class="w-9 h-9 rounded-full bg-emerald-900 border-2 border-emerald-300/80 text-white font-black text-xs flex items-center justify-center shadow-xs cursor-pointer hover:scale-105 active:scale-95 transition" title="Profile">
+                    <!-- Profile Avatar Circle -->
+                    <button type="button" onclick="openApkProfileView()" class="w-8 h-8 rounded-full bg-emerald-950 border-2 border-emerald-300/80 text-white font-black text-xs flex items-center justify-center shadow-xs cursor-pointer hover:scale-105 active:scale-95 transition" title="Profile">
                         <span id="apkHeaderAvatarInitial"><i class="fa-solid fa-user text-xs"></i></span>
                     </button>
                 </div>
             </div>
+
+            <!-- Bottom Row: Location Selector -->
+            <button type="button" onclick="openApkAddressSelectorModal()" class="w-full flex items-center justify-between text-left group cursor-pointer transition active:opacity-80">
+                <div class="flex items-center gap-2 max-w-[90%] truncate">
+                    <div class="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center shrink-0 border border-white/20">
+                        <i class="fa-solid fa-location-dot text-amber-300 text-xs"></i>
+                    </div>
+                    <div class="truncate leading-tight">
+                        <div class="flex items-center gap-1 font-bold text-xs text-white">
+                            <span>Dear</span>
+                            <span class="text-white/70">•</span>
+                            <span id="apkHeaderAreaBadge" class="text-emerald-200">Wagholi, Pune</span>
+                            <i class="fa-solid fa-chevron-down text-[9px] text-emerald-200 group-hover:translate-y-0.5 transition-transform"></i>
+                        </div>
+                        <p id="apkHeaderAddressText" class="text-[11px] text-emerald-100/90 truncate font-medium mt-0.5">Wagholi, Pune, Maharashtra 411023</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-white/50 shrink-0"></i>
+            </button>
         </header>
 
         <!-- ==========================================
@@ -1007,29 +1027,37 @@
                 </div>
             </div>
 
-            <!-- Hero Section: Pronto Style (Screenshot 1) -->
-            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-white border border-emerald-200/80 p-4 shadow-2xs">
-                <div class="flex items-start justify-between gap-2">
-                    <div class="space-y-1 max-w-[68%]">
-                        <span class="inline-flex items-center gap-1 bg-[#0b5f3a] text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
-                            <i class="fa-solid fa-bolt text-amber-300"></i> जलद घरपोच सेवा
+            <!-- Hero Section: Pronto / Dark Emerald Card with Worker Cutout (Screenshot 2) -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#063b22] via-[#094d2e] to-[#0e633d] text-white p-4.5 shadow-md border border-emerald-700/60">
+                <!-- Ambient decorative glow -->
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none"></div>
+
+                <div class="relative z-10 flex items-center justify-between gap-2">
+                    <div class="space-y-1.5 max-w-[65%]">
+                        <span class="inline-flex items-center gap-1 bg-amber-400 text-slate-950 font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
+                            <i class="fa-solid fa-bolt text-slate-900"></i> जलद घरपोच सेवा
                         </span>
-                        <h2 class="text-[15px] font-black text-slate-900 leading-snug">
-                            One professional, 16+ home services
+                        <h2 class="text-[17px] font-black text-white leading-tight drop-shadow-xs">
+                            One professional,<br>16+ home services
                         </h2>
-                        <p class="text-[11px] text-slate-600 font-medium">
+                        <p class="text-[11px] text-emerald-100/90 font-medium leading-relaxed">
                             फक्त ₹३ प्रति मिनिट • ५-१० मिनिटांत कारागीर घरी
                         </p>
                     </div>
-                    <div class="shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#0b5f3a] to-emerald-500 flex items-center justify-center text-white text-3xl shadow-sm border-2 border-white">
-                        👨‍🔧
+
+                    <!-- Clean Worker Vector Badge -->
+                    <div class="shrink-0 relative">
+                        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-500/30 to-amber-300/30 border border-white/20 flex items-center justify-center text-4xl shadow-lg backdrop-blur-xs">
+                            👷‍♂️
+                        </div>
+                        <span class="absolute -bottom-1 -right-1 bg-emerald-400 text-slate-950 text-[9px] font-black px-1.5 py-0.2 rounded-full border border-white shadow-xs">Verified</span>
                     </div>
                 </div>
 
                 <!-- 2 Big Touch Cards: Get Instant Service vs Schedule for Later -->
-                <div class="grid grid-cols-2 gap-2.5 mt-3.5">
+                <div class="grid grid-cols-2 gap-2.5 mt-4 relative z-10">
                     <!-- Instant Service Card -->
-                    <button type="button" onclick="openQuickBookingSheet('instant')" class="bg-gradient-to-br from-[#0b5f3a] to-[#127a4a] text-white p-3 rounded-2xl shadow-sm text-left relative overflow-hidden group hover:brightness-105 active:scale-[0.98] transition cursor-pointer border border-emerald-700/50">
+                    <button type="button" onclick="openQuickBookingSheet('instant')" class="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-3 rounded-2xl shadow-sm text-left relative overflow-hidden group hover:brightness-110 active:scale-[0.98] transition cursor-pointer border border-emerald-400/40">
                         <div class="flex items-center justify-between mb-1.5">
                             <span class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-xs font-bold">⚡</span>
                             <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded-full shadow-2xs">5-10 min</span>
@@ -1039,10 +1067,10 @@
                     </button>
 
                     <!-- Schedule for Later Card -->
-                    <button type="button" onclick="openQuickBookingSheet('scheduled')" class="bg-white border-2 border-emerald-600/30 text-slate-900 p-3 rounded-2xl shadow-2xs text-left relative overflow-hidden group hover:border-emerald-600 active:scale-[0.98] transition cursor-pointer">
+                    <button type="button" onclick="openQuickBookingSheet('scheduled')" class="bg-white/95 hover:bg-white text-slate-900 p-3 rounded-2xl shadow-sm text-left relative overflow-hidden group active:scale-[0.98] transition cursor-pointer border border-white">
                         <div class="flex items-center justify-between mb-1.5">
-                            <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-bold">📅</span>
-                            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded-full">Slot</span>
+                            <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold">📅</span>
+                            <span class="text-[9px] bg-emerald-50 text-emerald-800 font-bold px-1.5 py-0.5 rounded-full border border-emerald-200">Slot</span>
                         </div>
                         <h3 class="font-black text-xs text-slate-900 leading-tight">Schedule for Later</h3>
                         <p class="text-[10px] text-slate-500 font-medium mt-0.5">सोयीनुसार वेळ ठरवा</p>
@@ -1050,8 +1078,8 @@
                 </div>
             </div>
 
-            <!-- Pronto / GharBandhu Pass Banner (Screenshot 1 & 4) -->
-            <div onclick="openSocietyPassModal()" class="cursor-pointer bg-gradient-to-r from-[#0b5f3a] via-[#0d6b42] to-[#147a4d] text-white rounded-2xl p-3.5 shadow-xs flex items-center justify-between gap-2.5 border border-emerald-600/50 hover:brightness-105 active:scale-[0.99] transition">
+            <!-- Pronto / GharBandhu Pass Banner (Screenshot 2) -->
+            <div onclick="openSocietyPassModal()" class="cursor-pointer bg-gradient-to-r from-[#07472a] via-[#0b5f3a] to-[#116e43] text-white rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2.5 border border-emerald-600/40 hover:brightness-105 active:scale-[0.99] transition">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
                         ⭐
@@ -1064,7 +1092,10 @@
                         <p class="text-[11px] text-emerald-100 font-medium mt-0.5">Get 3 Visits for ₹99 only • नो व्हिजिटिंग चार्ज</p>
                     </div>
                 </div>
-                <i class="fa-solid fa-chevron-right text-xs text-emerald-200 shrink-0"></i>
+                <div class="flex items-center gap-1 text-emerald-200 text-xs font-bold shrink-0">
+                    <span>Pass</span>
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </div>
             </div>
 
             <!-- GharBandhu VIP Club Loyalty Card -->
@@ -1110,13 +1141,13 @@
                 </div>
             </details>
 
-            <!-- Category Filter Pills (Horizontal Scroll) -->
+            <!-- Category Filter Pills (Horizontal Scroll - Screenshot 2 & 3) -->
             <div class="space-y-2">
                 <div class="flex items-center justify-between px-0.5">
                     <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">
-                        सेवा कॅटलॉग (Services)
+                        सर्व सेवा (ALL SERVICES)
                     </h3>
-                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                         १-टॅप + बुकिंग
                     </span>
                 </div>
@@ -1125,20 +1156,26 @@
                     <button type="button" onclick="filterApkCatalog('all', this)" class="apk-filter-pill active shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-[#0b5f3a] text-white shadow-xs transition">
                         All
                     </button>
+                    <button type="button" onclick="filterApkCatalog('painting', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Painting
+                    </button>
+                    <button type="button" onclick="filterApkCatalog('cleaning', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Cleaning
+                    </button>
+                    <button type="button" onclick="filterApkCatalog('ac', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        AC Repair
+                    </button>
+                    <button type="button" onclick="filterApkCatalog('appliances', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Appliances
+                    </button>
                     <button type="button" onclick="filterApkCatalog('plumbing', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
                         Plumbing
                     </button>
                     <button type="button" onclick="filterApkCatalog('electric', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
                         Electrician
                     </button>
-                    <button type="button" onclick="filterApkCatalog('cleaning', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
-                        Cleaning
-                    </button>
                     <button type="button" onclick="filterApkCatalog('carpentry', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
-                        Carpentry &amp; Paint
-                    </button>
-                    <button type="button" onclick="filterApkCatalog('appliances', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
-                        Appliances &amp; AC
+                        Carpenter
                     </button>
                     <button type="button" onclick="filterApkCatalog('other', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
                         Other Services
@@ -1146,83 +1183,17 @@
                 </div>
             </div>
 
-            <!-- 3-Column Service Catalog Grid (Website Services Only) -->
+            <!-- 3-Column Service Catalog Grid (Photos matching Screenshot 2 & 3) -->
             <div id="apkCatalogGrid" class="grid grid-cols-3 gap-2">
                 
-                <!-- 1. Plumbing -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="plumbing">
-                    <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(75k)</span>
-                        </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl shadow-inner">
-                            🪠
-                        </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Plumbing</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">प्लंबिंग काम</p>
-                    </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Plumbing', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 2. Electrician -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="electric">
-                    <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(84k)</span>
-                        </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center text-2xl shadow-inner">
-                            ⚡
-                        </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Electrician</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">इलेक्ट्रिशियन</p>
-                    </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Electrician', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 3. Carpenter -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="carpentry">
-                    <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(29k)</span>
-                        </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-2xl shadow-inner">
-                            🪚
-                        </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Carpenter</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">सुतारकाम</p>
-                    </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Carpenter', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 4. Painting -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="carpentry">
+                <!-- 1. Painting -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="painting">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(18k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center text-2xl shadow-inner">
-                            🎨
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-pink-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=120&auto=format&fit=crop&q=80" alt="Painting" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='🎨';">
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Painting</h4>
                         <p class="text-[9px] text-slate-400 font-medium">रंगकाम</p>
@@ -1237,14 +1208,14 @@
                     </div>
                 </div>
 
-                <!-- 5. Cleaning -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning">
+                <!-- 2. Cleaning -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(66k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-inner">
-                            🧹
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-emerald-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=120&auto=format&fit=crop&q=80" alt="Cleaning" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='🧹';">
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Cleaning</h4>
                         <p class="text-[9px] text-slate-400 font-medium">घर सफाई</p>
@@ -1259,14 +1230,14 @@
                     </div>
                 </div>
 
-                <!-- 6. AC Repair -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="appliances">
+                <!-- 3. AC Repair -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="ac appliances">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(51k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-2xl shadow-inner">
-                            ❄️
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-teal-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=120&auto=format&fit=crop&q=80" alt="AC Repair" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='❄️';">
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">AC Repair</h4>
                         <p class="text-[9px] text-slate-400 font-medium">एसी दुरुस्ती</p>
@@ -1281,16 +1252,16 @@
                     </div>
                 </div>
 
-                <!-- 7. Appliance Repair -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="appliances">
+                <!-- 4. Appliance Repair -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="appliances">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(39k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl shadow-inner">
-                            🔌
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-purple-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=120&auto=format&fit=crop&q=80" alt="Appliances" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='🔌';">
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Appliance Repair</h4>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Appliances</h4>
                         <p class="text-[9px] text-slate-400 font-medium">उपकरण दुरुस्ती</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
@@ -1303,14 +1274,80 @@
                     </div>
                 </div>
 
+                <!-- 5. Plumbing -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="plumbing">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(75k)</span>
+                        </div>
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-blue-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=120&auto=format&fit=crop&q=80" alt="Plumbing" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='🪠';">
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Plumbing</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">प्लंबिंग काम</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Plumbing', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 6. Electrician -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="electric">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(84k)</span>
+                        </div>
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-yellow-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=120&auto=format&fit=crop&q=80" alt="Electrician" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='⚡';">
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Electrician</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">इलेक्ट्रिशियन</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Electrician', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 7. Carpenter -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="carpentry">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(29k)</span>
+                        </div>
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-amber-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1504148455328-c376907d081c?w=120&auto=format&fit=crop&q=80" alt="Carpenter" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='🪚';">
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Carpenter</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">सुतारकाम</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Carpenter', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
                 <!-- 8. Masonry -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(14k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-stone-50 text-stone-600 flex items-center justify-center text-2xl shadow-inner">
-                            🧱
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-stone-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?w=120&auto=format&fit=crop&q=80" alt="Masonry" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='🧱';">
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Masonry</h4>
                         <p class="text-[9px] text-slate-400 font-medium">बांधकाम (गवंडी)</p>
@@ -1326,13 +1363,13 @@
                 </div>
 
                 <!-- 9. Locksmith -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(22k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-2xl shadow-inner">
-                            🔑
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-amber-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1582139329536-e7284fece509?w=120&auto=format&fit=crop&q=80" alt="Locksmith" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='🔑';">
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Locksmith</h4>
                         <p class="text-[9px] text-slate-400 font-medium">कुलूप दुरुस्ती</p>
@@ -1348,13 +1385,13 @@
                 </div>
 
                 <!-- 10. Pest Control -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(19k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-lime-50 text-lime-600 flex items-center justify-center text-2xl shadow-inner">
-                            🦟
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-lime-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?w=120&auto=format&fit=crop&q=80" alt="Pest Control" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='🦟';">
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Pest Control</h4>
                         <p class="text-[9px] text-slate-400 font-medium">पेस्ट कंट्रोल</p>
@@ -1370,13 +1407,13 @@
                 </div>
 
                 <!-- 11. Gardening -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.7</span><span class="text-slate-400 font-normal">(12k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-2xl shadow-inner">
-                            🌿
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-green-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1592417817098-8f3d69104a47?w=120&auto=format&fit=crop&q=80" alt="Gardening" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='🌿';">
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Gardening</h4>
                         <p class="text-[9px] text-slate-400 font-medium">बागकाम</p>
@@ -1392,13 +1429,13 @@
                 </div>
 
                 <!-- 12. Glass & Aluminium -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(16k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-2xl shadow-inner">
-                            🪟
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-sky-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=120&auto=format&fit=crop&q=80" alt="Glass & Aluminium" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='🪟';">
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Glass &amp; Aluminium</h4>
                         <p class="text-[9px] text-slate-400 font-medium">काच व ॲल्युमिनियम</p>
@@ -1414,13 +1451,13 @@
                 </div>
 
                 <!-- 13. TV & DTH -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="appliances electric other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="appliances electric other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(28k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl shadow-inner">
-                            📺
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-indigo-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=120&auto=format&fit=crop&q=80" alt="TV & DTH" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='📺';">
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">TV &amp; DTH</h4>
                         <p class="text-[9px] text-slate-400 font-medium">टीव्ही व डिश फिटिंग</p>
@@ -1436,13 +1473,13 @@
                 </div>
 
                 <!-- 14. Moving & Shifting -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.7</span><span class="text-slate-400 font-normal">(11k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-2xl shadow-inner">
-                            📦
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-orange-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=120&auto=format&fit=crop&q=80" alt="Moving & Shifting" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='📦';">
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Moving &amp; Shifting</h4>
                         <p class="text-[9px] text-slate-400 font-medium">सामान वाहतूक</p>
@@ -1458,13 +1495,13 @@
                 </div>
 
                 <!-- 15. Bathroom Services -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning plumbing">
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning plumbing">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(45k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-2xl shadow-inner">
-                            🚿
+                        <div class="w-14 h-14 mx-auto my-1 rounded-xl bg-cyan-50 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1584622781564-1d987f7333c1?w=120&auto=format&fit=crop&q=80" alt="Bathroom Services" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='🚿';">
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Bathroom Services</h4>
                         <p class="text-[9px] text-slate-400 font-medium">बाथरूम काम</p>
@@ -1481,8 +1518,8 @@
 
             </div>
 
-            <!-- Trust & Social Proof Section (Screenshots 3 & 5) -->
-            <div class="rounded-2xl bg-white border border-slate-200/90 p-4 space-y-3 shadow-2xs">
+            <!-- Trust & Social Proof Section (Exact Match to Screenshot 1) -->
+            <div class="rounded-3xl bg-white border border-slate-200/90 p-4 space-y-3.5 shadow-2xs overflow-hidden">
                 <div class="text-center space-y-0.5">
                     <h3 class="font-black text-sm text-slate-900 leading-snug">
                         Relax, your home is in professional hands
@@ -1492,56 +1529,65 @@
                     </p>
                 </div>
 
-                <!-- Laurel Badges -->
-                <div class="flex items-center justify-around py-2.5 border-y border-slate-100 text-center">
+                <!-- Laurel Metrics Badges (Screenshot 1) -->
+                <div class="flex items-center justify-around py-3 border-y border-slate-100 text-center bg-slate-50/60 rounded-2xl px-2">
                     <div class="flex flex-col items-center">
-                        <span class="text-lg">🌿</span>
-                        <strong class="text-xs font-black text-slate-900">15 Lakh+</strong>
-                        <span class="text-[9px] text-slate-500 font-medium">Families in Pune</span>
+                        <span class="text-sm font-black text-emerald-700">🌿 15 Lakh+</span>
+                        <span class="text-[9px] text-slate-500 font-semibold mt-0.5">Families in Pune</span>
                     </div>
-                    <div class="w-px h-8 bg-slate-200"></div>
+                    <div class="w-px h-7 bg-slate-200"></div>
                     <div class="flex flex-col items-center">
-                        <span class="text-lg">⭐</span>
-                        <strong class="text-xs font-black text-slate-900">4.8 Rating</strong>
-                        <span class="text-[9px] text-slate-500 font-medium">3 Lakh+ Reviews</span>
+                        <span class="text-sm font-black text-amber-600">⭐ 3 Lakh+</span>
+                        <span class="text-[9px] text-slate-500 font-semibold mt-0.5">Rated Reviews</span>
                     </div>
-                    <div class="w-px h-8 bg-slate-200"></div>
+                    <div class="w-px h-7 bg-slate-200"></div>
                     <div class="flex flex-col items-center">
-                        <span class="text-lg">🛡️</span>
-                        <strong class="text-xs font-black text-slate-900">7-Day</strong>
-                        <span class="text-[9px] text-slate-500 font-medium">Revisit Guarantee</span>
+                        <span class="text-sm font-black text-indigo-700">🛡️ 7-Day</span>
+                        <span class="text-[9px] text-slate-500 font-semibold mt-0.5">Revisit Guarantee</span>
                     </div>
                 </div>
 
-                <!-- 4 Trust Pillars -->
-                <div class="grid grid-cols-2 gap-2 text-left">
-                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                        <div class="flex items-center gap-1.5 text-emerald-700 font-black text-xs">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            <span>१००% खात्री</span>
+                <!-- 4 Trust Pillars with Worker Cutout Presentation -->
+                <div class="flex items-stretch gap-2.5">
+                    <!-- Left: 4 Trust Pillars Grid -->
+                    <div class="flex-1 grid grid-cols-2 gap-2 text-left">
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                            <div class="flex items-center gap-1.5 text-emerald-700 font-black text-xs">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span>१००% खात्री</span>
+                            </div>
+                            <p class="text-[10px] text-slate-600 leading-tight">कामात दोष आढळल्यास ७ दिवसांत मोफत रिव्हिजिट.</p>
                         </div>
-                        <p class="text-[10px] text-slate-600 leading-tight">कामात दोष आढळल्यास ७ दिवसांत मोफत रिव्हिजिट.</p>
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                            <div class="flex items-center gap-1.5 text-blue-700 font-black text-xs">
+                                <i class="fa-solid fa-id-card-clip"></i>
+                                <span>व्हेरिफाईड</span>
+                            </div>
+                            <p class="text-[10px] text-slate-600 leading-tight">सर्व कारागीर पोलीस व आधार तपासणी केलेले.</p>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                            <div class="flex items-center gap-1.5 text-amber-700 font-black text-xs">
+                                <i class="fa-solid fa-stopwatch"></i>
+                                <span>पारदर्शक मीटर</span>
+                            </div>
+                            <p class="text-[10px] text-slate-600 leading-tight">फक्त ₹३/मि. अचूक डिजिटल टायमरवर बिलिंग.</p>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                            <div class="flex items-center gap-1.5 text-purple-700 font-black text-xs">
+                                <i class="fa-solid fa-headset"></i>
+                                <span>पुणे सपोर्ट</span>
+                            </div>
+                            <p class="text-[10px] text-slate-600 leading-tight">कधीही कॉल करा, तत्पर मराठी व हिंदी सहाय्य.</p>
+                        </div>
                     </div>
-                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                        <div class="flex items-center gap-1.5 text-blue-700 font-black text-xs">
-                            <i class="fa-solid fa-id-card-clip"></i>
-                            <span>व्हेरिफाईड</span>
+
+                    <!-- Right: Worker Professional Cutout Column -->
+                    <div class="w-24 shrink-0 rounded-2xl bg-gradient-to-b from-emerald-100 via-teal-50 to-slate-100 border border-emerald-200/60 p-2 flex flex-col items-center justify-between text-center shadow-inner">
+                        <span class="text-[9px] font-black text-emerald-900 bg-emerald-200/80 px-1.5 py-0.2 rounded-full uppercase">पुणे सेवा</span>
+                        <div class="w-16 h-24 overflow-hidden rounded-xl bg-emerald-700 flex items-center justify-center my-1 shadow-sm">
+                            <img src="https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=160&auto=format&fit=crop&q=80" alt="Professional Worker" class="w-full h-full object-cover object-top" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='👷‍♂️';">
                         </div>
-                        <p class="text-[10px] text-slate-600 leading-tight">सर्व कारागीर पोलीस व आधार तपासणी केलेले.</p>
-                    </div>
-                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                        <div class="flex items-center gap-1.5 text-amber-700 font-black text-xs">
-                            <i class="fa-solid fa-stopwatch"></i>
-                            <span>पारदर्शक मीटर</span>
-                        </div>
-                        <p class="text-[10px] text-slate-600 leading-tight">फक्त ₹३/मि. अचूक डिजिटल टायमरवर बिलिंग.</p>
-                    </div>
-                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                        <div class="flex items-center gap-1.5 text-purple-700 font-black text-xs">
-                            <i class="fa-solid fa-headset"></i>
-                            <span>पुणे सपोर्ट</span>
-                        </div>
-                        <p class="text-[10px] text-slate-600 leading-tight">कधीही कॉल करा, तत्पर मराठी व हिंदी सहाय्य.</p>
+                        <span class="text-[9px] font-bold text-slate-700">अनुभवी कारागीर</span>
                     </div>
                 </div>
             </div>
