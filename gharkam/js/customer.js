@@ -2295,6 +2295,9 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                 const stepsContainer = document.getElementById('stepsTrackerContainer');
                 const completedMsgBox = document.getElementById('completedOrCancelledMsg');
                 const cancelContainer = document.getElementById('cancelContainer');
+                const cancelOrderBtn = document.getElementById('cancelOrderBtn');
+                const cancelNoticeText = document.getElementById('cancelNoticeText');
+                const apkCancelContainer = document.getElementById('apkCancelContainer');
                 const workerMobileEl = document.getElementById('statusWorker');
                 const ratingDisplay = document.getElementById('statusWorkerRating');
                 const mapContainer = document.getElementById('mapTrackingContainer');
@@ -2418,7 +2421,8 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                 if (data.status === 'Completed' || data.status === 'Cancelled') {
                     if (otpCard) otpCard.classList.add('hidden');
                     stepsContainer.classList.add('hidden');
-                    cancelContainer.classList.add('hidden');
+                    if (cancelContainer) cancelContainer.classList.add('hidden');
+                    if (apkCancelContainer) apkCancelContainer.classList.add('hidden');
                     completedMsgBox.classList.remove('hidden');
                     mapContainer.classList.add('hidden');
 
@@ -2445,7 +2449,33 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                 else {
                     stepsContainer.classList.remove('hidden');
                     completedMsgBox.classList.add('hidden');
-                    cancelContainer.classList.remove('hidden');
+
+                    // Cancellation Policy:
+                    // Customer can cancel ONLY before worker is 'On The Way' (strictly 'Pending' or 'Accepted').
+                    // Once worker is 'On The Way', 'Reached Location', or 'In Progress', cancellation is blocked.
+                    const canCancelOrder = (data.status === 'Pending' || data.status === 'Accepted');
+                    if (canCancelOrder) {
+                        if (cancelContainer) cancelContainer.classList.remove('hidden');
+                        if (cancelOrderBtn) cancelOrderBtn.classList.remove('hidden');
+                        if (cancelNoticeText) cancelNoticeText.classList.add('hidden');
+                        if (apkCancelContainer) apkCancelContainer.classList.remove('hidden');
+                    } else {
+                        if (apkCancelContainer) apkCancelContainer.classList.add('hidden');
+                        if (cancelOrderBtn) cancelOrderBtn.classList.add('hidden');
+                        if (cancelNoticeText) {
+                            cancelNoticeText.classList.remove('hidden');
+                            if (data.status === 'On The Way') {
+                                cancelNoticeText.innerHTML = '<i class="fa-solid fa-motorcycle text-indigo-600 mr-1"></i> कारागीर प्रवासात (On The Way) असल्यामुळे आता ऑर्डर रद्द करता येणार नाही.';
+                            } else if (data.status === 'Reached Location') {
+                                cancelNoticeText.innerHTML = '<i class="fa-solid fa-location-dot text-purple-600 mr-1"></i> कारागीर पत्त्यावर पोहोचला असल्याने ऑर्डर रद्द करता येणार नाही.';
+                            } else if (data.status === 'In Progress') {
+                                cancelNoticeText.innerHTML = '<i class="fa-solid fa-person-digging text-emerald-600 mr-1"></i> काम चालू (In Progress) असल्यामुळे ऑर्डर रद्द करता येणार नाही.';
+                            } else {
+                                cancelNoticeText.innerHTML = '<i class="fa-solid fa-circle-info text-slate-600 mr-1"></i> या स्थितीत ऑर्डर रद्द करता येणार नाही.';
+                            }
+                        }
+                        if (cancelContainer) cancelContainer.classList.remove('hidden');
+                    }
 
                     document.getElementById('step1Dot').className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
                     document.getElementById('step2Dot').className = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5";
@@ -2513,17 +2543,54 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                 if (!data) return;
 
                 if (data.status === 'On The Way') {
-                    alert("❌ ऑर्डर कॅन्सल करता येणार नाही! Worker निघाला आहे (Worker is On The Way).");
-                } else if (data.status === 'Completed') {
-                    alert("❌ हे काम पूर्ण झाले आहे, त्यामुळे कॅन्सल करता येणार नाही.");
-                } else {
-                    if (confirm("तुम्हाला नक्की ही ऑर्डर रद्द (Cancel) करायची आहे का?")) {
-                        database.ref("orders/" + currentOrderId).update({
-                            status: "Cancelled"
-                        }).then(() => {
+                    alert("❌ ऑर्डर रद्द करता येणार नाही! कारागीर तुमच्या पत्त्यावर येण्यासाठी निघाला आहे (Worker is On The Way).");
+                    return;
+                }
+                if (data.status === 'Reached Location') {
+                    alert("❌ ऑर्डर रद्द करता येणार नाही! कारागीर तुमच्या पत्त्यावर पोहोचला आहे (Worker Reached Location).");
+                    return;
+                }
+                if (data.status === 'In Progress') {
+                    alert("❌ ऑर्डर रद्द करता येणार नाही! काम सुरू आहे (Work is In Progress).");
+                    return;
+                }
+                if (data.status === 'Completed') {
+                    alert("❌ हे काम पूर्ण झाले आहे, त्यामुळे ऑर्डर रद्द करता येणार नाही.");
+                    return;
+                }
+                if (data.status === 'Cancelled') {
+                    alert("ही ऑर्डर आधीच रद्द झाली आहे.");
+                    return;
+                }
+
+                // Customer can cancel strictly when status is 'Pending' or 'Accepted' (before 'On The Way')
+                if (data.status === 'Pending' || data.status === 'Accepted') {
+                    const confirmMsg = data.status === 'Accepted'
+                        ? "कारागिराने हे काम स्वीकारले आहे (परंतु तो अजून निघालेला नाही).\nतुम्हाला नक्की ही ऑर्डर रद्द (Cancel) करायची आहे का?"
+                        : "तुम्हाला नक्की ही ऑर्डर रद्द (Cancel) करायची आहे का?";
+
+                    if (confirm(confirmMsg)) {
+                        const updates = {
+                            status: "Cancelled",
+                            cancelledAt: firebase.database.ServerValue.TIMESTAMP,
+                            cancelledBy: "customer",
+                            cancelReason: "ग्राहक यांनी प्रवास सुरू होण्यापूर्वी ऑर्डर रद्द केली (Cancelled by Customer before travel)"
+                        };
+
+                        database.ref("orders/" + currentOrderId).update(updates).then(() => {
+                            if (data.workerUid) {
+                                database.ref("workers/" + data.workerUid + "/activeOrderId").transaction(
+                                    activeOrderId => activeOrderId === currentOrderId ? null : activeOrderId
+                                ).catch(() => {});
+                            }
                             alert("तुमची ऑर्डर यशस्वीरीत्या रद्द (Cancelled) झाली आहे.");
+                        }).catch((err) => {
+                            console.error("Order cancellation failed:", err);
+                            alert("ऑर्डर रद्द करताना अडचण आली, कृपया पुन्हा प्रयत्न करा.");
                         });
                     }
+                } else {
+                    alert("❌ या स्थितीत ऑर्डर रद्द करता येणार नाही.");
                 }
             });
         }

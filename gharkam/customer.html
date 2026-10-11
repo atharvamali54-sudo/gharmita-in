@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="mr">
 <head>
     <meta charset="UTF-8">
@@ -784,9 +784,12 @@
                         </div>
 
                         <div id="cancelContainer" class="pt-3 border-t border-slate-100 hidden">
-                            <button id="cancelOrderBtn" onclick="cancelCurrentOrder()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl text-xs transition border border-red-200 flex items-center justify-center gap-1.5 shadow-sm">
-                                <i class="fa-solid fa-xmark"></i> Cancel Order
+                            <button type="button" id="cancelOrderBtn" onclick="cancelCurrentOrder()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl text-xs transition border border-red-200 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+                                <i class="fa-solid fa-xmark"></i> ऑर्डर रद्द करा (Cancel Order)
                             </button>
+                            <p id="cancelNoticeText" class="hidden text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-center font-medium">
+                                <i class="fa-solid fa-motorcycle text-indigo-600 mr-1"></i> कारागीर प्रवासात (On The Way) असल्यामुळे आता ऑर्डर रद्द करता येणार नाही.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -1346,6 +1349,13 @@
                         </a>
                         <button type="button" id="apkChatWorkerBtn" onclick="openCustomerChatModal(currentOrderId)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs">
                             <i class="fa-solid fa-message"></i> Chat
+                        </button>
+                    </div>
+
+                    <!-- APK Cancel Order Button (Only allowed before 'On The Way') -->
+                    <div id="apkCancelContainer" class="hidden pt-2 border-t border-slate-100">
+                        <button type="button" id="apkCancelOrderBtn" onclick="cancelCurrentOrder()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 px-3 rounded-xl text-xs transition border border-red-200 flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                            <i class="fa-solid fa-xmark"></i> ऑर्डर रद्द करा (Cancel Order)
                         </button>
                     </div>
 
