@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -46,25 +46,23 @@
 </head>
 <body class="hero-bg min-h-screen flex flex-col justify-between text-gray-800">
 
-    <header class="liquid-header w-full py-3 sm:py-4 px-3 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 border-b border-white/20">
-        <div class="w-full sm:w-auto flex items-center justify-between gap-2">
-            <div class="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
-                <div class="brand-mark p-1.5 sm:p-2 rounded-full font-bold text-blue-600 text-lg sm:text-xl">🏠 GB</div>
-                <div>
-                    <h1 class="text-white text-xl sm:text-2xl font-bold tracking-tight">GHARBANDHU<span class="text-blue-200 text-sm sm:text-base font-bold">.online</span></h1>
-                    <p class="text-[11px] sm:text-xs text-blue-200">Pune City Services</p>
-                </div>
+    <header class="liquid-header w-full py-2 sm:py-4 px-2.5 sm:px-6 flex justify-between items-center gap-2 sm:gap-4 border-b border-white/20">
+        <div class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+            <div class="brand-mark p-1 sm:p-2 rounded-full font-bold text-blue-600 text-sm sm:text-xl shrink-0">🏠 GB</div>
+            <div class="min-w-0 overflow-hidden">
+                <h1 class="text-white text-sm sm:text-2xl font-bold tracking-tight truncate">GHARBANDHU<span class="text-blue-200 text-xs sm:text-base font-semibold">.online</span></h1>
+                <p class="text-[10px] sm:text-xs text-blue-200 truncate">Pune City Services</p>
             </div>
         </div>
 
-        <div class="w-full sm:w-auto flex flex-wrap items-center justify-center sm:justify-end gap-1.5 sm:gap-2">
-            <a href="ai-chat.html" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-[11px] sm:text-xs py-1.5 px-2.5 sm:px-3 rounded-xl shadow transition flex items-center gap-1 sm:gap-1.5 cursor-pointer shrink-0">
+        <div class="flex items-center justify-end gap-1 sm:gap-2 shrink-0">
+            <a href="ai-chat.html" class="ai-care-header-btn bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-[10px] sm:text-xs py-1 sm:py-1.5 px-2 sm:px-3 rounded-full shadow transition flex items-center gap-1 sm:gap-1.5 cursor-pointer shrink-0">
                 <i class="fa-solid fa-robot text-amber-300"></i> <span>AI Care</span>
             </a>
-            <button onclick="showPwaInstallModal()" class="pwa-install-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] sm:text-xs py-1.5 px-2.5 sm:px-3 rounded-xl shadow transition flex items-center gap-1 sm:gap-1.5 cursor-pointer shrink-0">
+            <button onclick="showPwaInstallModal()" class="pwa-install-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] sm:text-xs py-1 sm:py-1.5 px-2 sm:px-3 rounded-full shadow transition flex items-center gap-1 sm:gap-1.5 cursor-pointer shrink-0">
                 <i class="fa-solid fa-download text-xs"></i> <span>Install App</span>
             </button>
-            <span id="location-status" class="text-[11px] sm:text-xs bg-yellow-400 text-gray-900 px-2.5 sm:px-3 py-1.5 rounded-full font-semibold shadow-inner shrink-0">📍 Pune Verified</span>
+            <span id="location-status" class="text-[10px] sm:text-xs bg-yellow-400 text-gray-900 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full font-semibold shadow-inner shrink-0">📍 Pune Verified</span>
         </div>
     </header>
 
