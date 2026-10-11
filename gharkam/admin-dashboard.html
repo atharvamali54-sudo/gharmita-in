@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="mr">
 <head>
     <meta charset="UTF-8">
@@ -436,25 +436,60 @@
              TAB 2: Workers Management & Live Duty
              ===================================================== -->
         <div id="workersTab" class="tab-content hidden space-y-4">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
-                <div class="relative w-full md:w-80">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                    <input type="text" id="workerSearchInput" oninput="filterWorkersTable()" placeholder="कामगाराचे नाव, मोबाईल किंवा सर्व्हिस शोधा..." class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <!-- Filter Bar: Area, Service, Duty & KYC -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <div class="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                        <input type="text" id="workerSearchInput" oninput="filterWorkersTable()" placeholder="कामगाराचे नाव, मोबाईल किंवा आयडी शोधा..." class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Area Filter -->
+                        <select id="workerAreaFilter" onchange="filterWorkersTable()" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="ALL">📍 सर्व परिसर (All Areas)</option>
+                        </select>
+
+                        <!-- Service Filter -->
+                        <select id="workerServiceFilter" onchange="filterWorkersTable()" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="ALL">⚡ सर्व सेवा (All Services)</option>
+                        </select>
+
+                        <!-- Duty Status Filter -->
+                        <select id="workerDutyFilter" onchange="filterWorkersTable()" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="ALL">सर्व ड्युटी स्टेटस</option>
+                            <option value="ON">🟢 फक्त Duty ON (Active)</option>
+                            <option value="OFF">⚪ Duty OFF (Offline)</option>
+                            <option value="BUSY">🔵 कामावर व्यस्त (In Progress)</option>
+                        </select>
+
+                        <!-- KYC Filter -->
+                        <select id="workerKycFilter" onchange="filterWorkersTable()" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="ALL">सर्व KYC</option>
+                            <option value="pending">⏳ प्रलंबित KYC</option>
+                            <option value="approved">✓ मंजूर KYC</option>
+                            <option value="rejected">✕ नाकारलेले KYC</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <select id="workerKycFilter" onchange="filterWorkersTable()" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="ALL">सर्व KYC स्टेटस</option>
-                        <option value="pending">⏳ प्रलंबित KYC (Pending)</option>
-                        <option value="approved">✓ मंजूर KYC (Approved)</option>
-                        <option value="rejected">✕ नाकारलेले KYC (Rejected)</option>
-                    </select>
-
-                    <select id="workerDutyFilter" onchange="filterWorkersTable()" class="bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="ALL">सर्व कामगार</option>
-                        <option value="ON">फक्त Duty ON (Active)</option>
-                        <option value="OFF">Duty OFF (Offline)</option>
-                    </select>
+                <!-- Live Area & Service Duty Summary Counter Bar -->
+                <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-black">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Duty ON: <span id="workerDutyOnCount" class="text-sm">0</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 font-bold">
+                            <i class="fa-solid fa-moon text-slate-400"></i>
+                            Duty OFF: <span id="workerDutyOffCount" class="text-sm">0</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 text-blue-800 border border-blue-200 font-bold">
+                            <i class="fa-solid fa-person-digging text-blue-600"></i>
+                            सध्या कामावर व्यस्त: <span id="workerBusyCount" class="text-sm">0</span>
+                        </span>
+                    </div>
+                    <span id="workerFilterSummaryLabel" class="text-[11px] text-slate-500 font-medium">सर्व कामगार दाखवत आहे</span>
                 </div>
             </div>
 
@@ -471,7 +506,7 @@
                                 <th class="p-3.5">ड्युटी स्टेटस</th>
                                 <th class="p-3.5">सरासरी रेटिंग</th>
                                 <th class="p-3.5">KYC पडताळणी & आधार</th>
-                                <th class="p-3.5 text-center">वॉलेट रिचार्ज</th>
+                                <th class="p-3.5 text-center">काम इतिहास & ॲक्शन</th>
                             </tr>
                         </thead>
                         <tbody id="workersTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
@@ -1197,6 +1232,125 @@
             <button onclick="closeAdminZoomModal()" class="absolute -top-10 right-0 text-white hover:text-amber-400 font-bold text-sm bg-white/10 px-3 py-1 rounded-xl transition">✕ बंद करा</button>
             <img id="adminZoomModalImg" src="" alt="Full Zoom Preview" class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/20">
             <p id="adminZoomModalCaption" class="text-xs text-white/80 font-bold mt-2 text-center"></p>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         5C. Worker Complete Work History & Audit Modal
+         ========================================================= -->
+    <div id="adminWorkerHistoryModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-4xl w-full my-auto shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh] animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 px-6 py-4 text-white flex items-center justify-between shrink-0 border-b border-indigo-900/40">
+                <div class="flex items-center gap-3">
+                    <span class="w-11 h-11 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-xl text-amber-400 shadow-inner">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </span>
+                    <div>
+                        <h4 class="font-black text-base sm:text-lg tracking-tight">कामगार संपूर्ण कार्य इतिहास व वेळ ऑडिट</h4>
+                        <p class="text-xs text-slate-300">Worker Complete Job History, Time Spent & Earnings Audit</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeAdminWorkerHistoryModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer text-sm">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-5 sm:p-6 space-y-5 overflow-y-auto">
+                <!-- Worker Profile & Live Status Header Card -->
+                <div class="bg-gradient-to-r from-slate-50 to-indigo-50/40 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <img id="workerHistoryAvatar" src="" alt="Worker Avatar" class="w-14 h-14 rounded-2xl object-cover border-2 border-indigo-300 shadow-sm shrink-0 bg-slate-200">
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h4 id="workerHistoryName" class="font-black text-slate-900 text-lg">Worker Name</h4>
+                                <span id="workerHistoryDutyBadge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border">Duty Status</span>
+                            </div>
+                            <p class="text-xs text-slate-600 mt-0.5 flex items-center gap-2 flex-wrap">
+                                <span>📱 <a id="workerHistoryMobile" href="#" class="text-blue-600 font-bold hover:underline">-</a></span>
+                                <span>•</span>
+                                <span>🔧 <strong id="workerHistoryService" class="text-slate-800">-</strong></span>
+                                <span>•</span>
+                                <span>📍 <strong id="workerHistoryArea" class="text-slate-800">-</strong></span>
+                                <span>•</span>
+                                <span id="workerHistoryUid" class="font-mono text-slate-400 text-[11px]">ID: -</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-1 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">वॉलेट शिल्लक:</span>
+                        <strong id="workerHistoryWallet" class="text-base font-black text-emerald-600">₹0</strong>
+                    </div>
+                </div>
+
+                <!-- 4 Statistics Summary Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">एकूण कामे (Jobs)</span>
+                        <h5 id="workerHistoryTotalJobs" class="text-xl font-black text-slate-800 mt-1">0</h5>
+                        <p class="text-[10px] text-emerald-600 font-bold mt-0.5"><span id="workerHistoryCompletedJobs">0</span> पूर्ण झाली</p>
+                    </div>
+
+                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">एकूण कामाचा वेळ</span>
+                        <h5 id="workerHistoryTotalTime" class="text-xl font-black text-indigo-600 mt-1">0 तास</h5>
+                        <p class="text-[10px] text-slate-400 font-medium mt-0.5"><span id="workerHistoryTotalMins">0</span> मिनिटे प्रत्यक्ष काम</p>
+                    </div>
+
+                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">कमाई / बिझनेस</span>
+                        <h5 id="workerHistoryTotalEarned" class="text-xl font-black text-emerald-600 mt-1">₹0</h5>
+                        <p class="text-[10px] text-slate-400 font-medium mt-0.5">साहित्य वगळून मजुरी</p>
+                    </div>
+
+                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">सरासरी रेटिंग</span>
+                        <h5 id="workerHistoryAvgRating" class="text-xl font-black text-amber-500 mt-1">⭐ 5.0</h5>
+                        <p class="text-[10px] text-slate-400 font-medium mt-0.5"><span id="workerHistoryReviewCount">0</span> रिव्ह्यूज प्राप्त</p>
+                    </div>
+                </div>
+
+                <!-- Complete Job History Table -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-blue-600"></i>
+                            <h5 class="font-bold text-slate-800 text-xs sm:text-sm">सर्व केलेल्या कामांची सविस्तर यादी व टाईम लॉग</h5>
+                        </div>
+                        <span id="workerHistoryJobCountBadge" class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">0 कामे</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
+                                    <th class="p-3">ऑर्डर ID & तारीख</th>
+                                    <th class="p-3">सेवा & पत्ता</th>
+                                    <th class="p-3">ग्राहक</th>
+                                    <th class="p-3">कामाचा वेळ (Duration)</th>
+                                    <th class="p-3">आकारलेले बिल</th>
+                                    <th class="p-3">स्टेटस</th>
+                                    <th class="p-3">ग्राहक रेटिंग / शेरा</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workerHistoryTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
+                                <tr>
+                                    <td colspan="7" class="text-center py-8 text-slate-400">या कामगाराचा कोणताही कामाचा इतिहास उपलब्ध नाही.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-50 px-6 py-3.5 border-t border-slate-200 flex items-center justify-between shrink-0">
+                <span class="text-xs text-slate-500">GharBandhu Admin Live Audit System</span>
+                <button type="button" onclick="closeAdminWorkerHistoryModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                    बंद करा (Close)
+                </button>
+            </div>
         </div>
     </div>
     </div> <!-- /#adminMainDashboard -->

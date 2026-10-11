@@ -1,4 +1,4 @@
-﻿// =========================================================
+// =========================================================
 // GharBandhu Super Admin & Owner Dashboard Logic (Hardened)
 // =========================================================
 
@@ -1428,11 +1428,43 @@ function filterWorkersTable() {
     renderWorkersTable();
 }
 
+function updateWorkerFilterDropdowns(areas, services) {
+    const areaSel = document.getElementById('workerAreaFilter');
+    if (areaSel) {
+        const curAreaVal = areaSel.value;
+        const defaultOption = '<option value="ALL">📍 सर्व परिसर (All Areas)</option>';
+        const currentAreas = Array.from(areaSel.options).map(o => o.value).filter(v => v !== 'ALL');
+        const isSame = areas.length === currentAreas.length && areas.every((a, i) => a === currentAreas[i]);
+        if (!isSame) {
+            areaSel.innerHTML = defaultOption + areas.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+            if (curAreaVal && areas.includes(curAreaVal)) {
+                areaSel.value = curAreaVal;
+            }
+        }
+    }
+
+    const srvSel = document.getElementById('workerServiceFilter');
+    if (srvSel) {
+        const curSrvVal = srvSel.value;
+        const defaultOption = '<option value="ALL">⚡ सर्व सेवा (All Services)</option>';
+        const currentServices = Array.from(srvSel.options).map(o => o.value).filter(v => v !== 'ALL');
+        const isSame = services.length === currentServices.length && services.every((s, i) => s === currentServices[i]);
+        if (!isSame) {
+            srvSel.innerHTML = defaultOption + services.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+            if (curSrvVal && services.includes(curSrvVal)) {
+                srvSel.value = curSrvVal;
+            }
+        }
+    }
+}
+
 function renderWorkersTable() {
     const tbody = document.getElementById('workersTableBody');
     if (!tbody) return;
 
     const searchTerm = (document.getElementById('workerSearchInput')?.value || '').toLowerCase().trim();
+    const areaFilter = document.getElementById('workerAreaFilter')?.value || 'ALL';
+    const serviceFilter = document.getElementById('workerServiceFilter')?.value || 'ALL';
     const dutyFilter = document.getElementById('workerDutyFilter')?.value || 'ALL';
     const kycFilter = document.getElementById('workerKycFilter')?.value || 'ALL';
 
@@ -1494,9 +1526,58 @@ function renderWorkersTable() {
     const workerList = Array.from(workerMap.values());
     cachedWorkerList = workerList;
 
+    // Collect distinct Areas and Services dynamically
+    const distinctAreas = Array.from(new Set(workerList.map(w => (w.area || '').trim()).filter(Boolean))).sort();
+    const distinctServices = Array.from(new Set(workerList.map(w => (w.service || '').trim()).filter(Boolean))).sort();
+    updateWorkerFilterDropdowns(distinctAreas, distinctServices);
+
+    // Compute live counters for the current Area & Service slice
+    let dutyOnCount = 0;
+    let dutyOffCount = 0;
+    let busyCount = 0;
+
+    workerList.forEach(w => {
+        const matchesArea = (areaFilter === 'ALL' || w.area === areaFilter);
+        const matchesService = (serviceFilter === 'ALL' || w.service === serviceFilter);
+        if (matchesArea && matchesService) {
+            if (w.activeOrderId) {
+                busyCount++;
+            }
+            if (w.isDutyOn) {
+                dutyOnCount++;
+            } else {
+                dutyOffCount++;
+            }
+        }
+    });
+
+    const dutyOnEl = document.getElementById('workerDutyOnCount');
+    const dutyOffEl = document.getElementById('workerDutyOffCount');
+    const busyEl = document.getElementById('workerBusyCount');
+    const summaryLabelEl = document.getElementById('workerFilterSummaryLabel');
+
+    if (dutyOnEl) dutyOnEl.innerText = dutyOnCount;
+    if (dutyOffEl) dutyOffEl.innerText = dutyOffCount;
+    if (busyEl) busyEl.innerText = busyCount;
+    if (summaryLabelEl) {
+        let label = 'सर्व पुणे शहर';
+        if (areaFilter !== 'ALL' && serviceFilter !== 'ALL') {
+            label = `परिसर: ${areaFilter} | सेवा: ${serviceFilter}`;
+        } else if (areaFilter !== 'ALL') {
+            label = `परिसर: ${areaFilter}`;
+        } else if (serviceFilter !== 'ALL') {
+            label = `सेवा: ${serviceFilter}`;
+        }
+        summaryLabelEl.innerText = label;
+    }
+
     const filtered = workerList.filter(item => {
+        if (areaFilter !== 'ALL' && item.area !== areaFilter) return false;
+        if (serviceFilter !== 'ALL' && item.service !== serviceFilter) return false;
+
         if (dutyFilter === 'ON' && !item.isDutyOn) return false;
         if (dutyFilter === 'OFF' && item.isDutyOn) return false;
+        if (dutyFilter === 'BUSY' && !item.activeOrderId) return false;
 
         if (kycFilter !== 'ALL') {
             const vStatus = item.verificationStatus || 'approved';
@@ -1504,14 +1585,14 @@ function renderWorkersTable() {
         }
 
         if (searchTerm) {
-            const str = `${item.name} ${item.mobile} ${item.service} ${escapeHtml(item.area)}`.toLowerCase();
+            const str = `${item.name} ${item.mobile} ${item.service} ${escapeHtml(item.area)} ${item.uid}`.toLowerCase();
             if (!str.includes(searchTerm)) return false;
         }
         return true;
     });
 
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400">एकही कामगार आढळला नाही.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400">निवडलेल्या निकषांनुसार (Area: ${areaFilter}, Service: ${serviceFilter}) एकही कामगार आढळला नाही.</td></tr>`;
         return;
     }
 
@@ -1540,8 +1621,8 @@ function renderWorkersTable() {
         }
 
         const kycActionBtn = `
-            <button type="button" onclick="openAdminWorkerKycModal('${item.uid}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold py-1 px-2.5 rounded-lg text-[11px] transition flex items-center gap-1 mt-1 cursor-pointer">
-                <i class="fa-solid fa-id-card"></i> 🪪 KYC तपासा
+            <button type="button" onclick="openAdminWorkerKycModal('${item.uid}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold py-1 px-2 rounded-lg text-[10px] transition flex items-center gap-1 mt-1 cursor-pointer">
+                <i class="fa-solid fa-id-card"></i> 🪪 KYC
             </button>
         `;
 
@@ -1563,14 +1644,14 @@ function renderWorkersTable() {
                 <span class="bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-md text-[11px]">${escapeHtml(item.service)}</span>
             </td>
             <td class="p-3.5 font-medium text-slate-600">
-                ${escapeHtml(item.area)}
+                <span class="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-semibold"><i class="fa-solid fa-location-dot text-red-500 text-[10px]"></i> ${escapeHtml(item.area)}</span>
             </td>
             <td class="p-3.5">
                 <span class="font-black ${item.wallet <= 20 ? 'text-rose-600' : 'text-emerald-600'}">₹${item.wallet}</span>
             </td>
             <td class="p-3.5">
                 ${dutyBadge}
-                ${item.activeOrderId ? `<span class="text-[10px] text-blue-600 block mt-0.5">काम सुरू आहे</span>` : ''}
+                ${item.activeOrderId ? `<span class="text-[10px] text-blue-700 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 block mt-1"><i class="fa-solid fa-person-digging text-blue-600"></i> कामावर व्यस्त</span>` : ''}
             </td>
             <td class="p-3.5 font-bold text-amber-500">
                 ⭐ ${rAvg} <span class="text-[10px] text-slate-400">(${rCount})</span>
@@ -1580,14 +1661,271 @@ function renderWorkersTable() {
                 ${kycActionBtn}
             </td>
             <td class="p-3.5 text-center">
-                <button onclick="openAdminWalletModal('${item.uid}', '${item.name}', ${item.wallet})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold py-1.5 px-3 rounded-lg text-xs transition">
-                    + क्रेडिट्स द्या
-                </button>
+                <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                    <button type="button" onclick="openAdminWorkerHistoryModal('${item.uid}')" title="या कामगाराचा संपूर्ण काम इतिहास व वेळ ऑडिट पहा" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-1 px-2.5 rounded-lg text-xs transition shadow-xs flex items-center gap-1 cursor-pointer active:scale-95">
+                        <i class="fa-solid fa-clock-rotate-left text-[11px]"></i> <span>इतिहास</span>
+                    </button>
+                    <button type="button" onclick="openAdminWalletModal('${item.uid}', '${escapeHtml(item.name)}', ${item.wallet})" title="वॉलेट रिचार्ज" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold py-1 px-2 rounded-lg text-xs transition cursor-pointer">
+                        + क्रेडिट्स
+                    </button>
+                </div>
             </td>
         </tr>
         `;
     }).join('');
 }
+
+// =========================================================
+// 7B. Worker Complete Work History & Audit Modal Controller
+// =========================================================
+
+function openAdminWorkerHistoryModal(uid) {
+    if (!uid) return;
+    const worker = cachedWorkerList.find(w => w.uid === uid) || (allWorkers && allWorkers[uid]) || {};
+    const workerMobile = worker.mobile || (uid.startsWith('local_worker_') ? uid.replace('local_worker_', '') : '');
+
+    // 1. Populate Worker Profile Header
+    const nameEl = document.getElementById('workerHistoryName');
+    const avatarEl = document.getElementById('workerHistoryAvatar');
+    const mobileEl = document.getElementById('workerHistoryMobile');
+    const serviceEl = document.getElementById('workerHistoryService');
+    const areaEl = document.getElementById('workerHistoryArea');
+    const uidEl = document.getElementById('workerHistoryUid');
+    const walletEl = document.getElementById('workerHistoryWallet');
+    const dutyBadgeEl = document.getElementById('workerHistoryDutyBadge');
+
+    if (nameEl) nameEl.innerText = worker.name || 'Worker';
+    if (avatarEl) {
+        avatarEl.src = worker.photo || worker.photoUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231e293b'/%3E%3Ccircle cx='32' cy='24' r='12' fill='%23f59e0b'/%3E%3Cpath d='M14 54c0-9.94 8.06-18 18-18s18 8.06 18 18' fill='%23f59e0b'/%3E%3C/svg%3E";
+    }
+    if (mobileEl) {
+        mobileEl.innerText = workerMobile || '-';
+        mobileEl.href = 'tel:' + workerMobile;
+    }
+    if (serviceEl) serviceEl.innerText = worker.service || 'General';
+    if (areaEl) areaEl.innerText = worker.area || 'Pune';
+    if (uidEl) uidEl.innerText = 'ID: GK-' + uid.slice(-6).toUpperCase();
+    if (walletEl) walletEl.innerText = '₹' + (worker.wallet !== undefined ? worker.wallet : 50);
+
+    if (dutyBadgeEl) {
+        if (worker.activeOrderId) {
+            dutyBadgeEl.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-blue-100 text-blue-800 border-blue-300';
+            dutyBadgeEl.innerText = '🔵 कामावर व्यस्त (In Progress)';
+        } else if (worker.isDutyOn) {
+            dutyBadgeEl.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-emerald-100 text-emerald-800 border-emerald-300 animate-pulse';
+            dutyBadgeEl.innerText = '🟢 Duty ON (Active)';
+        } else {
+            dutyBadgeEl.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-slate-100 text-slate-600 border-slate-300';
+            dutyBadgeEl.innerText = '⚪ Duty OFF (Offline)';
+        }
+    }
+
+    // 2. Filter All Jobs Associated With This Worker
+    const matchedOrders = [];
+    if (allOrders) {
+        Object.entries(allOrders).forEach(([orderId, order]) => {
+            if (!order || typeof order !== 'object') return;
+            const isMatch = (order.workerUid === uid) ||
+                            (order.workerId === uid) ||
+                            (workerMobile && order.workerMobile && order.workerMobile === workerMobile);
+            if (isMatch) {
+                matchedOrders.push({ id: orderId, ...order });
+            }
+        });
+    }
+
+    // Sort descending by timestamp / completion time
+    matchedOrders.sort((a, b) => {
+        const timeA = Number(a.completedAt || a.workStartedAt || a.timestamp || a.createdAt || 0);
+        const timeB = Number(b.completedAt || b.workStartedAt || b.timestamp || b.createdAt || 0);
+        return timeB - timeA;
+    });
+
+    // 3. Compute Cumulative Statistics
+    let completedCount = 0;
+    let totalWorkMinutes = 0;
+    let totalEarnings = 0;
+    let reviewCount = 0;
+    let ratingSum = 0;
+
+    matchedOrders.forEach(o => {
+        if (o.status === 'Completed') {
+            completedCount++;
+            const mins = Number(o.totalWorkMinutes) || 0;
+            totalWorkMinutes += mins;
+            const labor = Number(o.laborAmount) || Number(o.finalAmount) || (parseInt(String(o.budget || '').replace(/[^0-9]/g, '')) || 0);
+            totalEarnings += labor;
+        } else if (o.status === 'In Progress' && o.workStartedAt) {
+            const activeNowMins = Math.max(1, Math.floor((Date.now() - Number(o.workStartedAt)) / 60000));
+            totalWorkMinutes += activeNowMins;
+        }
+
+        const rNum = Number(o.customerRating || o.rating);
+        if (rNum && rNum > 0) {
+            ratingSum += rNum;
+            reviewCount++;
+        }
+    });
+
+    // Rating from worker object if no direct order ratings found
+    if (reviewCount === 0 && worker.ratings && Object.keys(worker.ratings).length > 0) {
+        Object.values(worker.ratings).forEach(r => {
+            const num = Number(r.rating || 5);
+            ratingSum += num;
+            reviewCount++;
+        });
+    }
+
+    const avgRating = reviewCount > 0 ? (ratingSum / reviewCount).toFixed(1) : "5.0";
+    const totalHours = (totalWorkMinutes / 60).toFixed(1);
+
+    // Update Stats Card UI
+    const totalJobsEl = document.getElementById('workerHistoryTotalJobs');
+    const compJobsEl = document.getElementById('workerHistoryCompletedJobs');
+    const totalTimeEl = document.getElementById('workerHistoryTotalTime');
+    const totalMinsEl = document.getElementById('workerHistoryTotalMins');
+    const totalEarnedEl = document.getElementById('workerHistoryTotalEarned');
+    const avgRatingEl = document.getElementById('workerHistoryAvgRating');
+    const revCountEl = document.getElementById('workerHistoryReviewCount');
+    const badgeCountEl = document.getElementById('workerHistoryJobCountBadge');
+
+    if (totalJobsEl) totalJobsEl.innerText = matchedOrders.length;
+    if (compJobsEl) compJobsEl.innerText = completedCount;
+    if (totalTimeEl) totalTimeEl.innerText = totalHours + ' तास';
+    if (totalMinsEl) totalMinsEl.innerText = totalWorkMinutes;
+    if (totalEarnedEl) totalEarnedEl.innerText = '₹' + totalEarnings.toLocaleString('en-IN');
+    if (avgRatingEl) avgRatingEl.innerText = '⭐ ' + avgRating;
+    if (revCountEl) revCountEl.innerText = reviewCount;
+    if (badgeCountEl) badgeCountEl.innerText = matchedOrders.length + ' कामे';
+
+    // 4. Render Job History Table
+    const historyTbody = document.getElementById('workerHistoryTableBody');
+    if (historyTbody) {
+        if (matchedOrders.length === 0) {
+            historyTbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">या कामगाराने अजूनपर्यंत कोणतीही ऑर्डर स्वीकारलेली नाही.</td></tr>`;
+        } else {
+            historyTbody.innerHTML = matchedOrders.map(item => {
+                const dateVal = item.completedAt || item.workStartedAt || item.timestamp || item.createdAt;
+                const d = dateVal ? new Date(Number(dateVal)) : new Date();
+                const dateStr = d.toLocaleDateString('mr-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                const timeStr = d.toLocaleTimeString('mr-IN', { hour: '2-digit', minute: '2-digit' });
+
+                // Duration Calculation
+                let durationBadge = '';
+                if (item.totalWorkMinutes !== undefined) {
+                    const pausedMins = Math.floor(Number(item.totalPausedSeconds || 0) / 60);
+                    durationBadge = `
+                        <div class="space-y-0.5">
+                            <span class="font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded text-[11px] inline-flex items-center gap-1">
+                                <i class="fa-solid fa-stopwatch text-indigo-500"></i> ${item.totalWorkMinutes} मिनिटे
+                            </span>
+                            ${pausedMins > 0 ? `<span class="block text-[10px] text-amber-700 font-semibold">(पॉज: ${pausedMins} मि.)</span>` : ''}
+                        </div>
+                    `;
+                } else if (item.status === 'In Progress' && item.workStartedAt) {
+                    const elapsed = Math.max(1, Math.floor((Date.now() - Number(item.workStartedAt)) / 60000));
+                    durationBadge = `
+                        <span class="font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px] inline-flex items-center gap-1 animate-pulse">
+                            <i class="fa-solid fa-circle-dot text-emerald-500"></i> लाईव्ह सुरू: ${elapsed} मि.
+                        </span>
+                    `;
+                } else {
+                    durationBadge = `<span class="text-slate-400 text-[11px]">-</span>`;
+                }
+
+                // Billing breakdown
+                let billDisplay = ``;
+                if (item.laborAmount || item.finalAmount) {
+                    const labor = item.laborAmount || item.finalAmount;
+                    billDisplay = `
+                        <div>
+                            <strong class="text-slate-800 text-xs">₹${labor}</strong>
+                            ${item.materialCost ? `<span class="block text-[10px] text-amber-700 font-bold">+ साहित्य: ₹${item.materialCost}</span>` : ''}
+                        </div>
+                    `;
+                } else {
+                    billDisplay = `<span class="font-bold text-slate-700">${escapeHtml(item.budget || '₹500')}</span>`;
+                }
+
+                // Status Badge
+                let statusBadge = '';
+                if (item.status === 'Completed') {
+                    statusBadge = `<span class="admin-badge bg-emerald-100 text-emerald-800 border border-emerald-200"><i class="fa-solid fa-check text-[10px]"></i> पूर्ण</span>`;
+                } else if (item.status === 'In Progress') {
+                    statusBadge = `<span class="admin-badge bg-blue-100 text-blue-800 border border-blue-200 animate-pulse"><i class="fa-solid fa-spinner fa-spin text-[10px]"></i> सुरू आहे</span>`;
+                } else if (item.status === 'Cancelled') {
+                    statusBadge = `<span class="admin-badge bg-rose-100 text-rose-800 border border-rose-200">रद्द (Cancelled)</span>`;
+                } else {
+                    statusBadge = `<span class="admin-badge bg-slate-100 text-slate-700">${escapeHtml(item.status || 'Pending')}</span>`;
+                }
+
+                // Rating & Review
+                let reviewBadge = '';
+                const rNum = Number(item.customerRating || item.rating);
+                const rComment = item.customerReview || item.review || '';
+                if (rNum && rNum > 0) {
+                    const isComplaint = rNum <= 2;
+                    reviewBadge = `
+                        <div class="space-y-0.5">
+                            <span class="font-bold ${isComplaint ? 'text-rose-600' : 'text-amber-500'} text-[11px]">
+                                ⭐ ${rNum}/5 ${isComplaint ? '🚨' : ''}
+                            </span>
+                            ${rComment ? `<p class="text-[10px] text-slate-600 line-clamp-2 italic" title="${escapeHtml(rComment)}">"${escapeHtml(rComment)}"</p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    reviewBadge = `<span class="text-slate-400 text-[10px]">रिव्ह्यू नाही</span>`;
+                }
+
+                return `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100 text-xs">
+                    <td class="p-3">
+                        <strong class="text-blue-600 block">#${escapeHtml(item.id.slice(-6).toUpperCase())}</strong>
+                        <span class="text-[10px] text-slate-400">${dateStr} (${timeStr})</span>
+                    </td>
+                    <td class="p-3">
+                        <span class="bg-blue-50 text-blue-700 font-bold px-1.5 py-0.5 rounded text-[10px] block w-fit mb-0.5">${escapeHtml(item.service || 'Service')}</span>
+                        <span class="text-slate-600 text-[11px] block truncate max-w-[170px]" title="${escapeHtml(item.address)}">${escapeHtml(item.area || 'Pune')} - ${escapeHtml(item.address || '')}</span>
+                    </td>
+                    <td class="p-3">
+                        <strong class="text-slate-800 block">${escapeHtml(item.customerName || 'Customer')}</strong>
+                        <a href="tel:${item.customerMobile}" class="text-[10px] text-blue-600 hover:underline font-semibold">${item.customerMobile || '-'}</a>
+                    </td>
+                    <td class="p-3">
+                        ${durationBadge}
+                    </td>
+                    <td class="p-3">
+                        ${billDisplay}
+                    </td>
+                    <td class="p-3">
+                        ${statusBadge}
+                    </td>
+                    <td class="p-3 max-w-[180px]">
+                        ${reviewBadge}
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+    }
+
+    const modal = document.getElementById('adminWorkerHistoryModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeAdminWorkerHistoryModal() {
+    const modal = document.getElementById('adminWorkerHistoryModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+window.openAdminWorkerHistoryModal = openAdminWorkerHistoryModal;
+window.closeAdminWorkerHistoryModal = closeAdminWorkerHistoryModal;
 
 // =========================================================
 // Worker KYC Verification Modal Controller
