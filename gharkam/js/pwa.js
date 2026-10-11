@@ -1,4 +1,4 @@
-﻿// =========================================================
+// =========================================================
 // GharBandhu Progressive Web App (PWA) & Instant Share System
 // =========================================================
 
@@ -173,7 +173,7 @@ function ensurePwaModalHtml() {
 
             <!-- Action buttons -->
             <div class="space-y-2 pt-1">
-                <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/GharBandhu-Secure.apk" target="_blank" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
+                <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/Gharmitra-Secure.apk" download="GharBandhu-Secure.apk" target="_blank" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-brands fa-android text-emerald-400 text-base"></i> <span>Download Android APK</span>
                 </a>
                 <button onclick="dismissPwaModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-4 rounded-xl transition text-xs cursor-pointer">
