@@ -1125,193 +1125,45 @@
                     <button type="button" onclick="filterApkCatalog('all', this)" class="apk-filter-pill active shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-[#0b5f3a] text-white shadow-xs transition">
                         All
                     </button>
-                    <button type="button" onclick="filterApkCatalog('hourly', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
-                        Hourly Service (₹30)
+                    <button type="button" onclick="filterApkCatalog('plumbing', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Plumbing
+                    </button>
+                    <button type="button" onclick="filterApkCatalog('electric', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Electrician
                     </button>
                     <button type="button" onclick="filterApkCatalog('cleaning', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
                         Cleaning
                     </button>
-                    <button type="button" onclick="filterApkCatalog('electric', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
-                        Electric
+                    <button type="button" onclick="filterApkCatalog('carpentry', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Carpentry &amp; Paint
                     </button>
-                    <button type="button" onclick="filterApkCatalog('plumbing', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
-                        Plumbing
+                    <button type="button" onclick="filterApkCatalog('appliances', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Appliances &amp; AC
+                    </button>
+                    <button type="button" onclick="filterApkCatalog('other', this)" class="apk-filter-pill shrink-0 font-bold text-xs py-1.5 px-3.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs transition">
+                        Other Services
                     </button>
                 </div>
             </div>
 
-            <!-- 3-Column Service Catalog Grid (Pronto Screenshots 1 & 2) -->
+            <!-- 3-Column Service Catalog Grid (Website Services Only) -->
             <div id="apkCatalogGrid" class="grid grid-cols-3 gap-2">
                 
-                <!-- Card 1: Bathroom Cleaning -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
+                <!-- 1. Plumbing -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="plumbing">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(66k)</span>
-                        </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-2xl shadow-inner">
-                            🚿
-                        </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Bathroom Cleaning</h4>
-                    </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
-                        </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Bathroom Services', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Card 2: Dusting & Wiping -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
-                    <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(66k)</span>
-                        </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl shadow-inner">
-                            🧽
-                        </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Dusting & Wiping</h4>
-                    </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
-                        </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Card 3: Sweeping & Mopping -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
-                    <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(66k)</span>
-                        </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-inner">
-                            🧹
-                        </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Sweeping & Mopping</h4>
-                    </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
-                        </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Card 4: Utensil Cleaning -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
-                    <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(42k)</span>
-                        </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl shadow-inner">
-                            🍽️
-                        </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Utensil Cleaning</h4>
-                    </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
-                        </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Card 5: Fridge Cleaning -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
-                    <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(31k)</span>
-                        </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-2xl shadow-inner">
-                            🧊
-                        </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Fridge Cleaning</h4>
-                    </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
-                        </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Card 6: Kitchen Deep Clean -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning hourly">
-                    <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(58k)</span>
-                        </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl shadow-inner">
-                            🍳
-                        </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Kitchen Deep Clean</h4>
-                    </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
-                        </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Card 7: Fan & Wiring Repair -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="electric hourly">
-                    <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(84k)</span>
-                        </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center text-2xl shadow-inner">
-                            ⚡
-                        </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Fan & Electric Repair</h4>
-                    </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
-                        </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Electrician', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Card 8: Tap & Plumbing Repair -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="plumbing hourly">
-                    <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(75k)</span>
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(75k)</span>
                         </div>
                         <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl shadow-inner">
-                            🔧
+                            🪠
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Tap & Pipe Repair</h4>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Plumbing</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">प्लंबिंग काम</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
                         <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
                         </div>
                         <button type="button" onclick="quickSelectApkCatalogService('Plumbing', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
@@ -1319,8 +1171,118 @@
                     </div>
                 </div>
 
-                <!-- Card 9: Appliance Repair -->
+                <!-- 2. Electrician -->
                 <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="electric">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(84k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center text-2xl shadow-inner">
+                            ⚡
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Electrician</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">इलेक्ट्रिशियन</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Electrician', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Carpenter -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="carpentry">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(29k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-2xl shadow-inner">
+                            🪚
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Carpenter</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">सुतारकाम</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Carpenter', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. Painting -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="carpentry">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(18k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center text-2xl shadow-inner">
+                            🎨
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Painting</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">रंगकाम</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Painting', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5. Cleaning -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(66k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-inner">
+                            🧹
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Cleaning</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">घर सफाई</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 6. AC Repair -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="appliances">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(51k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-2xl shadow-inner">
+                            ❄️
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">AC Repair</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">एसी दुरुस्ती</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('AC Repair', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 7. Appliance Repair -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="appliances">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(39k)</span>
@@ -1329,11 +1291,11 @@
                             🔌
                         </div>
                         <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Appliance Repair</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">उपकरण दुरुस्ती</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
                         <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
                         </div>
                         <button type="button" onclick="quickSelectApkCatalogService('Appliance Repair', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
@@ -1341,67 +1303,177 @@
                     </div>
                 </div>
 
-                <!-- Card 10: Carpenter Work -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="hourly">
+                <!-- 8. Masonry -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(29k)</span>
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(14k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-stone-50 text-stone-600 flex items-center justify-center text-2xl shadow-inner">
+                            🧱
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Masonry</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">बांधकाम (गवंडी)</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Masonry', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 9. Locksmith -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="other">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(22k)</span>
                         </div>
                         <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-2xl shadow-inner">
-                            🪚
+                            🔑
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Carpenter & Wood</h4>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Locksmith</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">कुलूप दुरुस्ती</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
                         <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
                         </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Carpenter', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                        <button type="button" onclick="quickSelectApkCatalogService('Locksmith', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
-                <!-- Card 11: AC Servicing -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="electric">
+                <!-- 10. Pest Control -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(51k)</span>
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(19k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-2xl shadow-inner">
-                            ❄️
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-lime-50 text-lime-600 flex items-center justify-center text-2xl shadow-inner">
+                            🦟
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">AC Servicing</h4>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Pest Control</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">पेस्ट कंट्रोल</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
                         <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
                         </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('AC Repair', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                        <button type="button" onclick="quickSelectApkCatalogService('Pest Control', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
-                <!-- Card 12: Painting & Touchup -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="hourly">
+                <!-- 11. Gardening -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(18k)</span>
+                            <span>★</span><span>4.7</span><span class="text-slate-400 font-normal">(12k)</span>
                         </div>
-                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center text-2xl shadow-inner">
-                            🎨
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-2xl shadow-inner">
+                            🌿
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Painting Touchup</h4>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Gardening</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">बागकाम</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
                         <div class="leading-none">
-                            <span class="text-xs font-black text-slate-900">₹30</span>
-                            <del class="text-[9px] text-slate-400 ml-0.5">₹125</del>
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
                         </div>
-                        <button type="button" onclick="quickSelectApkCatalogService('Painting', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                        <button type="button" onclick="quickSelectApkCatalogService('Gardening', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 12. Glass & Aluminium -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="other">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(16k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-2xl shadow-inner">
+                            🪟
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Glass &amp; Aluminium</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">काच व ॲल्युमिनियम</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Glass & Aluminium', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 13. TV & DTH -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="appliances electric other">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(28k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl shadow-inner">
+                            📺
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">TV &amp; DTH</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">टीव्ही व डिश फिटिंग</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('TV & DTH', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 14. Moving & Shifting -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="other">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.7</span><span class="text-slate-400 font-normal">(11k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-2xl shadow-inner">
+                            📦
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Moving &amp; Shifting</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">सामान वाहतूक</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Moving & Shifting', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 15. Bathroom Services -->
+                <div class="apk-catalog-card bg-white rounded-2xl p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200" data-category="cleaning plumbing">
+                    <div>
+                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
+                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(45k)</span>
+                        </div>
+                        <div class="w-12 h-12 mx-auto my-1 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-2xl shadow-inner">
+                            🚿
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Bathroom Services</h4>
+                        <p class="text-[9px] text-slate-400 font-medium">बाथरूम काम</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                        <div class="leading-none">
+                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
+                        </div>
+                        <button type="button" onclick="quickSelectApkCatalogService('Bathroom Services', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
