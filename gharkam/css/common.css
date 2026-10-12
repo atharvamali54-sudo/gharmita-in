@@ -259,7 +259,7 @@ html.is-mobile-app header button[onclick*="openMyOrdersModal"] {
 }
 
 /* 2. Mobile App & Liquid Header responsiveness */
-html.is-mobile-app header,
+html.is-mobile-app header:not(#apkCustomerHeader),
 header.liquid-header {
     width: 100% !important;
     max-width: 100vw !important;
@@ -274,7 +274,7 @@ header.liquid-header {
 }
 
 /* 3. Logo and Brand Name alignment in Mobile App */
-html.is-mobile-app header > div:first-child,
+html.is-mobile-app header:not(#apkCustomerHeader) > div:first-child,
 header.liquid-header > div:first-child {
     display: flex !important;
     align-items: center !important;
@@ -284,9 +284,9 @@ header.liquid-header > div:first-child {
     overflow: hidden !important;
 }
 
-html.is-mobile-app header .brand-mark,
+html.is-mobile-app header:not(#apkCustomerHeader) .brand-mark,
 header.liquid-header .brand-mark,
-html.is-mobile-app header > div:first-child > span:first-child {
+html.is-mobile-app header:not(#apkCustomerHeader) > div:first-child > span:first-child {
     padding: 0.25rem 0.4rem !important;
     font-size: 0.88rem !important;
     line-height: 1 !important;
@@ -294,11 +294,11 @@ html.is-mobile-app header > div:first-child > span:first-child {
     border-radius: 9999px !important;
 }
 
-html.is-mobile-app header h1,
+html.is-mobile-app header:not(#apkCustomerHeader) h1,
 header.liquid-header h1,
-html.is-mobile-app header > div:first-child > span:last-child,
-html.is-mobile-app header > div:first-child .text-2xl,
-html.is-mobile-app header > div:first-child span.text-2xl {
+html.is-mobile-app header:not(#apkCustomerHeader) > div:first-child > span:last-child,
+html.is-mobile-app header:not(#apkCustomerHeader) > div:first-child .text-2xl,
+html.is-mobile-app header:not(#apkCustomerHeader) > div:first-child span.text-2xl {
     font-size: 0.95rem !important;
     line-height: 1.15 !important;
     font-weight: 800 !important;
@@ -309,13 +309,13 @@ html.is-mobile-app header > div:first-child span.text-2xl {
     text-overflow: ellipsis !important;
 }
 
-html.is-mobile-app header h1 span,
+html.is-mobile-app header:not(#apkCustomerHeader) h1 span,
 header.liquid-header h1 span {
     font-size: 0.72rem !important;
     font-weight: 700 !important;
 }
 
-html.is-mobile-app header p,
+html.is-mobile-app header:not(#apkCustomerHeader) p,
 header.liquid-header p {
     font-size: 0.6rem !important;
     line-height: 1 !important;
@@ -359,7 +359,7 @@ html.is-mobile-app #headerDutyStatus {
 }
 
 /* 5. Mobile App Header Right Container */
-html.is-mobile-app header > div:last-child,
+html.is-mobile-app header:not(#apkCustomerHeader) > div:last-child,
 header.liquid-header > div:last-child {
     display: flex !important;
     align-items: center !important;
