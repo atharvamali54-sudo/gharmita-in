@@ -1806,6 +1806,33 @@ populateBookingProfile();
         }
         window.resetSubmitButtons = resetSubmitButtons;
 
+        async function checkCustomerUnpaidDues(mobile) {
+            if (!mobile) return null;
+            const cleanMob = String(mobile).replace(/\D/g, '').slice(-10);
+            if (!cleanMob || cleanMob.length !== 10) return null;
+
+            try {
+                const snap = await database.ref("orders").once("value");
+                const all = snap.val() || {};
+                for (const [orderId, ord] of Object.entries(all)) {
+                    if (!ord) continue;
+                    const ordMob = String(ord.customerMobile || '').replace(/\D/g, '').slice(-10);
+                    if (ordMob === cleanMob) {
+                        const isDispute = (ord.status === 'Payment Dispute' || ord.isPaymentDisputed === true || ord.paymentStatus === 'Unpaid Dispute') &&
+                                          ord.paymentStatus !== 'Paid' &&
+                                          ord.isDisputeResolved !== true;
+                        if (isDispute) {
+                            return { orderId, ...ord };
+                        }
+                    }
+                }
+            } catch(err) {
+                console.warn("Unpaid dues check error:", err);
+            }
+            return null;
+        }
+        window.checkCustomerUnpaidDues = checkCustomerUnpaidDues;
+
         async function handleApkFormSubmit(e) {
             if (e) e.preventDefault();
             await handleFormSubmit(e);
@@ -1867,6 +1894,18 @@ populateBookingProfile();
 
             if (!service || !name || !mobile || mobile.length !== 10 || !area || !address) {
                 alert("कृपया सर्व आवश्यक माहिती आणि अचूक १० अंकी मोबाईल नंबर भरा!");
+                resetSubmitButtons(isEmergency);
+                return;
+            }
+
+            // Check if customer has any unpaid disputed order before proceeding
+            const unpaidOrder = await checkCustomerUnpaidDues(mobile);
+            if (unpaidOrder) {
+                const unpaidAmt = unpaidOrder.unpaidAmount || unpaidOrder.finalAmount || unpaidOrder.orderAmount || 500;
+                const orderShortId = '#' + String(unpaidOrder.orderId || '').slice(-6).toUpperCase();
+                const reasonText = unpaidOrder.disputeReason || 'कामाचे बिल भरलेले नाही';
+
+                alert(`🚫 नवीन बुकिंग ब्लॉक केले आहे!\n\nतुमचे मागील ऑर्डर ${orderShortId} चे ₹${unpaidAmt} बिल प्रलंबित (बाकी) आहे.\n(तपशील: ${reasonText})\n\nकामगारांचे हक्काचे पैसे सुरक्षित ठेवण्यासाठी, मागील बिल भरल्याशिवाय नवीन सर्व्हिस बुक करता येत नाही.\n\nबिल भरण्यासाठी किंवा मदतीसाठी कृपया घरबंधू हेल्पलाइन 8806283584 वर संपर्क साधा.`);
                 resetSubmitButtons(isEmergency);
                 return;
             }
@@ -2444,7 +2483,7 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                     if (otpCard) otpCard.classList.add('hidden');
                 }
 
-                if (data.status === 'Completed' || data.status === 'Cancelled') {
+                if (data.status === 'Completed' || data.status === 'Cancelled' || data.status === 'Payment Dispute') {
                     if (otpCard) otpCard.classList.add('hidden');
                     stepsContainer.classList.add('hidden');
                     if (cancelContainer) cancelContainer.classList.add('hidden');
@@ -2463,6 +2502,17 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                             window['ratingPrompted_' + orderId] = true;
                             document.getElementById('ratingModal').classList.remove('hidden');
                             document.getElementById('ratingModal').classList.add('flex');
+                        }
+                    } else if (data.status === 'Payment Dispute' || data.isPaymentDisputed) {
+                        badgeEl.className = "bg-rose-100 text-rose-800 text-[11px] font-black px-3 py-1 rounded-full flex items-center gap-1 animate-pulse border border-rose-300";
+                        badgeTextEl.innerText = "⚠️ पेमेंट बाकी / वाद";
+                        workerMobileEl.innerHTML = workerInfo;
+                        document.getElementById('finishedIcon').innerText = "⚠️";
+                        document.getElementById('finishedTitle').innerText = "पेमेंट वाद (Payment Dispute / Unpaid)";
+                        const unpaidAmt = data.unpaidAmount || data.finalAmount || data.orderAmount || 500;
+                        const finishedDesc = document.getElementById('finishedDesc');
+                        if (finishedDesc) {
+                            finishedDesc.innerHTML = `<div class="bg-rose-50 border border-rose-200 rounded-xl p-3 mt-2 text-left space-y-1.5"><p class="text-rose-800 font-bold text-xs"><i class="fa-solid fa-triangle-exclamation text-rose-600 mr-1"></i> कामगाराने ₹${unpaidAmt} बिलाचा वाद नोंदवला आहे.</p><p class="text-[11px] text-slate-600">तक्रार: "${escapeHtml(data.disputeReason || 'कामाचे बिल भरलेले नाही')}"</p><p class="text-[11px] text-slate-700 font-semibold">थकीत बिल भरल्याशिवाय नवीन सर्व्हिस बुक करता येणार नाही.</p><a href="tel:8806283584" class="inline-flex items-center gap-1.5 bg-rose-600 text-white font-black px-3 py-1.5 rounded-lg text-xs hover:bg-rose-700 transition shadow-xs mt-1"><i class="fa-solid fa-phone"></i> बिल भरण्यासाठी कॉल करा (8806283584)</a></div>`;
                         }
                     } else {
                         badgeEl.className = "bg-red-100 text-red-700 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
@@ -2841,24 +2891,44 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                 container.appendChild(pastHeader);
 
                 pastOrders.forEach(({ id: orderId, data: order }) => {
+                    const isDisputed = (order.status === 'Payment Dispute' || order.isPaymentDisputed) && !order.isDisputeResolved && order.paymentStatus !== 'Paid';
                     const isCompleted = order.status === 'Completed';
-                    const badgeClass = isCompleted ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200";
-                    const statusText = isCompleted ? "पूर्ण झाले (Completed)" : "रद्द केले (Cancelled)";
+                    let badgeClass = isCompleted ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200";
+                    let statusText = isCompleted ? "पूर्ण झाले (Completed)" : "रद्द केले (Cancelled)";
+                    if (isDisputed) {
+                        badgeClass = "bg-rose-100 text-rose-800 border-rose-300 font-black animate-pulse";
+                        statusText = "⚠️ पेमेंट बाकी / वाद (Payment Due)";
+                    }
 
                     const card = document.createElement('div');
-                    card.className = "bg-slate-50 border border-slate-200 p-3.5 rounded-2xl space-y-2 text-xs hover:border-slate-300 transition";
+                    card.className = isDisputed
+                        ? "bg-rose-50/70 border-2 border-rose-300 p-3.5 rounded-2xl space-y-2 text-xs hover:border-rose-400 transition"
+                        : "bg-slate-50 border border-slate-200 p-3.5 rounded-2xl space-y-2 text-xs hover:border-slate-300 transition";
                     card.innerHTML = `
-                        <div class="flex items-center justify-between border-b pb-2 border-slate-200">
+                        <div class="flex items-center justify-between border-b pb-2 ${isDisputed ? 'border-rose-200' : 'border-slate-200'}">
                             <span class="font-bold text-slate-800"><i class="fa-solid fa-wrench text-slate-500"></i> ${escapeHtml(order.service || 'सर्व्हिस')}</span>
                             <span class="px-2 py-0.5 rounded-full font-bold text-[10px] border ${badgeClass}">${statusText}</span>
                         </div>
                         <div class="grid grid-cols-2 gap-1.5 text-slate-600">
                             <p><strong>आयडी:</strong> <span class="font-mono">#${orderId.slice(-6).toUpperCase()}</span></p>
-                            <p><strong>बजेट:</strong> <span class="font-bold text-emerald-600">${escapeHtml(order.budget || '-')}</span></p>
+                            <p><strong>बजेट:</strong> <span class="font-bold ${isDisputed ? 'text-rose-600' : 'text-emerald-600'}">${escapeHtml(order.budget || '-')}</span></p>
                             <p><strong>तारीख:</strong> ${escapeHtml(order.date || '-')}</p>
                             <p><strong>परिसर:</strong> ${escapeHtml(order.area || '-')}</p>
                         </div>
-                        <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-200">
+                        ${isDisputed ? `
+                        <div class="bg-white border border-rose-200 rounded-xl p-2.5 space-y-1 text-slate-800">
+                            <p class="text-rose-700 font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> मागील थकीत रक्कम: ₹${order.unpaidAmount || order.finalAmount || order.orderAmount || 500}
+                            </p>
+                            <p class="text-[11px] text-slate-600 font-semibold italic">तक्रार: "${escapeHtml(order.disputeReason || 'कामाचे बिल देणे बाकी')}"</p>
+                            <div class="pt-1">
+                                <a href="tel:8806283584" class="bg-rose-600 hover:bg-rose-700 text-white font-black px-3 py-1.5 rounded-lg text-[11px] inline-flex items-center gap-1 shadow-xs">
+                                    <i class="fa-solid fa-phone"></i> बिल भरण्यासाठी कॉल करा (8806283584)
+                                </a>
+                            </div>
+                        </div>
+                        ` : ''}
+                        <div class="flex items-center justify-end gap-2 pt-1 border-t ${isDisputed ? 'border-rose-200' : 'border-slate-200'}">
                             ${isCompleted && !order.isRated ? `
                                 <button onclick="openOrderRating('${orderId}')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-1 px-3 rounded-lg text-[11px] transition flex items-center gap-1 shadow-sm">
                                     <i class="fa-solid fa-star text-[10px]"></i> Rate Worker
@@ -3431,6 +3501,16 @@ async function handleEmergencySosSubmit(e) {
 
     if (!name || !mobile || mobile.length !== 10 || !address) {
         alert("कृपया सर्व माहिती आणि अचूक १० अंकी मोबाईल नंबर भरा!");
+        return;
+    }
+
+    const unpaidOrder = await checkCustomerUnpaidDues(mobile);
+    if (unpaidOrder) {
+        const unpaidAmt = unpaidOrder.unpaidAmount || unpaidOrder.finalAmount || unpaidOrder.orderAmount || 500;
+        const orderShortId = '#' + String(unpaidOrder.orderId || '').slice(-6).toUpperCase();
+        const reasonText = unpaidOrder.disputeReason || 'कामाचे बिल भरलेले नाही';
+
+        alert(`🚫 नवीन बुकिंग ब्लॉक केले आहे!\n\nतुमचे मागील ऑर्डर ${orderShortId} चे ₹${unpaidAmt} बिल प्रलंबित (बाकी) आहे.\n(तपशील: ${reasonText})\n\nकामगारांचे हक्काचे पैसे सुरक्षित ठेवण्यासाठी, मागील बिल भरल्याशिवाय नवीन सर्व्हिस बुक करता येत नाही.\n\nबिल भरण्यासाठी किंवा मदतीसाठी कृपया घरबंधू हेल्पलाइन 8806283584 वर संपर्क साधा.`);
         return;
     }
 

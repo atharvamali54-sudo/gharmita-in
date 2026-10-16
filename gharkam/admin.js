@@ -1332,6 +1332,7 @@ function renderOrdersTable() {
         if (item.status === 'Reached Location') statusBadgeClass = "bg-purple-100 text-purple-800 border border-purple-200 font-bold";
         if (item.status === 'In Progress') statusBadgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold animate-pulse";
         if (item.status === 'Completed') statusBadgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-200";
+        if (item.status === 'Payment Dispute' || item.isPaymentDisputed) statusBadgeClass = "bg-rose-600 text-white font-black border border-rose-700 animate-pulse";
         if (item.status === 'Cancelled') statusBadgeClass = "bg-rose-100 text-rose-800 border border-rose-200";
 
         const isEmergencyOrder = Boolean(item.isEmergency || item.orderType === 'emergency_sos');
@@ -2826,22 +2827,29 @@ function formatShieldTime(ts) {
 
 function renderQualityAlertCard(alert, isResolved = false) {
     const isLowRating = alert.type === 'LOW_RATING';
+    const isPaymentDispute = alert.type === 'PAYMENT_DISPUTE';
     const borderClass = isResolved
         ? 'border-slate-200 bg-slate-50/80 opacity-90'
-        : 'border-rose-400 bg-gradient-to-br from-white via-rose-50/40 to-amber-50/30 shadow-md ring-1 ring-rose-400/40';
+        : (isPaymentDispute 
+            ? 'border-red-500 bg-gradient-to-br from-white via-rose-50/80 to-red-50/50 shadow-lg ring-2 ring-red-500/40'
+            : 'border-rose-400 bg-gradient-to-br from-white via-rose-50/40 to-amber-50/30 shadow-md ring-1 ring-rose-400/40');
     const orderNum = alert.orderId ? '#' + String(alert.orderId).slice(-6).toUpperCase() : 'N/A';
     const timeStr = formatShieldTime(alert.timestamp);
 
     const cleanCustMobile = String(alert.customerMobile || '').replace(/\D/g, '').slice(-10);
     const cleanWorkerMobile = String(alert.workerMobile || '').replace(/\D/g, '').slice(-10);
 
-    const custWaText = isLowRating
-        ? `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरबंधू (GharBandhu) मॅनेजमेंटकडून हा मेसेज आहे. आपल्या ऑर्डर ${orderNum} (${alert.service || 'काम'}) वरील ${alert.rating}★ रेटिंग व तक्रारीबाबत आम्ही अत्यंत दिलगीर आहोत. आपल्या समस्येचे तातडीने निवारण करण्यासाठी आम्ही तत्पर आहोत. काय मदत करू शकतो किंवा आम्ही आपल्याला कॉल करू का? - घरबंधू सपोर्ट (पुणे)`
-        : `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरबंधू (GharBandhu) मॅनेजमेंटकडून हा मेसेज आहे. आपली ऑर्डर ${orderNum} (${alert.service || 'काम'}) रद्द झाल्याचे समजले. काय अडचण आली किंवा कारागिराबाबत काही तक्रार आहे का? आम्ही आपले समाधान करण्यासाठी कटिबद्ध आहोत. - घरबंधू सपोर्ट (पुणे)`;
+    const custWaText = isPaymentDispute
+        ? `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरबंधू (GharBandhu) मॅनेजमेंटकडून नोटीस: आपल्या ऑर्डर ${orderNum} (${alert.service || 'काम'}) चे ₹${alert.unpaidAmount || ''} बिल कामगाराला देणे प्रलंबित असल्याचे कामगाराने नोंदवले आहे. कामगारांचे हक्काचे बिल त्वरित क्लिअर करावे किंवा काही वाद असल्यास 8806283584 वर संपर्क साधावा. बिल भरेपर्यंत आपले खाते ब्लॉक राहील. - घरबंधू सपोर्ट (पुणे)`
+        : (isLowRating
+            ? `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरबंधू (GharBandhu) मॅनेजमेंटकडून हा मेसेज आहे. आपल्या ऑर्डर ${orderNum} (${alert.service || 'काम'}) वरील ${alert.rating}★ रेटिंग व तक्रारीबाबत आम्ही अत्यंत दिलगीर आहोत. आपल्या समस्येचे तातडीने निवारण करण्यासाठी आम्ही तत्पर आहोत. काय मदत करू शकतो किंवा आम्ही आपल्याला कॉल करू का? - घरबंधू सपोर्ट (पुणे)`
+            : `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरबंधू (GharBandhu) मॅनेजमेंटकडून हा मेसेज आहे. आपली ऑर्डर ${orderNum} (${alert.service || 'काम'}) रद्द झाल्याचे समजले. काय अडचण आली किंवा कारागिराबाबत काही तक्रार आहे का? आम्ही आपले समाधान करण्यासाठी कटिबद्ध आहोत. - घरबंधू सपोर्ट (पुणे)`);
 
-    const workerWaText = isLowRating
-        ? `घरबंधू ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} वर ग्राहकाने ${alert.rating}★ रेटिंग देऊन गंभीर तक्रार नोंदवली आहे. याबाबत तातडीने ॲडमिनशी संपर्क साधावा, अन्यथा आपले खाते तात्पुरते सस्पेंड केले जाईल.`
-        : `घरबंधू ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} रद्द झाली आहे. याचे नेमके काय कारण होते? तातडीने ॲडमिनशी संपर्क साधावा.`;
+    const workerWaText = isPaymentDispute
+        ? `कामगार बंधू ${alert.workerName || 'कामगार'} जी, घरबंधू ॲडमिन नोटीस: ऑर्डर ${orderNum} वरील ₹${alert.unpaidAmount || ''} बिलाच्या तक्रारीची दखल घेण्यात आली आहे. ॲडमिन टीम ग्राहकाकडून बिल वसूल करण्याचा पाठपुरावा करत आहे. काळजी करू नका, घरबंधू सुरक्षा फंड आपल्या पाठीशी आहे.`
+        : (isLowRating
+            ? `घरबंधू ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} वर ग्राहकाने ${alert.rating}★ रेटिंग देऊन गंभीर तक्रार नोंदवली आहे. याबाबत तातडीने ॲडमिनशी संपर्क साधावा, अन्यथा आपले खाते तात्पुरते सस्पेंड केले जाईल.`
+            : `घरबंधू ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} रद्द झाली आहे. याचे नेमके काय कारण होते? तातडीने ॲडमिनशी संपर्क साधावा.`);
 
     const custWaUrl = cleanCustMobile ? `https://wa.me/91${cleanCustMobile}?text=${encodeURIComponent(custWaText)}` : null;
     const workerWaUrl = cleanWorkerMobile ? `https://wa.me/91${cleanWorkerMobile}?text=${encodeURIComponent(workerWaText)}` : null;
@@ -2860,8 +2868,8 @@ function renderQualityAlertCard(alert, isResolved = false) {
                     <i class="fa-solid fa-check"></i> सोडवलेली तक्रार (Resolved)
                 </span>
                 `}
-                <span class="${isLowRating ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-rose-100 text-rose-900 border-rose-300'} text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border">
-                    ${isLowRating ? `⭐ ${alert.rating}.0★ कमी रेटिंग तक्रार` : `🚨 ऑर्डर रद्द / वाद (Dispute)`}
+                <span class="${isPaymentDispute ? 'bg-red-700 text-white border-red-800' : (isLowRating ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-rose-100 text-rose-900 border-rose-300')} text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border">
+                    ${isPaymentDispute ? `🚨 ग्राहक पेमेंट वाद (थकीत ₹${alert.unpaidAmount || 0})` : (isLowRating ? `⭐ ${alert.rating}.0★ कमी रेटिंग तक्रार` : `🚨 ऑर्डर रद्द / वाद (Dispute)`)}
                 </span>
                 ${alert.orderId ? `
                 <button type="button" onclick="openAdminOrderModal('${alert.orderId}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs font-black px-2.5 py-0.5 rounded-lg transition inline-flex items-center gap-1 cursor-pointer">
@@ -2886,7 +2894,7 @@ function renderQualityAlertCard(alert, isResolved = false) {
                 <div class="space-y-1">
                     <div class="flex items-center gap-2 flex-wrap">
                         <strong class="text-xs font-bold text-rose-900">
-                            ${isLowRating ? 'ग्राहकाचा असंतोष व तक्रार:' : 'ऑर्डर रद्द करण्याचे कारण / वाद तपशील:'}
+                            ${isPaymentDispute ? 'पेमेंट वाद / थकीत बिल तपशील:' : (isLowRating ? 'ग्राहकाचा असंतोष व तक्रार:' : 'ऑर्डर रद्द करण्याचे कारण / वाद तपशील:')}
                         </strong>
                         ${isLowRating ? `
                         <span class="text-amber-500 font-bold text-sm tracking-wider">
@@ -2921,7 +2929,7 @@ function renderQualityAlertCard(alert, isResolved = false) {
                     </a>
                     ${custWaUrl ? `
                     <a href="${custWaUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2 px-2.5 rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-brands fa-whatsapp text-sm"></i> व्हॉट्सॲप दिलगिरी
+                        <i class="fa-brands fa-whatsapp text-sm"></i> ${isPaymentDispute ? 'व्हॉट्सॲप नोटीस' : 'व्हॉट्सॲप दिलगिरी'}
                     </a>
                     ` : `
                     <button disabled class="bg-slate-200 text-slate-400 font-bold py-2 px-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-not-allowed">
@@ -2949,7 +2957,7 @@ function renderQualityAlertCard(alert, isResolved = false) {
                     </a>
                     ${workerWaUrl ? `
                     <a href="${workerWaUrl}" target="_blank" class="bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold py-2 px-2.5 rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-brands fa-whatsapp text-sm"></i> ताकीद नोटीस
+                        <i class="fa-brands fa-whatsapp text-sm"></i> ${isPaymentDispute ? 'कामगाराला धीर द्या' : 'ताकीद नोटीस'}
                     </a>
                     ` : `
                     <button disabled class="bg-slate-200 text-slate-400 font-bold py-2 px-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-not-allowed">
@@ -2962,19 +2970,37 @@ function renderQualityAlertCard(alert, isResolved = false) {
 
         <!-- Resolution & Disciplinary Footer Bar -->
         <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
-            <div class="flex items-center gap-2">
-                ${(alert.workerUid || alert.workerId || alert.workerMobile) && !isResolved ? `
-                <button type="button" onclick="suspendWorkerFromShield('${alert.workerUid || alert.workerId || ''}', '${alert.workerMobile || ''}', '${escapeHtml(alert.workerName)}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 hover:border-rose-300 font-bold text-xs py-1.5 px-3 rounded-xl transition flex items-center gap-1.5 cursor-pointer active:scale-95">
-                    <i class="fa-solid fa-user-slash text-xs"></i> 🚫 कामगार ड्युटी बंद / सस्पेंड करा
-                </button>
-                ` : ''}
+            <div class="flex items-center gap-2 flex-wrap">
+                ${isPaymentDispute ? `
+                    ${alert.reimbursedFromFund ? `
+                    <span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-3 py-1.5 rounded-xl border border-emerald-300 inline-flex items-center gap-1">
+                        <i class="fa-solid fa-check"></i> ✓ कामगाराला सुरक्षा फंड भरपाई दिली
+                    </span>
+                    ` : `
+                    <button type="button" onclick="reimburseWorkerFromFund('${alert.orderId}', '${alert.workerUid || ''}', '${alert.workerMobile || ''}', ${alert.unpaidAmount || 0})" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black text-xs py-1.5 px-3 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-hand-holding-dollar"></i> 🛡️ कामगाराला सुरक्षा फंड भरपाई (₹${alert.unpaidAmount || 0})
+                    </button>
+                    `}
+                ` : (
+                    (alert.workerUid || alert.workerId || alert.workerMobile) && !isResolved ? `
+                    <button type="button" onclick="suspendWorkerFromShield('${alert.workerUid || alert.workerId || ''}', '${alert.workerMobile || ''}', '${escapeHtml(alert.workerName)}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 hover:border-rose-300 font-bold text-xs py-1.5 px-3 rounded-xl transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                        <i class="fa-solid fa-user-slash text-xs"></i> 🚫 कामगार ड्युटी बंद / सस्पेंड करा
+                    </button>
+                    ` : ''
+                )}
             </div>
 
             <div>
                 ${!isResolved ? `
-                <button type="button" onclick="resolveQualityAlert('${alert.alertId}')" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-black text-xs py-2 px-4 rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-check-double text-sm"></i> ✓ तक्रार सोडवली (Mark Resolved)
-                </button>
+                    ${isPaymentDispute ? `
+                    <button type="button" onclick="resolvePaymentDispute('${alert.orderId}', '${alert.alertId}')" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-black text-xs py-2 px-4 rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-check-double text-sm"></i> ✓ पैसे वसूल झाले (Mark Paid & Unlock)
+                    </button>
+                    ` : `
+                    <button type="button" onclick="resolveQualityAlert('${alert.alertId}')" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-black text-xs py-2 px-4 rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-check-double text-sm"></i> ✓ तक्रार सोडवली (Mark Resolved)
+                    </button>
+                    `}
                 ` : `
                 <div class="text-[11px] text-emerald-700 font-bold flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
                     <i class="fa-solid fa-circle-check text-emerald-600"></i>
@@ -3059,6 +3085,46 @@ function renderQualityDisputeShield() {
                 resolvedAt: resolution ? resolution.resolvedAt : null,
                 resolvedAtStr: resolution ? new Date(resolution.resolvedAt || Date.now()).toLocaleDateString('mr-IN', { day: '2-digit', month: 'short' }) : null
             });
+        }
+    });
+
+    // 3. Collect Payment Disputes (Customer refused payment / Unpaid dispute)
+    Object.entries(allOrders).forEach(([orderId, order]) => {
+        if (order && (order.status === 'Payment Dispute' || order.isPaymentDisputed) && !seenOrderIds.has(orderId)) {
+            const alertId = `payment_dispute_${orderId}`;
+            const resolution = allQualityResolutions[alertId] || (localStorage.getItem('gharmitra_resolved_' + alertId) ? JSON.parse(localStorage.getItem('gharmitra_resolved_' + alertId)) : null);
+            const isResolved = Boolean(resolution) || order.isDisputeResolved === true || order.paymentStatus === 'Paid';
+
+            const targetWorkerId = order.workerUid || order.workerId || '';
+            const wInfo = (targetWorkerId && allWorkers[targetWorkerId]) || (order.workerMobile && Object.values(allWorkers).find(w => w.mobile === order.workerMobile));
+            const resolvedWorkerName = order.workerName || (wInfo && (wInfo.name || wInfo.fullName)) || (order.workerMobile ? 'कामगार (' + order.workerMobile + ')' : 'कामगार');
+            const resolvedWorkerMobile = order.workerMobile || (wInfo && wInfo.mobile) || '';
+
+            const disputeReason = order.disputeReason || 'ग्राहकाने कामाचे पैसे देण्यास नकार दिला / वाद घातला.';
+            const unpaidAmount = order.unpaidAmount || order.finalAmount || order.orderAmount || 500;
+
+            alertsList.push({
+                alertId,
+                type: 'PAYMENT_DISPUTE',
+                orderId: orderId,
+                service: order.service || 'होम सर्व्हिस',
+                budget: `₹${unpaidAmount} थकीत`,
+                unpaidAmount: unpaidAmount,
+                issueDescription: `🚨 पेमेंट वाद: ${disputeReason} (थकीत रक्कम: ₹${unpaidAmount})`,
+                customerName: order.customerName || 'ग्राहक',
+                customerMobile: order.customerMobile || '',
+                workerName: resolvedWorkerName,
+                workerMobile: resolvedWorkerMobile,
+                workerId: targetWorkerId,
+                workerUid: targetWorkerId,
+                reimbursedFromFund: order.reimbursedFromFund === true,
+                timestamp: order.disputeReportedAt || order.disputedAt || order.timestamp || Date.now(),
+                isResolved,
+                resolutionNote: resolution ? (resolution.resolutionNote || 'पेमेंट वसूल / सोडवले') : (order.disputeResolutionNote || null),
+                resolvedAt: resolution ? resolution.resolvedAt : order.disputeResolvedAt,
+                resolvedAtStr: (resolution && resolution.resolvedAt) ? new Date(resolution.resolvedAt).toLocaleDateString('mr-IN', { day: '2-digit', month: 'short' }) : null
+            });
+            seenOrderIds.add(orderId);
         }
     });
 
@@ -3210,6 +3276,92 @@ async function resolveQualityAlert(alertId) {
         } catch(e) {}
         alert("✅ तक्रार स्थानिक पातळीवर सोडवली म्हणून सेव्ह केली!");
         renderQualityDisputeShield();
+    }
+}
+
+async function resolvePaymentDispute(orderId, alertId) {
+    const defaultNote = "ग्राहकाने पूर्ण बिल भरले असून वाद मिटला आहे.";
+    const note = prompt("पेमेंट वसुली तपशील / रिझोल्युशन नोट टाका:", defaultNote);
+    if (note === null) return;
+
+    try {
+        await database.ref('orders/' + orderId).update({
+            status: 'Completed',
+            paymentStatus: 'Paid',
+            isPaymentDisputed: false,
+            isDisputeResolved: true,
+            disputeResolutionNote: note.trim() || defaultNote,
+            disputeResolvedAt: firebase.database.ServerValue.TIMESTAMP,
+            disputeResolvedBy: 'Super Admin'
+        });
+
+        const resolutionPayload = {
+            resolvedAt: firebase.database.ServerValue.TIMESTAMP,
+            resolvedBy: 'Super Admin',
+            resolutionNote: note.trim() || defaultNote
+        };
+        await database.ref('qualityDisputeResolutions/' + alertId).set(resolutionPayload).catch(() => {});
+        allQualityResolutions[alertId] = {
+            resolvedAt: Date.now(),
+            resolvedBy: 'Super Admin',
+            resolutionNote: note.trim() || defaultNote
+        };
+        try {
+            localStorage.setItem('gharmitra_resolved_' + alertId, JSON.stringify(resolutionPayload));
+        } catch(e) {}
+
+        alert("✅ पेमेंट वाद यशस्वीरीत्या सोडवला!\n\nग्राहकाचे खाते अनलॉक करण्यात आले आहे आणि ऑर्डर पूर्ण (Completed) झाली आहे.");
+        renderQualityDisputeShield();
+        renderOrdersTable();
+    } catch(err) {
+        console.error("Resolve dispute error:", err);
+        alert("वाद सोडवताना त्रुटी आली: " + (err.message || err));
+    }
+}
+
+async function reimburseWorkerFromFund(orderId, workerUid, workerMobile, amount) {
+    const numAmt = Number(amount) || 0;
+    if (numAmt <= 0) {
+        alert("अवैध रक्कम.");
+        return;
+    }
+
+    const confirmMsg = `तुम्हाला घरबंधू कामगार सुरक्षा फंडातून (Worker Protection Fund) कामगाराला ₹${numAmt} थेट वॉलेटमध्ये भरपाई जमा करायची आहे का?\n\nयामुळे कामगाराचे नुकसान होणार नाही.`;
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        const targetWorkerId = workerUid || (workerMobile ? 'local_worker_' + workerMobile : null);
+        if (!targetWorkerId) {
+            alert("कामगाराचा आयडी किंवा मोबाईल नंबर सापडला नाही.");
+            return;
+        }
+
+        // Credit to worker wallet in Firebase
+        await database.ref('workers/' + targetWorkerId + '/walletBalance').transaction((curr) => {
+            return (Number(curr) || 0) + numAmt;
+        });
+
+        // Add transaction entry
+        await database.ref('walletTransactions/' + targetWorkerId).push({
+            type: 'CREDIT',
+            amount: numAmt,
+            reason: `🛡️ घरबंधू कामगार सुरक्षा फंड भरपाई (ऑर्डर #${orderId.slice(-6).toUpperCase()})`,
+            orderId: orderId,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+
+        // Mark order as reimbursed from fund
+        await database.ref('orders/' + orderId).update({
+            reimbursedFromFund: true,
+            reimbursedAmount: numAmt,
+            reimbursedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+
+        alert(`🎉 घरबंधू सुरक्षा फंडातून ₹${numAmt} कामगाराच्या वॉलेटमध्ये यशस्वीरीत्या जमा झाले!\n\nकामगाराचे नुकसान टळले आहे.`);
+        renderQualityDisputeShield();
+    } catch(err) {
+        console.error("Reimbursement error:", err);
+        alert("भरपाई जमा करताना त्रुटी आली: " + (err.message || err));
     }
 }
 

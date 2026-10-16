@@ -3009,6 +3009,101 @@ function finalizeOrderCompletion(orderId) {
     });
 }
 
+function reportCustomerPaymentDispute() {
+    const activeOrder = getActiveOrderForCurrentWorker();
+    const orderId = currentCompletingOrderId || (activeOrder ? activeOrder.orderId : null);
+    if (!orderId) {
+        alert("कोणतीही सक्रिय ऑर्डर सापडली नाही.");
+        return;
+    }
+
+    const orderData = (activeOrder && activeOrder.orderId === orderId) ? activeOrder.order : ((allOrdersData && allOrdersData[orderId]) || {});
+
+    const confirmReason = prompt(
+        "⚠️ ग्राहक पैसे देण्यास नकार देत आहे का?\n\nकाही अडचण किंवा वाद असल्यास खाली थोडक्यात कारण लिहा (किंवा Cancel दाबा):",
+        "ग्राहकाने कामाचे पैसे देण्यास नकार दिला / वाद घालत आहे"
+    );
+
+    if (confirmReason === null) return; // User pressed Cancel
+    const disputeReason = confirmReason.trim() || "ग्राहकाने कामाचे पैसे देण्यास नकार दिला / वाद घालत आहे";
+
+    // Calculate current live metered fare & materials
+    const now = Date.now();
+    const startedAt = Number(orderData.workStartedAt || now);
+    let pausedSec = Number(orderData.totalPausedSeconds || 0);
+    if (orderData.isWorkPaused && orderData.workCurrentPauseStartedAt) {
+        pausedSec += Math.floor((now - Number(orderData.workCurrentPauseStartedAt)) / 1000);
+    }
+    const netActiveSec = Math.max(0, Math.floor((now - startedAt) / 1000) - pausedSec);
+    const billedMins = Math.max(1, Math.ceil(netActiveSec / 60));
+    let finalFare = 60;
+    if (billedMins > 20) {
+        finalFare = 60 + ((billedMins - 20) * 3);
+    }
+
+    const matCost = Number(orderData.materialCost || 0);
+    const totalCombinedFare = finalFare + matCost;
+    const matItems = orderData.materialItems || '';
+    const receiptUrl = orderData.materialReceiptUrl || null;
+
+    stopOrderAlert();
+    if (_workerLiveTimerInterval) {
+        clearInterval(_workerLiveTimerInterval);
+        _workerLiveTimerInterval = null;
+    }
+
+    const workerName = (typeof workerProfile !== 'undefined' && workerProfile && (workerProfile.fullName || workerProfile.name)) || 'कामगार';
+    const workerMob = typeof getCurrentWorkerMobile === 'function' ? getCurrentWorkerMobile() : (currentWorkerMobile || '');
+
+    stopLocationSharing(orderId, true).then(() =>
+        database.ref("orders/" + orderId).update({
+            status: 'Payment Dispute',
+            paymentStatus: 'Unpaid Dispute',
+            isPaymentDisputed: true,
+            isDisputeResolved: false,
+            disputeReason: disputeReason,
+            disputeReportedBy: 'Worker',
+            disputeReportedAt: firebase.database.ServerValue.TIMESTAMP,
+            workerLocation: null,
+            completionOtpVerified: false,
+            laborAmount: finalFare,
+            materialCost: matCost,
+            materialItems: matItems,
+            materialReceiptUrl: receiptUrl,
+            finalAmount: totalCombinedFare,
+            orderAmount: totalCombinedFare,
+            unpaidAmount: totalCombinedFare,
+            budget: `₹${totalCombinedFare} (पेमेंट बाकी / वाद)`,
+            totalWorkMinutes: billedMins,
+            totalPausedSeconds: pausedSec,
+            disputedAt: firebase.database.ServerValue.TIMESTAMP
+        })
+    ).then(() => {
+        // Post high-priority alert to admin_notifications
+        database.ref("admin_notifications").push({
+            type: 'PAYMENT_DISPUTE',
+            orderId: orderId,
+            workerName: workerName,
+            workerPhone: workerMob,
+            customerName: orderData.customerName || 'ग्राहक',
+            customerMobile: orderData.customerMobile || '',
+            customerAddress: orderData.address || orderData.location || '',
+            unpaidAmount: totalCombinedFare,
+            reason: disputeReason,
+            createdAt: firebase.database.ServerValue.TIMESTAMP,
+            status: 'PENDING'
+        });
+        return releaseActiveOrderLock(orderId);
+    }).then(() => {
+        closeCompletionOtpModal();
+        alert(`🚨 पेमेंट वाद (Non-Payment) यशस्वीरीत्या नोंदवला आहे!\n\nथकीत रक्कम: ₹${totalCombinedFare}\n\nघरबंधू ॲडमिन टीमकडे त्वरित अलर्ट गेला आहे. तुम्ही सुरक्षितपणे तिथून निघू शकता.\nग्राहक जोपर्यंत हे बिल भरत नाही तोपर्यंत त्याचे ॲप ब्लॉक केले जाईल आणि ॲडमिन द्वारे पाठपुरावा करून तुमची रक्कम मिळवून दिली जाईल.`);
+        if (typeof renderJobs === 'function') renderJobs();
+    }).catch(error => {
+        console.error("Payment dispute report error:", error);
+        alert("तक्रार नोंदवताना त्रुटी आली: " + (error.message || error));
+    });
+}
+
 function updateStatus(orderId, newStatus) {
     const activeOrder = getActiveOrderForCurrentWorker();
     if (!activeOrder || activeOrder.orderId !== orderId) {
@@ -3362,12 +3457,12 @@ function renderMyJobsModalContent() {
         const workerMobile = session ? session.mobile : null;
 
         const completedOrders = Object.entries(allOrdersData).filter(([id, order]) => {
-            if (!order || order.status !== 'Completed') return false;
+            if (!order || (order.status !== 'Completed' && order.status !== 'Payment Dispute')) return false;
             return (
                 (workerUid && (order.workerUid === workerUid || order.workerUid === ('local_worker_' + workerMobile))) ||
                 (workerMobile && (order.workerMobile === workerMobile || order.workerUid === ('local_worker_' + workerMobile)))
             );
-        }).sort((a, b) => (b[1].completedAt || b[1].timestamp || 0) - (a[1].completedAt || a[1].timestamp || 0));
+        }).sort((a, b) => (b[1].completedAt || b[1].disputedAt || b[1].timestamp || 0) - (a[1].completedAt || a[1].disputedAt || a[1].timestamp || 0));
 
         if (completedOrders.length === 0) {
             compList.innerHTML = `
@@ -3379,18 +3474,19 @@ function renderMyJobsModalContent() {
         } else {
             let html = '';
             completedOrders.forEach(([id, order]) => {
-                const timeVal = order.completedAt || order.timestamp || Date.now();
+                const isDisputed = order.status === 'Payment Dispute' || order.isPaymentDisputed;
+                const timeVal = order.completedAt || order.disputedAt || order.timestamp || Date.now();
                 const dateStr = new Date(timeVal).toLocaleDateString('mr-IN', { day: '2-digit', month: 'short', year: 'numeric' });
                 const budgetVal = (order.budget || '₹500').replace('₹', '');
                 html += `
-                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
+                    <div class="p-3 ${isDisputed ? 'bg-rose-50/70 border-rose-200' : 'bg-slate-50 border-slate-200'} rounded-2xl border flex items-center justify-between text-xs">
                         <div class="space-y-0.5">
-                            <span class="font-bold text-slate-800 block">${order.service || 'काम'}</span>
-                            <span class="text-[10px] text-slate-500 block">${order.area || 'पुणे'} • ${dateStr}</span>
-                            <span class="text-[10px] text-emerald-600 font-bold block">✓ पूर्ण झाले</span>
+                            <span class="font-bold text-slate-800 block">${escapeHtml(order.service || 'काम')}</span>
+                            <span class="text-[10px] text-slate-500 block">${escapeHtml(order.area || 'पुणे')} • ${dateStr}</span>
+                            ${isDisputed ? `<span class="text-[10px] text-rose-600 font-black block"><i class="fa-solid fa-triangle-exclamation"></i> ⚠️ पेमेंट वाद (तक्रार दाखल)</span>` : `<span class="text-[10px] text-emerald-600 font-bold block">✓ पूर्ण झाले</span>`}
                         </div>
                         <div class="text-right">
-                            <span class="text-sm font-black text-emerald-700 block">₹${budgetVal}</span>
+                            <span class="text-sm font-black ${isDisputed ? 'text-rose-600' : 'text-emerald-700'} block">₹${budgetVal}</span>
                             ${order.customerRating ? `<span class="text-[10px] text-amber-500 font-bold">★ ${order.customerRating}</span>` : ''}
                         </div>
                     </div>
