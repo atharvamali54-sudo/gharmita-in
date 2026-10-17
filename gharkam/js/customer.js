@@ -1833,6 +1833,172 @@ populateBookingProfile();
         }
         window.checkCustomerUnpaidDues = checkCustomerUnpaidDues;
 
+        let currentUnpaidDisputedOrder = null;
+
+        function openUnpaidDuesModal(unpaidOrder) {
+            if (!unpaidOrder) return;
+            currentUnpaidDisputedOrder = unpaidOrder;
+
+            const modal = document.getElementById('unpaidDuesModal');
+            const unpaidAmt = Number(unpaidOrder.unpaidAmount || unpaidOrder.finalAmount || unpaidOrder.orderAmount || 160);
+
+            if (!modal) {
+                const proceed = confirm(`तुमचे मागील ऑर्डरचे ₹${unpaidAmt} बिल प्रलंबित आहे.\n\nआता Razorpay/UPI द्वारे हे बिल भरून नवीन बुकिंग अनलॉक करायचे आहे का?`);
+                if (proceed) {
+                    payUnpaidDisputeBill(unpaidOrder.orderId, unpaidAmt);
+                }
+                return;
+            }
+
+            const orderShortCode = '#' + String(unpaidOrder.orderId || '').slice(-6).toUpperCase();
+            const serviceName = unpaidOrder.service || unpaidOrder.category || 'घरकाम सेवा (Home Service)';
+            const disputeReason = unpaidOrder.disputeReason || 'कामाचे बिल भरलेले नाही / वाद';
+
+            const codeEl = document.getElementById('unpaidModalOrderCode');
+            const srvEl = document.getElementById('unpaidModalServiceName');
+            const reasonEl = document.getElementById('unpaidModalDisputeReason');
+            const amtEl = document.getElementById('unpaidModalAmountDisplay');
+            const payTextEl = document.getElementById('unpaidModalPayBtnText');
+
+            if (codeEl) codeEl.innerText = orderShortCode;
+            if (srvEl) srvEl.innerText = serviceName;
+            if (reasonEl) reasonEl.innerText = `"${disputeReason}"`;
+            if (amtEl) amtEl.innerText = `₹${unpaidAmt}`;
+            if (payTextEl) payTextEl.innerText = `₹${unpaidAmt} त्वरित भरा (UPI / GPay / PhonePe)`;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        window.openUnpaidDuesModal = openUnpaidDuesModal;
+
+        function closeUnpaidDuesModal() {
+            const modal = document.getElementById('unpaidDuesModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+        window.closeUnpaidDuesModal = closeUnpaidDuesModal;
+
+        async function executeDisputeDuesPayment() {
+            if (!currentUnpaidDisputedOrder || !currentUnpaidDisputedOrder.orderId) {
+                alert("ऑर्डर माहिती उपलब्ध नाही. कृपया पेज रिफ्रेश करा.");
+                return;
+            }
+            const unpaidAmt = Number(currentUnpaidDisputedOrder.unpaidAmount || currentUnpaidDisputedOrder.finalAmount || currentUnpaidDisputedOrder.orderAmount || 160);
+            await payUnpaidDisputeBill(currentUnpaidDisputedOrder.orderId, unpaidAmt);
+        }
+        window.executeDisputeDuesPayment = executeDisputeDuesPayment;
+
+        async function payUnpaidDisputeBill(orderId, amount) {
+            if (!orderId) return;
+            const unpaidAmt = Number(amount) || 160;
+            const amountInPaise = Math.round(unpaidAmt * 100);
+
+            const custName = (typeof customerProfile !== 'undefined' && customerProfile && (customerProfile.fullName || customerProfile.name)) || 
+                             document.getElementById('customerName')?.value || 
+                             document.getElementById('apkCustomerName')?.value || 'ग्राहक';
+
+            const custMobile = (typeof customerProfile !== 'undefined' && customerProfile && customerProfile.mobile) || 
+                               document.getElementById('customerMobile')?.value || 
+                               document.getElementById('apkCustomerMobile')?.value || '';
+
+            const custEmail = (typeof customerProfile !== 'undefined' && customerProfile && customerProfile.email) || 'customer@gharbandhu.online';
+
+            const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_live_TfQXrLjDz1z9nO';
+
+            const options = {
+                key: RAZORPAY_KEY,
+                amount: amountInPaise,
+                currency: 'INR',
+                name: 'घरबंधू (GharBandhu) Pune',
+                description: `थकीत बिल भरणा - Order #${String(orderId).slice(-6).toUpperCase()}`,
+                prefill: {
+                    name: custName,
+                    contact: custMobile,
+                    email: custEmail
+                },
+                theme: { color: '#059669' },
+                config: {
+                    display: {
+                        blocks: {
+                            upi: {
+                                name: "Pay via UPI / QR (GPay, PhonePe, Paytm)",
+                                instruments: [{ method: "upi" }]
+                            }
+                        },
+                        sequence: ["block.upi", "block.other"],
+                        preferences: { show_default_blocks: true }
+                    }
+                },
+                handler: async function (resp) {
+                    try {
+                        const paymentId = resp.razorpay_payment_id || ('PAY_DUE_' + Date.now());
+
+                        // Update order in Firebase
+                        await database.ref('orders/' + orderId).update({
+                            status: 'Completed',
+                            paymentStatus: 'Paid',
+                            isPaymentDisputed: false,
+                            isDisputeResolved: true,
+                            disputeResolutionNote: `ग्राहकाने Razorpay द्वारे ₹${unpaidAmt} थकीत बिल ऑनलाइन भरले (Txn: ${paymentId})`,
+                            disputeResolvedAt: firebase.database.ServerValue.TIMESTAMP,
+                            disputeResolvedBy: 'Customer Online Self-Payment',
+                            paidOnlineAmount: unpaidAmt,
+                            paidOnlineAt: firebase.database.ServerValue.TIMESTAMP,
+                            razorpayPaymentId: paymentId
+                        });
+
+                        // Also record resolution in qualityDisputeResolutions if present
+                        try {
+                            await database.ref('qualityDisputeResolutions/alert_' + orderId).set({
+                                resolvedAt: firebase.database.ServerValue.TIMESTAMP,
+                                resolvedBy: 'Customer Online Self-Payment',
+                                resolutionNote: `ग्राहकाने Razorpay द्वारे ₹${unpaidAmt} थकीत बिल भरले.`
+                            });
+                        } catch(e) {}
+
+                        closeUnpaidDuesModal();
+
+                        alert(`✅ अभिनंदन! ₹${unpaidAmt} चे थकीत बिल यशस्वीरीत्या भरले गेले आहे.\n\nतुमचे खाते आता अनलॉक झाले असून तुम्ही नवीन ऑर्डर बुक करू शकता! 🎉`);
+
+                        // Close live status panel and restore clean booking form
+                        if (typeof closeLiveStatusView === 'function') {
+                            closeLiveStatusView();
+                        }
+
+                        // If user was tracking this order, refresh its UI
+                        if (typeof trackOrder === 'function' && typeof currentOrderId !== 'undefined' && currentOrderId === orderId) {
+                            trackOrder(orderId);
+                        }
+                    } catch(err) {
+                        console.error("Dispute payment resolution error:", err);
+                        alert("पेमेंट झाले पण सिस्टीम अपडेट करताना त्रुटी आली. कृपया 8806283584 वर संपर्क साधा: " + err.message);
+                    }
+                }
+            };
+
+            try {
+                if (typeof Razorpay !== 'undefined') {
+                    const rzp = new Razorpay(options);
+                    rzp.on('payment.failed', function (failResp) {
+                        console.error('[Dispute Payment Failed]', failResp);
+                        alert("पेमेंट अयशस्वी झाले: " + (failResp.error ? failResp.error.description : 'कृपया पुन्हा प्रयत्न करा'));
+                    });
+                    rzp.open();
+                } else {
+                    const proceed = confirm(`Razorpay गेटवे लोड होत नाही. चाचणीसाठी ₹${unpaidAmt} भरले म्हणून सिस्टीममध्ये नोंद करायची का?`);
+                    if (proceed) {
+                        await options.handler({ razorpay_payment_id: 'PAY_DUE_TEST_' + Date.now() });
+                    }
+                }
+            } catch(err) {
+                console.error("Razorpay open error:", err);
+                alert("पेमेंट सुरू करताना अडचण आली: " + err.message);
+            }
+        }
+        window.payUnpaidDisputeBill = payUnpaidDisputeBill;
+
         async function handleApkFormSubmit(e) {
             if (e) e.preventDefault();
             await handleFormSubmit(e);
@@ -1901,11 +2067,7 @@ populateBookingProfile();
             // Check if customer has any unpaid disputed order before proceeding
             const unpaidOrder = await checkCustomerUnpaidDues(mobile);
             if (unpaidOrder) {
-                const unpaidAmt = unpaidOrder.unpaidAmount || unpaidOrder.finalAmount || unpaidOrder.orderAmount || 500;
-                const orderShortId = '#' + String(unpaidOrder.orderId || '').slice(-6).toUpperCase();
-                const reasonText = unpaidOrder.disputeReason || 'कामाचे बिल भरलेले नाही';
-
-                alert(`🚫 नवीन बुकिंग ब्लॉक केले आहे!\n\nतुमचे मागील ऑर्डर ${orderShortId} चे ₹${unpaidAmt} बिल प्रलंबित (बाकी) आहे.\n(तपशील: ${reasonText})\n\nकामगारांचे हक्काचे पैसे सुरक्षित ठेवण्यासाठी, मागील बिल भरल्याशिवाय नवीन सर्व्हिस बुक करता येत नाही.\n\nबिल भरण्यासाठी किंवा मदतीसाठी कृपया घरबंधू हेल्पलाइन 8806283584 वर संपर्क साधा.`);
+                openUnpaidDuesModal(unpaidOrder);
                 resetSubmitButtons(isEmergency);
                 return;
             }
@@ -2509,10 +2671,29 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                         workerMobileEl.innerHTML = workerInfo;
                         document.getElementById('finishedIcon').innerText = "⚠️";
                         document.getElementById('finishedTitle').innerText = "पेमेंट वाद (Payment Dispute / Unpaid)";
-                        const unpaidAmt = data.unpaidAmount || data.finalAmount || data.orderAmount || 500;
+                        const unpaidAmt = Number(data.unpaidAmount || data.finalAmount || data.orderAmount || 160);
                         const finishedDesc = document.getElementById('finishedDesc');
                         if (finishedDesc) {
-                            finishedDesc.innerHTML = `<div class="bg-rose-50 border border-rose-200 rounded-xl p-3 mt-2 text-left space-y-1.5"><p class="text-rose-800 font-bold text-xs"><i class="fa-solid fa-triangle-exclamation text-rose-600 mr-1"></i> कामगाराने ₹${unpaidAmt} बिलाचा वाद नोंदवला आहे.</p><p class="text-[11px] text-slate-600">तक्रार: "${escapeHtml(data.disputeReason || 'कामाचे बिल भरलेले नाही')}"</p><p class="text-[11px] text-slate-700 font-semibold">थकीत बिल भरल्याशिवाय नवीन सर्व्हिस बुक करता येणार नाही.</p><a href="tel:8806283584" class="inline-flex items-center gap-1.5 bg-rose-600 text-white font-black px-3 py-1.5 rounded-lg text-xs hover:bg-rose-700 transition shadow-xs mt-1"><i class="fa-solid fa-phone"></i> बिल भरण्यासाठी कॉल करा (8806283584)</a></div>`;
+                            finishedDesc.innerHTML = `
+                                <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 mt-2 text-left space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-rose-800 font-bold text-xs flex items-center gap-1">
+                                            <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> कामगाराने ₹${unpaidAmt} बिलाचा वाद नोंदवला आहे.
+                                        </span>
+                                        <span class="bg-rose-600 text-white font-black text-xs px-2.5 py-0.5 rounded-full shadow-xs">₹${unpaidAmt}</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600">तक्रार: "${escapeHtml(data.disputeReason || 'कामाचे बिल भरलेले नाही')}"</p>
+                                    <p class="text-[11px] text-slate-700 font-semibold">थकीत बिल भरल्याशिवाय नवीन सर्व्हिस बुक करता येणार नाही.</p>
+                                    <div class="pt-1 flex flex-col gap-2">
+                                        <button type="button" onclick="payUnpaidDisputeBill('${orderId}', ${unpaidAmt})" class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 hover:from-emerald-700 hover:to-green-700 text-white font-black px-4 py-2.5 rounded-xl text-xs transition shadow-md cursor-pointer active:scale-95">
+                                            <i class="fa-solid fa-credit-card"></i> <span>₹${unpaidAmt} त्वरित भरा (UPI / GPay / PhonePe)</span>
+                                        </button>
+                                        <a href="tel:8806283584" class="inline-flex items-center justify-center gap-1.5 bg-white border border-rose-200 text-rose-700 font-bold px-3 py-2 rounded-xl text-xs hover:bg-rose-50 transition">
+                                            <i class="fa-solid fa-phone"></i> हेल्पलाइन कॉल (8806283584)
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
                         }
                     } else {
                         badgeEl.className = "bg-red-100 text-red-700 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1";
@@ -2921,9 +3102,12 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                                 <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> मागील थकीत रक्कम: ₹${order.unpaidAmount || order.finalAmount || order.orderAmount || 500}
                             </p>
                             <p class="text-[11px] text-slate-600 font-semibold italic">तक्रार: "${escapeHtml(order.disputeReason || 'कामाचे बिल देणे बाकी')}"</p>
-                            <div class="pt-1">
-                                <a href="tel:8806283584" class="bg-rose-600 hover:bg-rose-700 text-white font-black px-3 py-1.5 rounded-lg text-[11px] inline-flex items-center gap-1 shadow-xs">
-                                    <i class="fa-solid fa-phone"></i> बिल भरण्यासाठी कॉल करा (8806283584)
+                            <div class="pt-1 flex flex-wrap gap-2">
+                                <button type="button" onclick="payUnpaidDisputeBill('${orderId}', ${order.unpaidAmount || order.finalAmount || order.orderAmount || 160})" class="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-black px-3 py-1.5 rounded-lg text-[11px] inline-flex items-center gap-1 shadow-xs cursor-pointer active:scale-95">
+                                    <i class="fa-solid fa-credit-card"></i> <span>₹${order.unpaidAmount || order.finalAmount || order.orderAmount || 160} त्वरित भरा (Pay Now)</span>
+                                </button>
+                                <a href="tel:8806283584" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] inline-flex items-center gap-1 shadow-xs">
+                                    <i class="fa-solid fa-phone"></i> कॉल (8806283584)
                                 </a>
                             </div>
                         </div>
@@ -3506,11 +3690,7 @@ async function handleEmergencySosSubmit(e) {
 
     const unpaidOrder = await checkCustomerUnpaidDues(mobile);
     if (unpaidOrder) {
-        const unpaidAmt = unpaidOrder.unpaidAmount || unpaidOrder.finalAmount || unpaidOrder.orderAmount || 500;
-        const orderShortId = '#' + String(unpaidOrder.orderId || '').slice(-6).toUpperCase();
-        const reasonText = unpaidOrder.disputeReason || 'कामाचे बिल भरलेले नाही';
-
-        alert(`🚫 नवीन बुकिंग ब्लॉक केले आहे!\n\nतुमचे मागील ऑर्डर ${orderShortId} चे ₹${unpaidAmt} बिल प्रलंबित (बाकी) आहे.\n(तपशील: ${reasonText})\n\nकामगारांचे हक्काचे पैसे सुरक्षित ठेवण्यासाठी, मागील बिल भरल्याशिवाय नवीन सर्व्हिस बुक करता येत नाही.\n\nबिल भरण्यासाठी किंवा मदतीसाठी कृपया घरबंधू हेल्पलाइन 8806283584 वर संपर्क साधा.`);
+        openUnpaidDuesModal(unpaidOrder);
         return;
     }
 

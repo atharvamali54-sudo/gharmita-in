@@ -2246,6 +2246,71 @@
     </div>
 
     <!-- =========================================================
+         Unpaid Dues / Payment Dispute Settlement Modal
+         ========================================================= -->
+    <div id="unpaidDuesModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-rose-100 text-center space-y-4 relative animate-in">
+            <button type="button" onclick="closeUnpaidDuesModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm transition cursor-pointer">✕</button>
+
+            <!-- Warning Icon -->
+            <div class="w-16 h-16 mx-auto rounded-3xl bg-rose-50 text-rose-600 flex items-center justify-center text-3xl shadow-inner border border-rose-100">
+                <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
+            </div>
+
+            <div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200 mb-1.5">
+                    🚫 नवीन बुकिंग तात्पुरते थांबवले आहे
+                </span>
+                <h3 class="font-black text-slate-900 text-lg sm:text-xl">मागील कामाचे बिल प्रलंबित आहे</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">कामगारांचे हक्काचे पैसे सुरक्षित ठेवण्यासाठी, मागील बिल भरल्याशिवाय नवीन सर्व्हिस बुक करता येत नाही.</p>
+            </div>
+
+            <!-- Bill Details Card -->
+            <div class="bg-gradient-to-br from-rose-50/60 to-slate-50 border border-rose-200 rounded-2xl p-4 text-left space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-500 font-bold">ऑर्डर क्रमांक:</span>
+                    <span id="unpaidModalOrderCode" class="font-mono font-black text-slate-800 bg-white px-2 py-0.5 rounded-lg border border-slate-200">#---</span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-500 font-bold">सर्व्हिस:</span>
+                    <span id="unpaidModalServiceName" class="font-extrabold text-slate-800">---</span>
+                </div>
+                <div class="text-xs border-t border-rose-100 pt-2">
+                    <span class="text-slate-500 font-bold block mb-0.5">कामगाराची तक्रार / कारण:</span>
+                    <p id="unpaidModalDisputeReason" class="text-slate-700 bg-white/80 p-2 rounded-xl text-[11px] border border-rose-100 italic">"कामाचे बिल भरलेले नाही"</p>
+                </div>
+                <div class="flex items-center justify-between border-t border-rose-200 pt-2 mt-1">
+                    <span class="text-sm font-black text-slate-800">भरावयाची एकूण रक्कम:</span>
+                    <span id="unpaidModalAmountDisplay" class="text-2xl font-black text-rose-600">₹0</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="space-y-2 pt-1">
+                <!-- Pay Now Button -->
+                <button type="button" id="unpaidModalPayBtn" onclick="executeDisputeDuesPayment()" class="w-full bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 hover:from-emerald-700 hover:to-green-700 text-white font-black py-3.5 px-4 rounded-2xl shadow-lg hover:shadow-xl transition text-sm flex items-center justify-center gap-2 border border-emerald-400/30 cursor-pointer active:scale-98">
+                    <i class="fa-solid fa-credit-card text-emerald-200"></i>
+                    <span id="unpaidModalPayBtnText">थकीत बिल त्वरित भरा (UPI / GPay / PhonePe)</span>
+                </button>
+
+                <!-- Help / Support -->
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <a href="tel:8806283584" class="inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-3 rounded-xl transition text-xs border border-slate-200">
+                        <i class="fa-solid fa-phone text-blue-600"></i> हेल्पलाइन कॉल
+                    </a>
+                    <button type="button" onclick="closeUnpaidDuesModal()" class="inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-3 rounded-xl transition text-xs border border-slate-200 cursor-pointer">
+                        रद्द करा (Close)
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-[11px] text-slate-400 flex items-center justify-center gap-1">
+                <i class="fa-solid fa-lock text-emerald-600"></i> Razorpay द्वारे 100% सुरक्षित पेमेंट. पैसे भरताच खाते तात्काळ अनलॉक होईल.
+            </p>
+        </div>
+    </div>
+
+    <!-- =========================================================
          Society Maintenance Bulk Pass Modal (पुण्यातील सोसायट्यांसाठी खास)
          ========================================================= -->
     <div id="societyPassModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md hidden overflow-y-auto z-50 p-4 text-center">
