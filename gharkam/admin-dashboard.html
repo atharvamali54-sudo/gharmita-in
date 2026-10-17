@@ -936,41 +936,45 @@
     <!-- =========================================================
          4. Order Details / Admin Modal
          ========================================================= -->
-    <div id="adminOrderModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div class="flex items-center justify-between border-b pb-3 border-slate-100">
+    <div id="adminOrderModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-lg w-full my-auto shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex items-center justify-between border-b pb-3 px-5 pt-5 border-slate-100 shrink-0 bg-white">
                 <div>
                     <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
                         <i class="fa-solid fa-receipt text-blue-600"></i> ऑर्डर सविस्तर माहिती
                     </h3>
                     <p class="text-[11px] text-slate-400" id="modalOrderId">-</p>
                 </div>
-                <button onclick="closeAdminOrderModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">✕</button>
+                <button type="button" onclick="closeAdminOrderModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer">✕</button>
             </div>
 
-            <div id="modalOrderDetails" class="text-xs space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <!-- Injected dynamically -->
+            <div class="overflow-y-auto flex-1 p-4 sm:p-5 space-y-3">
+                <div id="modalOrderDetails" class="text-xs space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <!-- Injected dynamically -->
+                </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
-                <button onclick="adminMarkOrderCompleted()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm">
-                    ✓ थेट Completed करा
-                </button>
-                <button onclick="adminCancelOrder()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold py-2.5 rounded-xl text-xs transition">
-                    ✕ ऑर्डर रद्द करा
-                </button>
-            </div>
+            <div class="p-4 sm:p-5 border-t border-slate-100 bg-white space-y-2 shrink-0">
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="adminMarkOrderCompleted()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm cursor-pointer">
+                        ✓ थेट Completed करा
+                    </button>
+                    <button type="button" onclick="adminCancelOrder()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 active:scale-95 font-bold py-2.5 rounded-xl text-xs transition cursor-pointer">
+                        ✕ ऑर्डर रद्द करा
+                    </button>
+                </div>
 
-            <div class="pt-1" id="modalForceAssignBtnBox">
-                <button type="button" onclick="openForceAssignModal(selectedOrderForModal)" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-95 text-slate-950 font-black py-2.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-2 cursor-pointer border border-amber-400">
-                    <i class="fa-solid fa-bolt text-sm"></i> ⚡ या ऑर्डरसाठी कामगार थेट असाइन करा (Force Assign)
-                </button>
-            </div>
+                <div class="pt-0.5" id="modalForceAssignBtnBox">
+                    <button type="button" onclick="openForceAssignModal(selectedOrderForModal)" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-95 text-slate-950 font-black py-2.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-2 cursor-pointer border border-amber-400">
+                        <i class="fa-solid fa-bolt text-sm"></i> ⚡ या ऑर्डरसाठी कामगार थेट असाइन करा (Force Assign)
+                    </button>
+                </div>
 
-            <div class="pt-1">
-                <button type="button" onclick="downloadOrderInvoice(selectedOrderForModal)" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i> ब्रँडेड टॅक्स इनव्हॉइस / बिल डाऊनलोड करा (PDF)
-                </button>
+                <div class="pt-0.5">
+                    <button type="button" onclick="downloadOrderInvoice(selectedOrderForModal)" class="w-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold py-2.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i> ब्रँडेड टॅक्स इनव्हॉइस / बिल डाऊनलोड करा (PDF)
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1092,8 +1096,8 @@
     <!-- =========================================================
          5. Worker Wallet Recharge Modal
          ========================================================= -->
-    <div id="adminWalletModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-center">
+    <div id="adminWalletModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-sm w-full my-auto p-6 shadow-2xl border border-slate-200 space-y-4 text-center">
             <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 text-2xl flex items-center justify-center mx-auto shadow-sm">
                 <i class="fa-solid fa-coins"></i>
             </div>
