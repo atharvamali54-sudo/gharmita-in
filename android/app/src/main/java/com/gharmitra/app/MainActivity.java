@@ -66,9 +66,10 @@ public class MainActivity extends Activity {
         String defaultUA = settings.getUserAgentString();
         // Remove '; wv' and 'Version/X.X' so Razorpay and web gateways recognize standard Chrome Mobile and display UPI
         String cleanedUA = defaultUA.replace("; wv", "").replaceAll("Version\\/\\d+\\.\\d+\\s*", "");
-        settings.setUserAgentString(cleanedUA + " GharmitraApp/1.0");
+        settings.setUserAgentString(cleanedUA + " SpeedyHomeApp/1.0 GharmitraApp/1.0");
 
         // Native app interface bridge for reliable web-app detection
+        webView.addJavascriptInterface(new Object(), "SpeedyHomeNative");
         webView.addJavascriptInterface(new Object(), "GharmitraNative");
 
         // Enable third-party cookies for payment gateways and banking authentication

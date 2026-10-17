@@ -1,5 +1,5 @@
 // =========================================================
-// GharBandhu Super Admin & Owner Dashboard Logic (Hardened)
+// SpeedyHome Super Admin & Owner Dashboard Logic (Hardened)
 // =========================================================
 
 // Security: Strict HTML escaping against Stored XSS
@@ -33,7 +33,7 @@ let selectedWorkerForRecharge = null;
 
 // --- 1. Admin Backend Security Authentication & Route Guard (Dual Engine) ---
 
-const ADMIN_API_BASE = window.GHARBANDHU_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000' : '');
+const ADMIN_API_BASE = window.SPEEDYHOME_API_URL || window.GHARBANDHU_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000' : '');
 
 const RECIPIENT_EMAILS = ["atharvamali54@gmail.com", "prathameshr361@gmail.com"];
 const EMAILJS_PUBLIC_KEY = 'PfAaODZ_GPiBPHvOi';
@@ -152,7 +152,7 @@ async function sendAdminEmailOtpDual(otp) {
             user_email: email,
             to_name: email === "atharvamali54@gmail.com" ? "Atharva Mali" : "Prathamesh R",
             otp_code: otp,
-            message: `घरबंधू (GharBandhu) Super Admin Dashboard उघडण्यासाठी तुमचा ६-अंकी OTP आहे: ${otp}. हा OTP ५ मिनिटांसाठी वैध आहे. कोणाशीही शेअर करू नका.`
+            message: `स्पीडीहोम (SpeedyHome) Super Admin Dashboard उघडण्यासाठी तुमचा ६-अंकी OTP आहे: ${otp}. हा OTP ५ मिनिटांसाठी वैध आहे. कोणाशीही शेअर करू नका.`
         };
 
         if (window.emailjs && typeof emailjs.send === 'function') {
@@ -848,7 +848,7 @@ function testAdminWhatsApp() {
         alert("कृपया योग्य १० अंकी मोबाईल नंबर टाका.");
         return;
     }
-    const msg = "नमस्कार! घरबंधू (GharBandhu) ॲडमिन कडून हा टेस्ट व्हॉट्सॲप मेसेज आहे. सिस्टीम व्यवस्थित जोडली गेली आहे!";
+    const msg = "नमस्कार! स्पीडीहोम (SpeedyHome) ॲडमिन कडून हा टेस्ट व्हॉट्सॲप मेसेज आहे. सिस्टीम व्यवस्थित जोडली गेली आहे!";
     const waUrl = `https://wa.me/91${cleanNum.slice(-10)}?text=${encodeURIComponent(msg)}`;
     window.open(waUrl, '_blank');
 }
@@ -918,8 +918,8 @@ function saveAdminAiBotSettings() {
     const aiBotSettings = {
         apiKey: apiKeyEl ? apiKeyEl.value.trim() : "",
         model: modelEl ? modelEl.value : "gemini-3.8-flash",
-        botName: botNameEl ? botNameEl.value.trim() : "घरमित्र AI मदतनीस (Gharmitra Care)",
-        welcomeMessage: welcomeEl ? welcomeEl.value.trim() : "नमस्कार! मी घरमित्रचा २४x७ AI सहाय्यक आहे. मी तुम्हाला घरकाम, बुकिंग, कामगार किंवा इतर कोणत्याही विषयाचे उत्तर देऊ शकतो. बोला किंवा टाईप करा!",
+        botName: botNameEl ? botNameEl.value.trim() : "स्पीडीहोम AI मदतनीस (SpeedyHome Care)",
+        welcomeMessage: welcomeEl ? welcomeEl.value.trim() : "नमस्कार! मी स्पीडीहोमचा २४x७ AI सहाय्यक आहे. मी तुम्हाला घरकाम, बुकिंग, कामगार किंवा इतर कोणत्याही विषयाचे उत्तर देऊ शकतो. बोला किंवा टाईप करा!",
         systemPrompt: sysPromptEl ? sysPromptEl.value.trim() : "",
         voiceEnabled: voiceEnabledEl ? voiceEnabledEl.checked : true,
         autoSpeak: autoSpeakEl ? autoSpeakEl.checked : true,
@@ -1358,7 +1358,7 @@ function renderOrdersTable() {
                 <strong class="text-slate-800 block">${escapeHtml(item.customerName || 'अज्ञात ग्राहक')}</strong>
                 <div class="flex items-center gap-1.5 mt-0.5">
                     <a href="tel:${item.customerMobile}" class="text-blue-600 hover:underline font-semibold text-[11px]"><i class="fa-solid fa-phone text-[10px]"></i> ${item.customerMobile || '-'}</a>
-                    ${item.customerMobile ? `<a href="https://wa.me/91${String(item.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (item.customerName || '') + ', घरबंधू (GharBandhu) कडून आपल्या ऑर्डर #' + item.id.slice(-6).toUpperCase() + ' बाबत...')}" target="_blank" title="व्हॉट्सॲपवर चॅट करा" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> चॅट</a>` : ''}
+                    ${item.customerMobile ? `<a href="https://wa.me/91${String(item.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (item.customerName || '') + ', स्पीडीहोम (SpeedyHome) कडून आपल्या ऑर्डर #' + item.id.slice(-6).toUpperCase() + ' बाबत...')}" target="_blank" title="व्हॉट्सॲपवर चॅट करा" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> चॅट</a>` : ''}
                 </div>
             </td>
             <td class="p-3.5">
@@ -2323,11 +2323,11 @@ function openAdminOrderModal(orderId) {
                 <i class="fa-solid fa-map-location-dot"></i> Google Maps
             </a>
             ${order.customerMobile ? `
-            <a href="https://wa.me/91${String(order.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (order.customerName || '') + ', घरबंधू (GharBandhu) कडून आपल्या ऑर्डर #' + orderId.slice(-6).toUpperCase() + ' बाबत: आपली ' + (order.service || 'काम') + ' सेवा सध्या ' + (order.status || 'Pending') + ' आहे. काही अडचण असल्यास संपर्क साधा.')}" target="_blank" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-300 inline-flex items-center gap-1">
+            <a href="https://wa.me/91${String(order.customerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('नमस्कार ' + (order.customerName || '') + ', स्पीडीहोम (SpeedyHome) कडून आपल्या ऑर्डर #' + orderId.slice(-6).toUpperCase() + ' बाबत: आपली ' + (order.service || 'काम') + ' सेवा सध्या ' + (order.status || 'Pending') + ' आहे. काही अडचण असल्यास संपर्क साधा.')}" target="_blank" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-300 inline-flex items-center gap-1">
                 <i class="fa-brands fa-whatsapp text-emerald-600"></i> ग्राहक WhatsApp
             </a>` : ''}
             ${order.workerMobile ? `
-            <a href="https://wa.me/91${String(order.workerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('घरबंधू ॲडमिन अलर्ट: ऑर्डर #' + orderId.slice(-6).toUpperCase() + ' साठी ग्राहक: ' + (order.customerName || '') + ' (' + (order.customerMobile || '') + '), पत्ता: ' + (order.address || order.area || 'Pune') + '. त्वरित सेवा द्या.')}" target="_blank" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-300 inline-flex items-center gap-1">
+            <a href="https://wa.me/91${String(order.workerMobile).replace(/[^0-9]/g,'').slice(-10)}?text=${encodeURIComponent('स्पीडीहोम ॲडमिन अलर्ट: ऑर्डर #' + orderId.slice(-6).toUpperCase() + ' साठी ग्राहक: ' + (order.customerName || '') + ' (' + (order.customerMobile || '') + '), पत्ता: ' + (order.address || order.area || 'Pune') + '. त्वरित सेवा द्या.')}" target="_blank" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-300 inline-flex items-center gap-1">
                 <i class="fa-brands fa-whatsapp text-emerald-600"></i> कामगार WhatsApp
             </a>` : ''}
         </div>
@@ -2596,7 +2596,7 @@ function downloadOrderInvoice(orderId) {
                     <p class="text-xs font-bold text-blue-700">घरबंधू - पुणेकरांचा विश्वासू ऑन-डिमांड घरकाम साथी</p>
                     <p class="text-[11px] text-slate-500">Govt. of India MSME Reg.: <strong class="text-slate-700">UDYAM-MH-26-0098412</strong> | GSTIN: <strong class="text-slate-700">27AAECG4821M1ZX</strong></p>
                     <p class="text-[11px] text-slate-500">पत्ता: B-402, GharBandhu Hub, Baner-Pashan Link Road, Pune - 411045, Maharashtra</p>
-                    <p class="text-[11px] text-slate-500">हेल्पलाईन: <strong>+91 7875160724</strong> | ईमेल: contact@gharbandhu.online | www.gharbandhu.online</p>
+                    <p class="text-[11px] text-slate-500">हेल्पलाईन: <strong>+91 7875160724</strong> | ईमेल: contact@speedyhome.online | www.speedyhome.online</p>
                 </div>
 
                 <div class="sm:text-right shrink-0">
@@ -2723,14 +2723,14 @@ function downloadOrderInvoice(orderId) {
             <div class="flex items-center gap-4 text-center">
                 <!-- Circular Verified Stamp -->
                 <div class="w-20 h-20 rounded-full border-2 border-dashed border-emerald-600 text-emerald-700 flex flex-col items-center justify-center p-1 text-[8px] font-black uppercase tracking-tighter leading-tight rotate-[-6deg] opacity-90 shrink-0">
-                    <span>★ GHARBANDHU ★</span>
+                    <span>★ SPEEDYHOME ★</span>
                     <span class="text-[9px] font-black">VERIFIED</span>
                     <span>PUNE CITY</span>
                     <span>OFFICIAL SEAL</span>
                 </div>
 
                 <div class="space-y-1">
-                    <div class="font-serif italic font-bold text-sm text-slate-800 tracking-wider">GharBandhu Pune</div>
+                    <div class="font-serif italic font-bold text-sm text-slate-800 tracking-wider">SpeedyHome Pune</div>
                     <div class="border-t border-slate-400 w-32 mx-auto pt-0.5 text-[10px] font-bold text-slate-600 uppercase">
                         Authorized Signatory
                     </div>
@@ -2742,7 +2742,7 @@ function downloadOrderInvoice(orderId) {
         <!-- Terms Footer -->
         <div class="border-t border-slate-100 pt-3 text-[10px] text-slate-400 text-center space-y-0.5">
             <p>हा संगणक-निर्मित अधिकृत टॅक्स इनव्हॉइस आहे. यावर वेगळ्या स्वाक्षरीची आवश्यकता नाही.</p>
-            <p>&copy; 2026 GharBandhu Home Services, Pune City • Helpline: 7875160724 • Secured Operations</p>
+            <p>&copy; 2026 SpeedyHome Home Services, Pune City • Helpline: 7875160724 • Secured Operations</p>
         </div>
     `;
 
@@ -2776,17 +2776,17 @@ function shareInvoiceOnWhatsApp() {
     const serviceName = currentInvoiceOrder.service || 'होम सर्व्हिस';
     const amount = currentInvoiceOrder.budget || '₹500';
 
-    const text = `*घरबंधू अधिकृत टॅक्स इनव्हॉइस (GharBandhu Invoice)* 🧾\n\n` +
+    const text = `*स्पीडीहोम अधिकृत टॅक्स इनव्हॉइस (SpeedyHome Invoice)* 🧾\n\n` +
         `नमस्कार *${customerName}* जी,\n` +
-        `आपल्या घरबंधू सेवेचे अधिकृत बिल तपशील खालीलप्रमाणे आहेत:\n\n` +
+        `आपल्या स्पीडीहोम सेवेचे अधिकृत बिल तपशील खालीलप्रमाणे आहेत:\n\n` +
         `📦 *ऑर्डर आयडी:* #${cleanOrderId}\n` +
         `⚡ *सेवा:* ${serviceName}\n` +
         `📍 *पत्ता:* ${currentInvoiceOrder.address || currentInvoiceOrder.area || 'Pune'}\n` +
         `💰 *एकूण रक्कम:* ${amount}\n` +
-        `🛡️ *हमी:* ७ दिवसांची मोफत सर्व्हिस हमी (GharBandhu Guarantee)\n\n` +
-        `धन्यवाद! घरबंधू होम सर्व्हिसेस, पुणे.\n` +
+        `🛡️ *हमी:* ७ दिवसांची मोफत सर्व्हिस हमी (SpeedyHome Guarantee)\n\n` +
+        `धन्यवाद! स्पीडीहोम होम सर्व्हिसेस, पुणे.\n` +
         `📞 हेल्पलाईन: 7875160724\n` +
-        `🌐 www.gharbandhu.online`;
+        `🌐 www.speedyhome.online`;
 
     const waUrl = `https://wa.me/91${cleanMobile}?text=${encodeURIComponent(text)}`;
     window.open(waUrl, '_blank');
@@ -2840,16 +2840,16 @@ function renderQualityAlertCard(alert, isResolved = false) {
     const cleanWorkerMobile = String(alert.workerMobile || '').replace(/\D/g, '').slice(-10);
 
     const custWaText = isPaymentDispute
-        ? `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरबंधू (GharBandhu) मॅनेजमेंटकडून नोटीस: आपल्या ऑर्डर ${orderNum} (${alert.service || 'काम'}) चे ₹${alert.unpaidAmount || ''} बिल कामगाराला देणे प्रलंबित असल्याचे कामगाराने नोंदवले आहे. कामगारांचे हक्काचे बिल त्वरित क्लिअर करावे किंवा काही वाद असल्यास 8806283584 वर संपर्क साधावा. बिल भरेपर्यंत आपले खाते ब्लॉक राहील. - घरबंधू सपोर्ट (पुणे)`
+        ? `नमस्कार ${alert.customerName || 'ग्राहक'} जी, स्पीडीहोम (SpeedyHome) मॅनेजमेंटकडून नोटीस: आपल्या ऑर्डर ${orderNum} (${alert.service || 'काम'}) चे ₹${alert.unpaidAmount || ''} बिल कामगाराला देणे प्रलंबित असल्याचे कामगाराने नोंदवले आहे. कामगारांचे हक्काचे बिल त्वरित क्लिअर करावे किंवा काही वाद असल्यास 8806283584 वर संपर्क साधावा. बिल भरेपर्यंत आपले खाते ब्लॉक राहील. - स्पीडीहोम सपोर्ट (पुणे)`
         : (isLowRating
-            ? `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरबंधू (GharBandhu) मॅनेजमेंटकडून हा मेसेज आहे. आपल्या ऑर्डर ${orderNum} (${alert.service || 'काम'}) वरील ${alert.rating}★ रेटिंग व तक्रारीबाबत आम्ही अत्यंत दिलगीर आहोत. आपल्या समस्येचे तातडीने निवारण करण्यासाठी आम्ही तत्पर आहोत. काय मदत करू शकतो किंवा आम्ही आपल्याला कॉल करू का? - घरबंधू सपोर्ट (पुणे)`
-            : `नमस्कार ${alert.customerName || 'ग्राहक'} जी, घरबंधू (GharBandhu) मॅनेजमेंटकडून हा मेसेज आहे. आपली ऑर्डर ${orderNum} (${alert.service || 'काम'}) रद्द झाल्याचे समजले. काय अडचण आली किंवा कारागिराबाबत काही तक्रार आहे का? आम्ही आपले समाधान करण्यासाठी कटिबद्ध आहोत. - घरबंधू सपोर्ट (पुणे)`);
+            ? `नमस्कार ${alert.customerName || 'ग्राहक'} जी, स्पीडीहोम (SpeedyHome) मॅनेजमेंटकडून हा मेसेज आहे. आपल्या ऑर्डर ${orderNum} (${alert.service || 'काम'}) वरील ${alert.rating}★ रेटिंग व तक्रारीबाबत आम्ही अत्यंत दिलगीर आहोत. आपल्या समस्येचे तातडीने निवारण करण्यासाठी आम्ही तत्पर आहोत. काय मदत करू शकतो किंवा आम्ही आपल्याला कॉल करू का? - स्पीडीहोम सपोर्ट (पुणे)`
+            : `नमस्कार ${alert.customerName || 'ग्राहक'} जी, स्पीडीहोम (SpeedyHome) मॅनेजमेंटकडून हा मेसेज आहे. आपली ऑर्डर ${orderNum} (${alert.service || 'काम'}) रद्द झाल्याचे समजले. काय अडचण आली किंवा कारागिराबाबत काही तक्रार आहे का? आम्ही आपले समाधान करण्यासाठी कटिबद्ध आहोत. - स्पीडीहोम सपोर्ट (पुणे)`);
 
     const workerWaText = isPaymentDispute
-        ? `कामगार बंधू ${alert.workerName || 'कामगार'} जी, घरबंधू ॲडमिन नोटीस: ऑर्डर ${orderNum} वरील ₹${alert.unpaidAmount || ''} बिलाच्या तक्रारीची दखल घेण्यात आली आहे. ॲडमिन टीम ग्राहकाकडून बिल वसूल करण्याचा पाठपुरावा करत आहे. काळजी करू नका, घरबंधू सुरक्षा फंड आपल्या पाठीशी आहे.`
+        ? `कामगार बंधू ${alert.workerName || 'कामगार'} जी, स्पीडीहोम ॲडमिन नोटीस: ऑर्डर ${orderNum} वरील ₹${alert.unpaidAmount || ''} बिलाच्या तक्रारीची दखल घेण्यात आली आहे. ॲडमिन टीम ग्राहकाकडून बिल वसूल करण्याचा पाठपुरावा करत आहे. काळजी करू नका, स्पीडीहोम सुरक्षा फंड आपल्या पाठीशी आहे.`
         : (isLowRating
-            ? `घरबंधू ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} वर ग्राहकाने ${alert.rating}★ रेटिंग देऊन गंभीर तक्रार नोंदवली आहे. याबाबत तातडीने ॲडमिनशी संपर्क साधावा, अन्यथा आपले खाते तात्पुरते सस्पेंड केले जाईल.`
-            : `घरबंधू ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} रद्द झाली आहे. याचे नेमके काय कारण होते? तातडीने ॲडमिनशी संपर्क साधावा.`);
+            ? `स्पीडीहोम ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} वर ग्राहकाने ${alert.rating}★ रेटिंग देऊन गंभीर तक्रार नोंदवली आहे. याबाबत तातडीने ॲडमिनशी संपर्क साधावा, अन्यथा आपले खाते तात्पुरते सस्पेंड केले जाईल.`
+            : `स्पीडीहोम ॲडमिन नोटीस: कामगार ${alert.workerName || 'कामगार'} जी, ऑर्डर ${orderNum} रद्द झाली आहे. याचे नेमके काय कारण होते? तातडीने ॲडमिनशी संपर्क साधावा.`);
 
     const custWaUrl = cleanCustMobile ? `https://wa.me/91${cleanCustMobile}?text=${encodeURIComponent(custWaText)}` : null;
     const workerWaUrl = cleanWorkerMobile ? `https://wa.me/91${cleanWorkerMobile}?text=${encodeURIComponent(workerWaText)}` : null;
@@ -3326,7 +3326,7 @@ async function reimburseWorkerFromFund(orderId, workerUid, workerMobile, amount)
         return;
     }
 
-    const confirmMsg = `तुम्हाला घरबंधू कामगार सुरक्षा फंडातून (Worker Protection Fund) कामगाराला ₹${numAmt} थेट वॉलेटमध्ये भरपाई जमा करायची आहे का?\n\nयामुळे कामगाराचे नुकसान होणार नाही.`;
+    const confirmMsg = `तुम्हाला स्पीडीहोम कामगार सुरक्षा फंडातून (Worker Protection Fund) कामगाराला ₹${numAmt} थेट वॉलेटमध्ये भरपाई जमा करायची आहे का?\n\nयामुळे कामगाराचे नुकसान होणार नाही.`;
     if (!confirm(confirmMsg)) return;
 
     try {
@@ -3345,7 +3345,7 @@ async function reimburseWorkerFromFund(orderId, workerUid, workerMobile, amount)
         await database.ref('walletTransactions/' + targetWorkerId).push({
             type: 'CREDIT',
             amount: numAmt,
-            reason: `🛡️ घरबंधू कामगार सुरक्षा फंड भरपाई (ऑर्डर #${orderId.slice(-6).toUpperCase()})`,
+            reason: `🛡️ स्पीडीहोम कामगार सुरक्षा फंड भरपाई (ऑर्डर #${orderId.slice(-6).toUpperCase()})`,
             orderId: orderId,
             timestamp: firebase.database.ServerValue.TIMESTAMP
         });
@@ -3357,7 +3357,7 @@ async function reimburseWorkerFromFund(orderId, workerUid, workerMobile, amount)
             reimbursedAt: firebase.database.ServerValue.TIMESTAMP
         });
 
-        alert(`🎉 घरबंधू सुरक्षा फंडातून ₹${numAmt} कामगाराच्या वॉलेटमध्ये यशस्वीरीत्या जमा झाले!\n\nकामगाराचे नुकसान टळले आहे.`);
+        alert(`🎉 स्पीडीहोम सुरक्षा फंडातून ₹${numAmt} कामगाराच्या वॉलेटमध्ये यशस्वीरीत्या जमा झाले!\n\nकामगाराचे नुकसान टळले आहे.`);
         renderQualityDisputeShield();
     } catch(err) {
         console.error("Reimbursement error:", err);
@@ -3809,12 +3809,12 @@ function applyAdminPushPreset(type) {
 
     if (type === 'NEW_JOB') {
         titleEl.value = '⚡ नवीन घरकाम ऑर्डर उपलब्ध!';
-        bodyEl.value = 'तुमच्या भागात नवीन ऑर्डर आली आहे. त्वरित घरबंधू ॲप उघडा आणि ऑर्डर स्वीकारा!';
+        bodyEl.value = 'तुमच्या भागात नवीन ऑर्डर आली आहे. त्वरित स्पीडीहोम ॲप उघडा आणि ऑर्डर स्वीकारा!';
         if (urlEl) urlEl.value = 'worker.html';
         if (radioWorkers) radioWorkers.checked = true;
     } else if (type === 'DISCOUNT') {
-        titleEl.value = '🎉 घरबंधू विशेष सवलत धमाका!';
-        bodyEl.value = 'आजच घरातील दुरुस्ती किंवा स्वच्छता सेवा बुक करा आणि मिळवा विशेष सवलत! घरबंधू सोबत घरकाम सोपे करा.';
+        titleEl.value = '🎉 स्पीडीहोम विशेष सवलत धमाका!';
+        bodyEl.value = 'आजच घरातील दुरुस्ती किंवा स्वच्छता सेवा बुक करा आणि मिळवा विशेष सवलत! स्पीडीहोम सोबत घरकाम सोपे करा.';
         if (urlEl) urlEl.value = 'customer.html';
         if (radioCustomers) radioCustomers.checked = true;
     } else if (type === 'KYC') {
@@ -3823,8 +3823,8 @@ function applyAdminPushPreset(type) {
         if (urlEl) urlEl.value = 'worker.html';
         if (radioWorkers) radioWorkers.checked = true;
     } else if (type === 'SYSTEM_UPDATE') {
-        titleEl.value = '📢 घरबंधू नवीन अपडेट उपलब्ध!';
-        bodyEl.value = 'सुरक्षितता आणि वेगवान सेवेसाठी नवीन फीचर्स जोडण्यात आले आहेत. घरबंधू वापरल्याबद्दल धन्यवाद!';
+        titleEl.value = '📢 स्पीडीहोम नवीन अपडेट उपलब्ध!';
+        bodyEl.value = 'सुरक्षितता आणि वेगवान सेवेसाठी नवीन फीचर्स जोडण्यात आले आहेत. स्पीडीहोम वापरल्याबद्दल धन्यवाद!';
         if (urlEl) urlEl.value = 'index.html';
         if (radioAll) radioAll.checked = true;
     }
@@ -3912,8 +3912,8 @@ async function dispatchAdminBroadcastPush() {
         await database.ref('broadcastNotifications').push(payload);
 
         // Also trigger on admin's local device for instant test confirmation
-        if (window.GharBandhuPush && typeof window.GharBandhuPush.showSystemNotification === 'function') {
-            window.GharBandhuPush.showSystemNotification({
+        if ((window.SpeedyHomePush || window.GharBandhuPush) && typeof (window.SpeedyHomePush || window.GharBandhuPush).showSystemNotification === 'function') {
+            (window.SpeedyHomePush || window.GharBandhuPush).showSystemNotification({
                 title: `[ब्रॉडकास्ट पाठवले] ${title}`,
                 body: body,
                 url: targetUrl
@@ -3932,8 +3932,8 @@ async function dispatchAdminBroadcastPush() {
 }
 
 async function testAdminPushOnDevice() {
-    if (window.GharBandhuPush && typeof window.GharBandhuPush.testPushNotification === 'function') {
-        window.GharBandhuPush.testPushNotification();
+    if ((window.SpeedyHomePush || window.GharBandhuPush) && typeof (window.SpeedyHomePush || window.GharBandhuPush).testPushNotification === 'function') {
+        (window.SpeedyHomePush || window.GharBandhuPush).testPushNotification();
         return;
     }
 
@@ -3944,7 +3944,7 @@ async function testAdminPushOnDevice() {
 
     if (Notification.permission === 'granted') {
         try {
-            new Notification('🔔 घरबंधू ॲडमिन टेस्ट अलर्ट', {
+            new Notification('🔔 स्पीडीहोम ॲडमिन टेस्ट अलर्ट', {
                 body: 'तुमच्या डिव्हाइसवर पुश नोटिफिकेशन्स उत्तम रित्या सुरू आहेत!',
                 icon: 'images/logo.png',
                 vibrate: [200, 100, 200]
@@ -4198,7 +4198,7 @@ function exportOrdersToCsv() {
     const link = document.createElement("a");
     const todayStr = new Date().toISOString().slice(0, 10);
     link.setAttribute("href", url);
-    link.setAttribute("download", `GharBandhu_Orders_Report_${todayStr}.csv`);
+    link.setAttribute("download", `SpeedyHome_Orders_Report_${todayStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -55,7 +55,7 @@ async function sendAdminOtpEmail(otp, ip = 'unknown') {
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
             <div style="background: linear-gradient(135deg, #1e3a8a, #2563eb); padding: 24px; text-align: center; color: #ffffff;">
                 <div style="font-size: 32px; margin-bottom: 8px;">🛡️</div>
-                <h1 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.02em;">Gharmitra Super Admin Portal</h1>
+                <h1 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.02em;">SpeedyHome Super Admin Portal</h1>
                 <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.9;">Production Security Authentication OTP</p>
             </div>
             <div style="padding: 28px 24px; color: #1e293b;">
@@ -75,16 +75,16 @@ async function sendAdminOtpEmail(otp, ip = 'unknown') {
                 </p>
             </div>
             <div style="background: #f8fafc; padding: 14px 24px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8;">
-                Gharmitra Services Private Limited • Confidential Super Admin Notification
+                SpeedyHome Services • Confidential Super Admin Notification
             </div>
         </div>
     `;
 
     const mailOptions = {
-        from: process.env.SMTP_FROM || '"Gharmitra Super Admin" <security@gharmitra.in>',
+        from: process.env.SMTP_FROM || '"SpeedyHome Super Admin" <security@speedyhome.online>',
         to: recipientList,
-        subject: `🔐 Gharmitra Admin Login OTP: ${otp} (Valid for 5 mins)`,
-        text: `Gharmitra Super Admin Verification OTP: ${otp}\nValid for 5 minutes.\nRequested from IP: ${ip}\nDo not share this OTP with anyone.`,
+        subject: `🔐 SpeedyHome Admin Login OTP: ${otp} (Valid for 5 mins)`,
+        text: `SpeedyHome Super Admin Verification OTP: ${otp}\nValid for 5 minutes.\nRequested from IP: ${ip}\nDo not share this OTP with anyone.`,
         html: htmlContent
     };
 

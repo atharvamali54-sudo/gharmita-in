@@ -236,11 +236,11 @@ function startOrderAlert(orderId, orderDetails) {
     }
 
     // Trigger OS-level system push notification (Sound + Vibration on lockscreen/background)
-    if (window.GharBandhuPush && typeof window.GharBandhuPush.showSystemNotification === 'function') {
+    if ((window.SpeedyHomePush || window.GharBandhuPush) && typeof (window.SpeedyHomePush || window.GharBandhuPush).showSystemNotification === 'function') {
         const srv = (orderDetails && orderDetails.service) ? orderDetails.service : 'नवीन काम';
         const cost = (orderDetails && orderDetails.budget) ? orderDetails.budget : '₹500';
         const loc = (orderDetails && orderDetails.area) ? orderDetails.area : 'पुणे';
-        window.GharBandhuPush.showSystemNotification({
+        (window.SpeedyHomePush || window.GharBandhuPush).showSystemNotification({
             title: `⚡ नवीन ऑर्डर उपलब्ध: ${srv} (${cost})`,
             body: `पत्ता: ${loc}. त्वरित स्वीकारा आणि आजच कमाई सुरू करा!`,
             url: 'worker.html',
@@ -324,8 +324,8 @@ function triggerWhatsAppAlertsOnOrderAccept(orderId, orderItem, workerMobile) {
     const service = orderItem.service || 'सेवा';
     const budget = orderItem.budget || '';
 
-    const customerMsg = `*नमस्कार ${custName} जी!* 🏠\nतुमची GharBandhu ऑर्डर यशस्वीरीत्या CONFIRMED झाली आहे!\n\n⚡ *सेवा:* ${service}\n👷 *कामगार मोबाईल:* ${workerMobile}\n💰 *रक्कम:* ${budget}\n\nकामगार लवकरच तुमच्या पत्त्यावर पोहोचेल. धन्यवाद!\n- GharBandhu.online पुणे`;
-    const workerMsg = `*नवीन काम CONFIRMED!* 🛠️\n\n⚡ *सेवा:* ${service}\n👤 *ग्राहक:* ${custName}\n📞 *मोबाईल:* ${custMobile}\n📍 *पत्ता:* ${orderItem.address}\n💰 *रक्कम:* ${budget}\n\n१५ मिनिटांच्या आत On The Way करा!\n- GharBandhu`;
+    const customerMsg = `*नमस्कार ${custName} जी!* 🏠\nतुमची SpeedyHome ऑर्डर यशस्वीरीत्या CONFIRMED झाली आहे!\n\n⚡ *सेवा:* ${service}\n👷 *कामगार मोबाईल:* ${workerMobile}\n💰 *रक्कम:* ${budget}\n\nकामगार लवकरच तुमच्या पत्त्यावर पोहोचेल. धन्यवाद!\n- SpeedyHome.online पुणे`;
+    const workerMsg = `*नवीन काम CONFIRMED!* 🛠️\n\n⚡ *सेवा:* ${service}\n👤 *ग्राहक:* ${custName}\n📞 *मोबाईल:* ${custMobile}\n📍 *पत्ता:* ${orderItem.address}\n💰 *रक्कम:* ${budget}\n\n१५ मिनिटांच्या आत On The Way करा!\n- SpeedyHome`;
 
     // Queue notification event in Firebase
     queueNotification(orderId, 'whatsapp_order_accepted', {
@@ -790,10 +790,10 @@ function updateKycUI(status, rejectReason) {
     window._lastWorkerKycStatus = currentWorkerVerificationStatus;
 
     if (prevKycStatus && prevKycStatus !== 'approved' && currentWorkerVerificationStatus === 'approved') {
-        if (window.GharBandhuPush && typeof window.GharBandhuPush.showSystemNotification === 'function') {
-            window.GharBandhuPush.showSystemNotification({
+        if ((window.SpeedyHomePush || window.GharBandhuPush) && typeof (window.SpeedyHomePush || window.GharBandhuPush).showSystemNotification === 'function') {
+            (window.SpeedyHomePush || window.GharBandhuPush).showSystemNotification({
                 title: '🎉 आधार KYC मंजूर झाले!',
-                body: 'अभिनंदन! तुमचे घरबंधू प्रोफाइल मंजूर झाले आहे. तुम्ही आता Duty ON करून काम सुरू करू शकता.',
+                body: 'अभिनंदन! तुमचे स्पीडीहोम प्रोफाइल मंजूर झाले आहे. तुम्ही आता Duty ON करून काम सुरू करू शकता.',
                 url: 'worker.html',
                 tag: 'kyc-approved'
             });
@@ -903,7 +903,7 @@ function showWorkerKycAlertModal(status, rejectReason) {
     } else {
         if (icon) icon.innerText = "⏳";
         if (title) title.innerText = "आधार पडताळणी प्रलंबित आहे (Pending)";
-        if (desc) desc.innerText = "महिला व कौटुंबिक सुरक्षिततेसाठी घरबंधूच्या नियमानुसार ॲडमिनने आधार कार्ड मंजूर (Approve) केल्यावरच तुम्हाला Duty ON करता येईल आणि कामाच्या नोटिफिकेशन्स मिळतील.";
+        if (desc) desc.innerText = "महिला व कौटुंबिक सुरक्षिततेसाठी स्पीडीहोमच्या नियमानुसार ॲडमिनने आधार कार्ड मंजूर (Approve) केल्यावरच तुम्हाला Duty ON करता येईल आणि कामाच्या नोटिफिकेशन्स मिळतील.";
         if (actionBox) {
             actionBox.innerHTML = `
                 <button type="button" onclick="closeWorkerKycAlertModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-xs shadow transition cursor-pointer">
@@ -1535,7 +1535,7 @@ function releaseActiveOrderLock(orderId) {
 }
 
 auth.onAuthStateChanged((user) => {
-    // Workers in GharBandhu are strictly identified by their local session & clean mobile identity.
+    // Workers in SpeedyHome are strictly identified by their local session & clean mobile identity.
     loadLocalWorkerSession();
 });
 
@@ -1803,7 +1803,7 @@ async function payWithRazorpay(customAmount) {
     const amountToAdd = (!isNaN(parsedAmount) && parsedAmount >= 10) ? parsedAmount : 10;
     const amountInPaise = amountToAdd * 100;
     const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_live_TfQXrLjDz1z9nO';
-    const backendApiBase = window.GHARBANDHU_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
+    const backendApiBase = window.SPEEDYHOME_API_URL || window.GHARBANDHU_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
 
     // Attempt to create order via backend if available
     let backendOrder = null;
@@ -1831,11 +1831,11 @@ async function payWithRazorpay(customAmount) {
         key: RAZORPAY_KEY,
         amount: (backendOrder && backendOrder.amount) ? backendOrder.amount : amountInPaise,
         currency: 'INR',
-        name: 'GharBandhu Online',
-        description: `GharBandhu Partner Service Credits (₹${amountToAdd})`,
+        name: 'SpeedyHome Online',
+        description: `SpeedyHome Partner Service Credits (₹${amountToAdd})`,
         prefill: {
-            name: (window.auth && auth.currentUser && auth.currentUser.displayName) || 'GharBandhu Partner',
-            email: (window.auth && auth.currentUser && auth.currentUser.email) || 'partner@gharbandhu.online',
+            name: (window.auth && auth.currentUser && auth.currentUser.displayName) || 'SpeedyHome Partner',
+            email: (window.auth && auth.currentUser && auth.currentUser.email) || 'partner@speedyhome.online',
             contact: (typeof getCurrentWorkerMobile === 'function' ? getCurrentWorkerMobile() : '') || '9876543210'
         },
         config: {
@@ -2261,8 +2261,8 @@ function renderJobs() {
             const custTelHref = cleanCustDigits
                 ? (cleanCustDigits.startsWith('+') ? `tel:${cleanCustDigits}` : `tel:+91${cleanCustDigits.slice(-10)}`)
                 : '#';
-            const maskedCustPhone = window.GharBandhuCallMasking
-                ? window.GharBandhuCallMasking.maskDisplayNumber(rawCustPhone)
+            const maskedCustPhone = (window.SpeedyHomeCallMasking || window.GharBandhuCallMasking)
+                ? (window.SpeedyHomeCallMasking || window.GharBandhuCallMasking).maskDisplayNumber(rawCustPhone)
                 : (rawCustPhone ? '+91 ••••• ••' + String(rawCustPhone).slice(-3) : 'उपलब्ध नाही');
 
             const activeHasGps = !!(item.hasExactGps || (item.customerLat && item.customerLng));
@@ -2658,7 +2658,7 @@ function sendCompletionOtpEmail(orderData, otp) {
             email: customerEmail,
             user_email: customerEmail,
             otp_code: otp,
-            message: `GharBandhu.online काम पूर्ण करण्यासाठी OTP आहे: ${otp}. काम पूर्ण झाल्यावर हा ४-अंकी OTP कामगाराला सांगा.`
+            message: `SpeedyHome.online काम पूर्ण करण्यासाठी OTP आहे: ${otp}. काम पूर्ण झाल्यावर हा ४-अंकी OTP कामगाराला सांगा.`
         }).then(() => {
             console.log("Work Completion OTP sent to email:", customerEmail);
         }).catch(err => {
@@ -2827,7 +2827,7 @@ function finalizeOrderCompletion(orderId) {
             }
         }).catch(err => console.error('Bonus credit error:', err));
 
-        // Check for Customer GharBandhu VIP Club Reward (10% Cashback on 3rd Order milestone)
+        // Check for Customer SpeedyHome VIP Club Reward (10% Cashback on 3rd Order milestone)
         database.ref("orders/" + orderId).once("value").then((snap) => {
             const ordData = snap.val();
             if (!ordData) return;
@@ -2956,7 +2956,7 @@ function finalizeOrderCompletion(orderId) {
                 database.ref('walletTransactions/' + workerId).push({
                     type: 'DEBIT',
                     amount: commission,
-                    reason: `घरबंधू कमिशन (${commissionPercent}% मजुरीवर वजावट - ${slabLabel}) - ₹${laborFare} मजुरी ${matCost > 0 ? `(साहित्य ₹${matCost} कमिशन-मुक्त)` : ""}`,
+                    reason: `स्पीडीहोम कमिशन (${commissionPercent}% मजुरीवर वजावट - ${slabLabel}) - ₹${laborFare} मजुरी ${matCost > 0 ? `(साहित्य ₹${matCost} कमिशन-मुक्त)` : ""}`,
                     orderId: orderId,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
@@ -3096,7 +3096,7 @@ function reportCustomerPaymentDispute() {
         return releaseActiveOrderLock(orderId);
     }).then(() => {
         closeCompletionOtpModal();
-        alert(`🚨 पेमेंट वाद (Non-Payment) यशस्वीरीत्या नोंदवला आहे!\n\nथकीत रक्कम: ₹${totalCombinedFare}\n\nघरबंधू ॲडमिन टीमकडे त्वरित अलर्ट गेला आहे. तुम्ही सुरक्षितपणे तिथून निघू शकता.\nग्राहक जोपर्यंत हे बिल भरत नाही तोपर्यंत त्याचे ॲप ब्लॉक केले जाईल आणि ॲडमिन द्वारे पाठपुरावा करून तुमची रक्कम मिळवून दिली जाईल.`);
+        alert(`🚨 पेमेंट वाद (Non-Payment) यशस्वीरीत्या नोंदवला आहे!\n\nथकीत रक्कम: ₹${totalCombinedFare}\n\nस्पीडीहोम ॲडमिन टीमकडे त्वरित अलर्ट गेला आहे. तुम्ही सुरक्षितपणे तिथून निघू शकता.\nग्राहक जोपर्यंत हे बिल भरत नाही तोपर्यंत त्याचे ॲप ब्लॉक केले जाईल आणि ॲडमिन द्वारे पाठपुरावा करून तुमची रक्कम मिळवून दिली जाईल.`);
         if (typeof renderJobs === 'function') renderJobs();
     }).catch(error => {
         console.error("Payment dispute report error:", error);

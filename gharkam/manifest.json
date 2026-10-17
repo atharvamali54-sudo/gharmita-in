@@ -1,6 +1,6 @@
-﻿{
-  "name": "GharBandhu - घरकाम व सेवा",
-  "short_name": "GharBandhu",
+{
+  "name": "SpeedyHome - घरकाम व सेवा",
+  "short_name": "SpeedyHome",
   "description": "पुणे शहरातील विश्वासू घरगुती सेवा - क्लिनिंग, प्लंबिंग, इलेक्ट्रिशियन, पेंटिंग आणि घरकाम.",
   "start_url": "./index.html",
   "scope": "./",
@@ -39,7 +39,7 @@
     {
       "name": "मित्रांना ॲप शेअर करा (Share App)",
       "short_name": "Share App",
-      "description": "घरबंधू ॲप व्हॉट्सॲपवर शेअर करा",
+      "description": "स्पीडीहोम ॲप व्हॉट्सॲपवर शेअर करा",
       "url": "./index.html?action=share",
       "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
     },

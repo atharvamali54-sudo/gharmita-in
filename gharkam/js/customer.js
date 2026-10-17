@@ -1034,7 +1034,7 @@ function saveProfile(event) {
         email: customerProfile.email,
         user_email: customerProfile.email,
         otp_code: profileOtpCode,
-        message: 'Your GharBandhu profile update OTP is: ' + profileOtpCode
+        message: 'Your SpeedyHome profile update OTP is: ' + profileOtpCode
     }).then(() => {
         document.getElementById('profileOtpArea').classList.remove('hidden');
         document.getElementById('profileSaveBtn').classList.add('hidden');
@@ -1903,7 +1903,7 @@ populateBookingProfile();
                                document.getElementById('customerMobile')?.value || 
                                document.getElementById('apkCustomerMobile')?.value || '';
 
-            const custEmail = (typeof customerProfile !== 'undefined' && customerProfile && customerProfile.email) || 'customer@gharbandhu.online';
+            const custEmail = (typeof customerProfile !== 'undefined' && customerProfile && customerProfile.email) || 'customer@speedyhome.online';
 
             const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_live_TfQXrLjDz1z9nO';
 
@@ -1911,7 +1911,7 @@ populateBookingProfile();
                 key: RAZORPAY_KEY,
                 amount: amountInPaise,
                 currency: 'INR',
-                name: 'घरबंधू (GharBandhu) Pune',
+                name: 'स्पीडीहोम (SpeedyHome) Pune',
                 description: `थकीत बिल भरणा - Order #${String(orderId).slice(-6).toUpperCase()}`,
                 prefill: {
                     name: custName,
@@ -2080,12 +2080,12 @@ populateBookingProfile();
                     key: RAZORPAY_KEY,
                     amount: amountInPaise,
                     currency: 'INR',
-                    name: 'घरबंधू (GharBandhu) Pune',
+                    name: 'स्पीडीहोम (SpeedyHome) Pune',
                     description: `१०-मिनिट इमर्जन्सी SOS (₹५० ॲडव्हान्स) - ${service}`,
                     prefill: {
                         name: name,
                         contact: mobile,
-                        email: (customerProfile && customerProfile.email) || 'customer@gharbandhu.online'
+                        email: (customerProfile && customerProfile.email) || 'customer@speedyhome.online'
                     },
                     theme: { color: '#dc2626' },
                     config: {
@@ -2132,7 +2132,7 @@ populateBookingProfile();
                         });
                         rzp.open();
                     } else {
-                        const proceed = confirm("Razorpay थेट पेमेंट: ₹५० ॲडव्हान्स घरबंधू खात्यात जमा करून १०-मिनिट सायरन सुरू करायचा का?");
+                        const proceed = confirm("Razorpay थेट पेमेंट: ₹५० ॲडव्हान्स स्पीडीहोम खात्यात जमा करून १०-मिनिट सायरन सुरू करायचा का?");
                         if (proceed) {
                             await options.handler({ razorpay_payment_id: 'PAY_SOS_TEST_' + Date.now() });
                         } else {
@@ -2332,11 +2332,11 @@ populateBookingProfile();
 
             const originUrl = (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null')
                 ? window.location.origin
-                : 'https://gharbandhu.online';
+                : 'https://speedyhome.online';
             const liveTrackLink = orderId ? `${originUrl}/gharkam/customer.html?track=${encodeURIComponent(orderId)}` : originUrl;
 
             const message = 
-`🛡️ *GHARBANDHU FAMILY SAFETY DETAILS*
+`🛡️ *SPEEDYHOME FAMILY SAFETY DETAILS*
 ━━━━━━━━━━━━━━━━━━━━
 Dear Family, here are the verified details of the home service technician visiting our home:
 
@@ -2351,7 +2351,7 @@ Dear Family, here are the verified details of the home service technician visiti
 🗺️ *Live Tracking & Safety:*
 ${liveTrackLink}
 
-_Sent securely via GharBandhu Family Safety Shield._`;
+_Sent securely via SpeedyHome Family Safety Shield._`;
 
             const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
             window.open(waUrl, '_blank');
@@ -2434,32 +2434,32 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                 // Push Notification Alert for Customer on status changes
                 const prevStatus = lastTrackedCustomerOrderStatus[orderId];
                 if (prevStatus && prevStatus !== data.status) {
-                    if (window.GharBandhuPush && typeof window.GharBandhuPush.showSystemNotification === 'function') {
-                        const workerName = data.workerName || 'घरबंधू कामगार';
+                    if ((window.SpeedyHomePush || window.GharBandhuPush) && typeof (window.SpeedyHomePush || window.GharBandhuPush).showSystemNotification === 'function') {
+                        const workerName = data.workerName || 'स्पीडीहोम कामगार';
                         const srv = data.service || 'घरकाम';
                         if (data.status === 'Accepted') {
-                            window.GharBandhuPush.showSystemNotification({
+                            (window.SpeedyHomePush || window.GharBandhuPush).showSystemNotification({
                                 title: `👷 ऑर्डर स्वीकारली: ${srv}`,
                                 body: `${workerName} यांनी तुमची ऑर्डर स्वीकारली आहे आणि ते लवकरच पोहोचतील.`,
                                 url: 'customer.html',
                                 tag: 'cust-order-' + orderId
                             });
                         } else if (data.status === 'On The Way') {
-                            window.GharBandhuPush.showSystemNotification({
+                            (window.SpeedyHomePush || window.GharBandhuPush).showSystemNotification({
                                 title: `🚴 कामगार निघाला आहे: ${workerName}`,
                                 body: `${workerName} तुमच्या घराकडे निघाले आहेत. थेट नकाशावर ट्रॅक करा!`,
                                 url: 'customer.html',
                                 tag: 'cust-order-' + orderId
                             });
                         } else if (data.status === 'In Progress') {
-                            window.GharBandhuPush.showSystemNotification({
+                            (window.SpeedyHomePush || window.GharBandhuPush).showSystemNotification({
                                 title: `🛠️ काम सुरू झाले: ${srv}`,
                                 body: `${workerName} यांनी कामाला सुरुवात केली आहे.`,
                                 url: 'customer.html',
                                 tag: 'cust-order-' + orderId
                             });
                         } else if (data.status === 'Completed') {
-                            window.GharBandhuPush.showSystemNotification({
+                            (window.SpeedyHomePush || window.GharBandhuPush).showSystemNotification({
                                 title: `🎉 काम पूर्ण झाले: ${srv}`,
                                 body: `ऑर्डर यशस्वीरित्या पूर्ण झाली! कृपया अनुभव रेटिंग द्या.`,
                                 url: 'customer.html',
@@ -2535,8 +2535,8 @@ _Sent securely via GharBandhu Family Safety Shield._`;
                 const workerNumDisplay = document.getElementById('customerWorkerNumberDisplay');
 
                 let rawWorkerMobile = data.workerMobile || '';
-                let maskedWorkerNumber = window.GharBandhuCallMasking
-                    ? window.GharBandhuCallMasking.maskDisplayNumber(rawWorkerMobile)
+                let maskedWorkerNumber = (window.SpeedyHomeCallMasking || window.GharBandhuCallMasking)
+                    ? (window.SpeedyHomeCallMasking || window.GharBandhuCallMasking).maskDisplayNumber(rawWorkerMobile)
                     : (rawWorkerMobile ? '+91 ••••• ••' + String(rawWorkerMobile).slice(-3) : 'Not available');
 
                 let workerDisplayName = data.workerName || "Verified Partner";
@@ -3273,7 +3273,7 @@ _Sent securely via GharBandhu Family Safety Shield._`;
             if (profileScreen) profileScreen.classList.remove('hidden');
 
             const sess = typeof readCustomerSession === 'function' ? readCustomerSession() : null;
-            const name = (sess && (sess.fullName || sess.name)) || localStorage.getItem('gharmitra_user_name') || 'GharBandhu User';
+            const name = (sess && (sess.fullName || sess.name)) || localStorage.getItem('gharmitra_user_name') || 'SpeedyHome User';
             const mobile = (sess && sess.mobile) || localStorage.getItem('gharmitra_user_mobile') || '';
             const addr = (sess && sess.address) || localStorage.getItem('gharmitra_saved_address') || 'Pune, Maharashtra';
 
@@ -3352,12 +3352,12 @@ _Sent securely via GharBandhu Family Safety Shield._`;
         }
 
         function shareReferralCode() {
-            const text = "घरबंधू ॲपवरून कोणतीही घरगुती सेवा (प्लंबिंग, इलेक्ट्रिक, सफाई) फक्त ₹३/मिनिटात बुक करा! पहिल्या बुकिंगवर ₹१०० कॅशबॅक: https://gharbandhu.online";
+            const text = "स्पीडीहोम ॲपवरून कोणतीही घरगुती सेवा (प्लंबिंग, इलेक्ट्रिक, सफाई) फक्त ₹३/मिनिटात बुक करा! पहिल्या बुकिंगवर ₹१०० कॅशबॅक: https://speedyhome.online";
             if (navigator.share) {
                 navigator.share({
-                    title: 'GharBandhu Home Services',
+                    title: 'SpeedyHome Home Services',
                     text: text,
-                    url: 'https://gharbandhu.online'
+                    url: 'https://speedyhome.online'
                 }).catch(() => {});
             } else {
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
@@ -3365,7 +3365,7 @@ _Sent securely via GharBandhu Family Safety Shield._`;
         }
 
         function showAboutInfoModal() {
-            alert("GharBandhu (घरबंधू) - पुणे शहरातील अग्रगण्य जलद घरगुती सेवा प्लॅटफॉर्म. प्लंबिंग, इलेक्ट्रिशियन, क्लिनिंग आणि सर्व प्रकारच्या घरगुती कामांसाठी ५-१० मिनिटांत अनुभवी कारागीर.");
+            alert("SpeedyHome (स्पीडीहोम) - पुणे शहरातील अग्रगण्य जलद घरगुती सेवा प्लॅटफॉर्म. प्लंबिंग, इलेक्ट्रिशियन, क्लिनिंग आणि सर्व प्रकारच्या घरगुती कामांसाठी ५-१० मिनिटांत अनुभवी कारागीर.");
         }
 
         function showTermsInfoModal() {
@@ -3492,10 +3492,10 @@ async function handleSocietyPassSubmit(e) {
             msgEl.classList.remove('hidden');
         }
 
-        const waAdminMsg = "नमस्कार घरबंधू! आम्ही आमच्या सोसायटीसाठी सोसायटी मेंटेनन्स पास (Society Bulk Pass) मध्ये स्वारस्य दाखवत आहोत.\n\n🏢 *सोसायटी:* " + encodeURIComponent(socName) + "\n📍 *परिसर:* " + encodeURIComponent(socArea) + "\n🏘️ *एकूण फ्लॅट्स:* " + socFlats + "\n👤 *संपर्क व्यक्ती:* " + encodeURIComponent(socContactName) + " (" + socContactMobile + ")\n📋 *प्लॅन:* " + encodeURIComponent(socSelectedPlan) + "\n\nकृपया पुढील प्रक्रियेसाठी संपर्क साधावा.";
+        const waAdminMsg = "नमस्कार स्पीडीहोम! आम्ही आमच्या सोसायटीसाठी सोसायटी मेंटेनन्स पास (Society Bulk Pass) मध्ये स्वारस्य दाखवत आहोत.\n\n🏢 *सोसायटी:* " + encodeURIComponent(socName) + "\n📍 *परिसर:* " + encodeURIComponent(socArea) + "\n🏘️ *एकूण फ्लॅट्स:* " + socFlats + "\n👤 *संपर्क व्यक्ती:* " + encodeURIComponent(socContactName) + " (" + socContactMobile + ")\n📋 *प्लॅन:* " + encodeURIComponent(socSelectedPlan) + "\n\nकृपया पुढील प्रक्रियेसाठी संपर्क साधावा.";
         
         setTimeout(() => {
-            if (confirm("आपला अर्ज सेव्ह झाला आहे! त्वरित घरबंधू टीमशी व्हॉट्सॲपवर बोलण्यासाठी 'OK' दाबा.")) {
+            if (confirm("आपला अर्ज सेव्ह झाला आहे! त्वरित स्पीडीहोम टीमशी व्हॉट्सॲपवर बोलण्यासाठी 'OK' दाबा.")) {
                 window.open("https://wa.me/917875160724?text=" + waAdminMsg, '_blank');
             }
             closeSocietyPassModal();
@@ -3706,12 +3706,12 @@ async function handleEmergencySosSubmit(e) {
         key: RAZORPAY_KEY,
         amount: amountInPaise,
         currency: 'INR',
-        name: 'GharBandhu Online',
+        name: 'SpeedyHome Online',
         description: `10-Min Emergency SOS Advance (₹50) - ${category}`,
         prefill: {
             name: name,
             contact: mobile,
-            email: (customerProfile && customerProfile.email) || 'customer@gharbandhu.online'
+            email: (customerProfile && customerProfile.email) || 'customer@speedyhome.online'
         },
         theme: { color: '#dc2626' },
         config: {
@@ -3808,7 +3808,7 @@ async function handleEmergencySosSubmit(e) {
             });
             rzp.open();
         } else {
-            const proceed = confirm("Razorpay थेट पेमेंट: ₹५० ॲडव्हान्स घरबंधू खात्यात जमा करून १०-मिनिट सायरन सुरू करायचा का?");
+            const proceed = confirm("Razorpay थेट पेमेंट: ₹५० ॲडव्हान्स स्पीडीहोम खात्यात जमा करून १०-मिनिट सायरन सुरू करायचा का?");
             if (proceed) {
                 await options.handler({ razorpay_payment_id: 'PAY_SOS_TEST_' + Date.now() });
             } else {
@@ -3937,7 +3937,7 @@ window.detectSosGpsLocation = function() { if (typeof detectCustomerExactLocatio
 window.handleEmergencySosSubmit = function(e) { if (e) e.preventDefault(); handleFormSubmit(e); };
 
 // =========================================================
-// GharBandhu VIP Club (3 Orders = 10% Cashback) & Wallet Engine
+// SpeedyHome VIP Club (3 Orders = 10% Cashback) & Wallet Engine
 // =========================================================
 
 let customerWalletBalance = 0;

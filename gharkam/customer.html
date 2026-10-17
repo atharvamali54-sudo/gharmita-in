@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GharBandhu - Customer Booking</title>
+    <title>SpeedyHome - Customer Booking</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
@@ -20,7 +20,7 @@
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="GharBandhu">
+    <meta name="apple-mobile-web-app-title" content="SpeedyHome">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" href="icons/favicon.png">
     <link rel="stylesheet" href="css/common.css?v=43">
@@ -40,7 +40,7 @@
                 var isStoredApp = sessionStorage.getItem('gharmitra_is_app') === 'true';
                 var ua = (window.navigator && window.navigator.userAgent) ? window.navigator.userAgent.toLowerCase() : '';
                 var isUaApp = ua.indexOf('gharmitraapp') !== -1 || ua.indexOf('; wv') !== -1 || ua.indexOf(';wv') !== -1;
-                var isNativeApp = !!(window.GharBandhuNative || window.Android || window.AndroidBridge);
+                var isNativeApp = !!(window.SpeedyHomeNative || window.Android || window.AndroidBridge);
 
                 if (isStandalone || isIosStandalone || isAndroidApp || isUrlApp || isStoredApp || isUaApp || isNativeApp) {
                     document.documentElement.classList.add('is-app-env');
@@ -61,8 +61,8 @@
         <header class="bg-blue-600 px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 shadow-md">
             <div class="w-full md:w-auto flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2 text-xl sm:text-2xl font-black text-white shrink-0">
-                    <span class="bg-white text-blue-600 p-1.5 sm:p-2 rounded-xl text-base sm:text-lg flex items-center justify-center shadow-sm">🏠 GB</span>
-                    <span class="tracking-tight">GHARBANDHU<span class="text-blue-200">.online</span></span>
+                    <span class="bg-white text-blue-600 p-1.5 sm:p-2 rounded-xl text-base sm:text-lg flex items-center justify-center shadow-sm">🏠 SH</span>
+                    <span class="tracking-tight">SPEEDYHOME<span class="text-blue-200">.online</span></span>
                 </div>
             </div>
             <div class="w-full md:w-auto flex flex-wrap items-center justify-start md:justify-end gap-1.5 sm:gap-2">
@@ -135,7 +135,7 @@
                     </button>
                 </div>
 
-                <!-- GharBandhu VIP Club Loyalty & Cashback Banner (Web) -->
+                <!-- SpeedyHome VIP Club Loyalty & Cashback Banner (Web) -->
                 <div id="webVipClubCard" class="mb-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-indigo-500/10 border-2 border-amber-300/80 p-4 shadow-sm relative overflow-hidden">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div class="space-y-1">
@@ -454,7 +454,7 @@
                                 <span class="text-xs font-black text-red-700 bg-white border border-red-200 px-2 py-0.5 rounded-md">₹५० ॲडव्हान्स</span>
                             </div>
                             <p class="text-[11px] text-red-600 leading-relaxed">
-                                बुकिंग कन्फर्म करण्यासाठी ₹५० ॲडव्हान्स (घरबंधू फी) भरावे लागेल. पेमेंट होताच १-२ किमी मधील जवळच्या कारागिराला तात्काळ सायरन वाजवून पाठवले जाईल.
+                                बुकिंग कन्फर्म करण्यासाठी ₹५० ॲडव्हान्स (स्पीडीहोम फी) भरावे लागेल. पेमेंट होताच १-२ किमी मधील जवळच्या कारागिराला तात्काळ सायरन वाजवून पाठवले जाईल.
                             </p>
                         </div>
                     </div>
@@ -465,7 +465,7 @@
                             <input type="checkbox" id="useWalletBalanceCheckbox" onchange="toggleWalletDeduction()" class="mt-0.5 text-emerald-600 focus:ring-emerald-500 rounded">
                             <div>
                                 <span class="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-coins text-amber-500"></i> घरबंधू वॉलेट वापरा (₹<span id="walletAvailableDeductAmount">०</span> शिल्लक उपलब्ध)
+                                    <i class="fa-solid fa-coins text-amber-500"></i> स्पीडीहोम वॉलेट वापरा (₹<span id="walletAvailableDeductAmount">०</span> शिल्लक उपलब्ध)
                                 </span>
                                 <p class="text-[11px] text-emerald-700 mt-0.5">
                                     या बुकिंगमध्ये तुमचे वॉलेट बॅलन्स बिलातून वजा केले जाईल.
@@ -828,7 +828,7 @@
                 <a href="shipping-policy.html" class="hover:text-blue-600 transition underline">Service Delivery</a>
             </div>
             <p class="text-[11px] text-slate-400">
-                &copy; 2026 GharBandhu Home Services | Pune City • Secured by Razorpay
+                &copy; 2026 SpeedyHome Home Services | Pune City • Secured by Razorpay
             </p>
         </footer>
     </div>
@@ -846,10 +846,10 @@
         <header id="apkCustomerHeader" class="bg-gradient-to-r from-[#053820] via-[#094d2e] to-[#0f633d] text-white px-4 pt-3.5 pb-3 shadow-md sticky top-0 z-30 block">
             <!-- Row 1: Logo & Right Badges (Wallet & Avatar) -->
             <div class="flex items-center justify-between gap-3 mb-2.5">
-                <!-- Gharbandhu Logo with leaf icon -->
+                <!-- SpeedyHome Logo with leaf icon -->
                 <div class="flex items-center gap-1.5 cursor-default">
                     <span class="font-black text-lg tracking-tight text-white flex items-center gap-1">
-                        <span>Gharbandhu</span>
+                        <span>SpeedyHome</span>
                         <span class="text-emerald-400 text-sm">🍃</span>
                     </span>
                     <span class="text-[9px] text-emerald-200/90 font-semibold tracking-wider uppercase ml-1 block self-end pb-0.5">Gharmitra</span>
@@ -1064,7 +1064,7 @@
                 </div>
             </div>
 
-            <!-- Pronto / GharBandhu Pass Banner (Screenshot 2) -->
+            <!-- Pronto / SpeedyHome Pass Banner (Screenshot 2) -->
             <div onclick="openSocietyPassModal()" class="cursor-pointer bg-gradient-to-r from-[#07472a] via-[#0b5f3a] to-[#116e43] text-white rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2.5 border border-emerald-600/40 hover:brightness-105 active:scale-[0.99] transition">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -1072,7 +1072,7 @@
                     </div>
                     <div class="leading-tight">
                         <div class="flex items-center gap-1.5">
-                            <h4 class="font-black text-xs tracking-tight text-white">GHARBANDHU PASS</h4>
+                            <h4 class="font-black text-xs tracking-tight text-white">SPEEDYHOME PASS</h4>
                             <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.2 rounded">Save 50%</span>
                         </div>
                         <p class="text-[11px] text-emerald-100 font-medium mt-0.5">Get 3 Visits for ₹99 only • नो व्हिजिटिंग चार्ज</p>
@@ -1084,7 +1084,7 @@
                 </div>
             </div>
 
-            <!-- GharBandhu VIP Club Loyalty Card -->
+            <!-- SpeedyHome VIP Club Loyalty Card -->
             <details id="apkVipClubCard" class="group rounded-2xl bg-white border border-amber-300/80 p-2.5 shadow-2xs">
                 <summary class="flex items-center justify-between cursor-pointer select-none list-none">
                     <div class="flex items-center gap-1.5">
@@ -1599,11 +1599,11 @@
                 </button>
             </div>
 
-            <!-- PRONTO / GHARBANDHU PASS Card (Screenshot 4) -->
+            <!-- PRONTO / SPEEDYHOME PASS Card (Screenshot 4) -->
             <div onclick="openSocietyPassModal()" class="cursor-pointer bg-gradient-to-r from-[#0b5f3a] via-[#0d6b42] to-[#127a4a] text-white rounded-2xl p-4 shadow-sm flex items-center justify-between border border-emerald-500/40">
                 <div class="space-y-1">
                     <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full uppercase">Pass</span>
-                    <h4 class="font-black text-sm text-white">GHARBANDHU PASS</h4>
+                    <h4 class="font-black text-sm text-white">SPEEDYHOME PASS</h4>
                     <p class="text-xs text-emerald-100">Get 3 Visits for ₹99 only</p>
                 </div>
                 <button type="button" class="bg-white text-emerald-900 font-black text-xs py-1.5 px-3 rounded-xl shadow-xs">
@@ -1611,7 +1611,7 @@
                 </button>
             </div>
 
-            <!-- 3 Quick Boxes: My Bookings | GharBandhu Money | Help & Support -->
+            <!-- 3 Quick Boxes: My Bookings | SpeedyHome Money | Help & Support -->
             <div class="grid grid-cols-3 gap-2">
                 <button type="button" onclick="openMyOrdersModal()" class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs text-center space-y-1 cursor-pointer active:scale-95 transition">
                     <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto text-sm">
@@ -1977,7 +1977,7 @@
                                 <input type="checkbox" id="apkUseWalletCheckbox" onchange="toggleApkWalletDeduction()" class="mt-0.5 text-emerald-600 focus:ring-emerald-500 rounded">
                                 <div>
                                     <span class="text-xs font-bold text-emerald-800 flex items-center gap-1">
-                                        <i class="fa-solid fa-coins text-amber-500"></i> घरबंधू वॉलेट वापरा (₹<span id="apkWalletAvailableDeductAmount">०</span> शिल्लक)
+                                        <i class="fa-solid fa-coins text-amber-500"></i> स्पीडीहोम वॉलेट वापरा (₹<span id="apkWalletAvailableDeductAmount">०</span> शिल्लक)
                                     </span>
                                     <p class="text-[10px] text-emerald-700">बिलातून वॉलेट पैसे वजा केले जातील.</p>
                                 </div>
@@ -2223,7 +2223,7 @@
                 <i class="fa-solid fa-headset"></i>
             </div>
             <div>
-                <h3 class="font-black text-slate-900 text-lg">GharBandhu Customer Support</h3>
+                <h3 class="font-black text-slate-900 text-lg">SpeedyHome Customer Support</h3>
                 <p class="text-xs text-slate-500 mt-1">Contact us for any help regarding Pune home services.</p>
             </div>
             <div class="space-y-2.5 pt-2">
@@ -2234,7 +2234,7 @@
                 <a href="tel:7875160724" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-2">
                     <i class="fa-solid fa-phone"></i> Call Support (7875160724)
                 </a>
-                <a href="https://wa.me/917875160724?text=Hello%20GharBandhu%20Support,%20I%20need%20assistance." target="_blank" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-3 px-4 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-2">
+                <a href="https://wa.me/917875160724?text=Hello%20SpeedyHome%20Support,%20I%20need%20assistance." target="_blank" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold py-3 px-4 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-2">
                     <i class="fa-brands fa-whatsapp text-lg"></i> Chat on WhatsApp
                 </a>
                 <a href="contact.html" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 border border-slate-200">
@@ -2320,7 +2320,7 @@
 
                 <div class="text-center space-y-1">
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
-                        🏢 GharBandhu Society AMC Portal
+                        🏢 SpeedyHome Society AMC Portal
                     </span>
                     <h3 class="font-black text-slate-900 text-xl sm:text-2xl">सोसायटी मेंटेनन्स पार्टनरशिप पास</h3>
                     <p class="text-xs text-slate-500">बाणेर, खराडी, वाकड, कोथरूड, हिंजवडी इ. सोसायट्यांसाठी नियमित मेंटेनन्स योजना.</p>
@@ -2461,7 +2461,7 @@
                     <i class="fa-solid fa-wallet"></i>
                 </div>
                 <div>
-                    <h3 class="font-black text-slate-900 text-lg">घरबंधू वॉलेट व VIP रिवॉर्ड्स</h3>
+                    <h3 class="font-black text-slate-900 text-lg">स्पीडीहोम वॉलेट व VIP रिवॉर्ड्स</h3>
                     <p class="text-xs text-slate-500">तुमची जमा शिल्लक व कॅशबॅक तपशील</p>
                 </div>
             </div>

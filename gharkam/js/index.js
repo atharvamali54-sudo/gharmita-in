@@ -951,7 +951,7 @@ let currentRole = 'customer';
                 email: email,
                 user_email: email,
                 otp_code: otp,
-                message: "Your GharBandhu.online Password Reset OTP Code is: " + otp
+                message: "Your SpeedyHome.online Password Reset OTP Code is: " + otp
             };
 
             emailjs.send(serviceID, templateID, templateParams)
@@ -1199,7 +1199,7 @@ let currentRole = 'customer';
                 email: email,
                 user_email: email,
                 otp_code: otp,
-                message: "Your GharBandhu.online OTP Code is: " + otp
+                message: "Your SpeedyHome.online OTP Code is: " + otp
             };
 
             emailjs.send(serviceID, templateID, templateParams)

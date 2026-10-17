@@ -36,9 +36,12 @@ body {
    In App / WebView: Hide Share and Install App buttons
    In Normal Browser: Keep them visible and functional
    ========================================================= */
-/* Hide Share buttons everywhere across project (Install App only) */
+/* Hide Share and Install buttons in App / WebView environments */
 .gharmitra-share-btn,
+.speedyhome-share-btn,
 #pwaFloatingShareBtn,
+[onclick*="shareSpeedyHomeApp"],
+[onclick*="shareGharBandhuApp"],
 [onclick*="shareGharmitraApp"] {
     display: none !important;
 }
@@ -50,10 +53,17 @@ body {
     }
 }
 
+html.is-app-env .gharmitra-share-btn,
+html.is-app-env .speedyhome-share-btn,
+body.is-app-env .gharmitra-share-btn,
+body.is-app-env .speedyhome-share-btn,
+.is-app-env .gharmitra-share-btn,
+.is-app-env .speedyhome-share-btn,
 html.is-app-env .pwa-install-btn,
 html.is-app-env [onclick*="showPwaInstallModal"],
 body.is-app-env .pwa-install-btn,
-body.is-app-env [onclick*="showPwaInstallModal"] {
+body.is-app-env [onclick*="showPwaInstallModal"],
+.is-app-env .pwa-install-btn {
     display: none !important;
 }
 

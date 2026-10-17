@@ -1,5 +1,5 @@
 // =========================================================
-// GharBandhu Progressive Web App (PWA) & Instant Share System
+// SpeedyHome Progressive Web App (PWA) & Instant Share System
 // =========================================================
 
 let deferredInstallPrompt = null;
@@ -11,10 +11,10 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
             .then(reg => {
-                console.log('[GharBandhu PWA] SW registered:', reg.scope);
+                console.log('[SpeedyHome PWA] SW registered:', reg.scope);
             })
             .catch(err => {
-                console.warn('[GharBandhu PWA] SW registration failed:', err);
+                console.warn('[SpeedyHome PWA] SW registration failed:', err);
             });
     });
 }
@@ -23,8 +23,7 @@ if ('serviceWorker' in navigator) {
 function isAppAlreadyInstalled() {
     try {
         // 1. Explicit native bridge injected by Android/iOS wrapper
-        if (window.GharBandhuNative || window.Android || window.AndroidBridge || 
-            (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.GharBandhuNative)) {
+        if (window.SpeedyHomeNative || window.GharmitraNative || window.GharBandhuNative || window.Android || window.AndroidBridge || (window.webkit && window.webkit.messageHandlers && (window.webkit.messageHandlers.SpeedyHomeNative || window.webkit.messageHandlers.GharmitraNative || window.webkit.messageHandlers.GharBandhuNative))) {
             return true;
         }
 
@@ -60,13 +59,13 @@ function isAppAlreadyInstalled() {
         }
 
         // 6. Android App referrer (TWA / Intent launch)
-        if (document.referrer && (document.referrer.includes('android-app://') || document.referrer.includes('com.gharmitra.app'))) {
+        if (document.referrer && (document.referrer.includes('android-app://') || document.referrer.includes('com.speedyhome.app') || document.referrer.includes('com.gharmitra.app'))) {
             return true;
         }
 
         // 7. User Agent Inspection
         const ua = (window.navigator && window.navigator.userAgent) ? window.navigator.userAgent.toLowerCase() : '';
-        if (ua.includes('gharmitraapp')) {
+        if (ua.includes('speedyhomeapp') || ua.includes('gharmitraapp') || ua.includes('gharbandhuapp')) {
             return true;
         }
         // Standard Android System WebView tokens: '; wv' or 'Version/X.X' with 'Chrome'
@@ -80,7 +79,7 @@ function isAppAlreadyInstalled() {
         }
 
     } catch (err) {
-        console.warn('[GharBandhu PWA] App detection error:', err);
+        console.warn('[SpeedyHome PWA] App detection error:', err);
     }
 
     return false;
@@ -116,11 +115,11 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 // --- 5. App Installed Handler ---
 window.addEventListener('appinstalled', () => {
-    console.log('[GharBandhu PWA] App was successfully installed!');
+    console.log('[SpeedyHome PWA] App was successfully installed!');
     deferredInstallPrompt = null;
     hidePwaInstallModal();
     hideInstallButtons();
-    showPwaToast("🎉 Great! GharBandhu App has been installed on your home screen.");
+    showPwaToast("🎉 Great! SpeedyHome App has been installed on your home screen.");
 });
 
 // --- 6. PWA Install Modal / Banner ---
@@ -139,7 +138,7 @@ function ensurePwaModalHtml() {
 
             <!-- App Logo Preview -->
             <div class="relative mx-auto w-20 h-20 rounded-2xl shadow-lg border-2 border-blue-600/20 overflow-hidden bg-white p-1 flex items-center justify-center">
-                <img src="icons/icon-192x192.png" alt="GharBandhu App" class="w-full h-full object-contain rounded-xl">
+                <img src="icons/icon-192x192.png" alt="SpeedyHome App" class="w-full h-full object-contain rounded-xl">
                 <span class="absolute -bottom-1 -right-1 bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">
                     ✓ PWA
                 </span>
@@ -149,7 +148,7 @@ function ensurePwaModalHtml() {
                 <span class="bg-blue-50 text-blue-700 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-1.5 border border-blue-200">
                     ⚡ Instant Web App (No Store Needed)
                 </span>
-                <h3 class="font-black text-slate-900 text-xl">Install GharBandhu App</h3>
+                <h3 class="font-black text-slate-900 text-xl">Install SpeedyHome App</h3>
                 <p class="text-xs text-slate-600 mt-1 leading-relaxed">
                     Save to your phone home screen with 1 click. Runs fast, smooth, and lightweight just like a mobile app!
                 </p>
@@ -173,7 +172,7 @@ function ensurePwaModalHtml() {
 
             <!-- Action buttons -->
             <div class="space-y-2 pt-1">
-                <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/Gharmitra-Secure.apk" download="GharBandhu-Secure.apk" target="_blank" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
+                <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/SpeedyHome-Secure.apk" download="SpeedyHome-Secure.apk" target="_blank" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-brands fa-android text-emerald-400 text-base"></i> <span>Download Android APK</span>
                 </a>
                 <button onclick="dismissPwaModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-4 rounded-xl transition text-xs cursor-pointer">
@@ -215,7 +214,7 @@ function triggerPwaInstall() {
         deferredInstallPrompt.prompt();
         deferredInstallPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
-                console.log('[GharBandhu PWA] User accepted install prompt');
+                console.log('[SpeedyHome PWA] User accepted install prompt');
                 showPwaToast("🎉 App is installing...");
             }
             deferredInstallPrompt = null;
@@ -230,7 +229,7 @@ function triggerPwaInstall() {
 }
 
 function showIosInstructions() {
-    alert("📱 To install GharBandhu App on iPhone:\n\n1. Tap the 'Share' (📤) button at the bottom of Safari.\n2. Scroll down and tap 'Add to Home Screen'.\n3. Tap 'Add' in the top-right corner.");
+    alert("📱 To install SpeedyHome App on iPhone:\n\n1. Tap the 'Share' (📤) button at the bottom of Safari.\n2. Scroll down and tap 'Add to Home Screen'.\n3. Tap 'Add' in the top-right corner.");
 }
 
 function showInstallButtons() {
@@ -281,7 +280,22 @@ function applyAppOrBrowserVisibility() {
 
 // --- 7. App Sharing System (Direct WhatsApp, Native Share, and Modal) ---
 
-function getGharBandhuShareUrl() {
+function getSpeedyHomeShareUrl() {
+    try {
+        let loc = window.location;
+        if (loc.protocol === 'file:') return DEFAULT_FALLBACK_URL;
+        let origin = loc.origin;
+        let path = loc.pathname;
+        if (path.includes('/gharkam/')) {
+            return origin + path.substring(0, path.indexOf('/gharkam/') + 9) + 'index.html';
+        }
+        return origin + path;
+    } catch (e) {
+        return DEFAULT_FALLBACK_URL;
+    }
+}
+const getGharBandhuShareUrl = getSpeedyHomeShareUrl;
+function _dummyUnused()
     try {
         let loc = window.location;
         if (loc.protocol === 'file:') return DEFAULT_FALLBACK_URL;
@@ -296,13 +310,22 @@ function getGharBandhuShareUrl() {
     }
 }
 
-function getGharBandhuShareMessage() {
+function getSpeedyHomeShareMessage() {
+    const appUrl = getSpeedyHomeShareUrl();
+    return 🏠 *SpeedyHome - Pune City's Trusted Home & Repair Services!*\n\n⚡ Book Cleaning, Plumbing, Electrician, Painting and Home Services in 1 minute!\n\n✅ Live order tracking\n✅ Verified professional local workers\n✅ Instant Web App - runs directly on your phone!\n\n📲 *Open link and save to your home screen now:*\n\;
+}
+const getGharBandhuShareMessage = getSpeedyHomeShareMessage;
+function _dummyUnused2()
     const appUrl = getGharBandhuShareUrl();
-    return `🏠 *GharBandhu - Pune City's Trusted Home & Repair Services!*\n\n⚡ Book Cleaning, Plumbing, Electrician, Painting and Home Services in 1 minute!\n\n✅ Live order tracking\n✅ Verified professional local workers\n✅ Instant Web App - runs directly on your phone!\n\n📲 *Open link and save to your home screen now:*\n${appUrl}`;
+    return `🏠 *SpeedyHome - Pune City's Trusted Home & Repair Services!*\n\n⚡ Book Cleaning, Plumbing, Electrician, Painting and Home Services in 1 minute!\n\n✅ Live order tracking\n✅ Verified professional local workers\n✅ Instant Web App - runs directly on your phone!\n\n📲 *Open link and save to your home screen now:*\n${appUrl}`;
 }
 
 // Main share trigger - opens the comprehensive share modal
-function shareGharBandhuApp() {
+function shareSpeedyHomeApp() {
+    openShareModal();
+}
+const shareGharBandhuApp = shareSpeedyHomeApp;
+function _dummyUnused3()
     openShareModal();
 }
 
@@ -324,7 +347,7 @@ function ensureShareModalHtml() {
             </div>
 
             <div>
-                <h3 class="font-black text-slate-900 text-xl">Share GharBandhu App</h3>
+                <h3 class="font-black text-slate-900 text-xl">Share SpeedyHome App</h3>
                 <p class="text-xs text-slate-500 mt-1">Share with friends and family (Pune City)</p>
             </div>
 
@@ -392,17 +415,17 @@ function shareViaWhatsApp() {
 
 function triggerNativeShare() {
     const appUrl = getGharBandhuShareUrl();
-    const shareText = `🏠 GharBandhu - Pune City's Trusted Home Services! Book cleaning, plumbing, repairs and more:\n${appUrl}`;
+    const shareText = `🏠 SpeedyHome - Pune City's Trusted Home Services! Book cleaning, plumbing, repairs and more:\n${appUrl}`;
     
     if (navigator.share) {
         navigator.share({
-            title: 'GharBandhu - Home Services & Repairs',
+            title: 'SpeedyHome - Home Services & Repairs',
             text: shareText,
             url: appUrl
         }).then(() => {
             closeShareModal();
         }).catch((err) => {
-            console.log('[GharBandhu Share] Native share dismissed:', err);
+            console.log('[SpeedyHome Share] Native share dismissed:', err);
         });
     } else {
         // Fallback to copying link
@@ -420,7 +443,7 @@ function copyAppShareLink() {
     const appUrl = getGharBandhuShareUrl();
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(appUrl).then(() => {
-            showPwaToast("✓ GharBandhu app link copied to clipboard!");
+            showPwaToast("✓ SpeedyHome app link copied to clipboard!");
             closeShareModal();
         }).catch(() => fallbackCopy(appUrl));
     } else {
@@ -447,6 +470,7 @@ function fallbackCopy(text) {
 
 // --- 8. Floating Share Button (Removed as requested) ---
 function ensureFloatingShareButton() {
+    if (isAppAlreadyInstalled()) return; // Hidden completely in App
     const btn = document.getElementById('pwaFloatingShareBtn');
     if (btn) btn.remove();
 }
@@ -462,7 +486,13 @@ function showPwaToast(msg) {
 // --- 9. Global Window Attachments ---
 window.isAppAlreadyInstalled = isAppAlreadyInstalled;
 window.applyAppOrBrowserVisibility = applyAppOrBrowserVisibility;
+window.showShareButtons = showShareButtons;
+window.hideShareButtons = hideShareButtons;
+window.showInstallButtons = showInstallButtons;
+window.hideInstallButtons = hideInstallButtons;
+window.shareSpeedyHomeApp = shareGharBandhuApp;
 window.shareGharBandhuApp = shareGharBandhuApp;
+window.shareGharmitraApp = shareGharBandhuApp;
 window.openShareModal = openShareModal;
 window.closeShareModal = closeShareModal;
 window.shareViaWhatsApp = shareViaWhatsApp;
@@ -586,7 +616,7 @@ if (window.matchMedia) {
 // Enables OS-level sound, vibration, lock-screen alerts
 // even when the website or PWA is closed / in background!
 // =========================================================
-window.GharBandhuPush = (function() {
+window.SpeedyHomePush = window.GharBandhuPush = (function() {
     let swRegistration = null;
 
     async function getRegistration() {
@@ -648,7 +678,7 @@ window.GharBandhuPush = (function() {
                 
                 // Show Welcome System Notification
                 showSystemNotification(
-                    "🎉 घरबंधू नोटिफिकेशन्स सुरू झाले!",
+                    "🎉 स्पीडीहोम नोटिफिकेशन्स सुरू झाले!",
                     "आता ॲप बंद असतानाही आपल्याला नवीन कामे आणि ऑर्डरचे थेट अलर्ट्स मिळतील.",
                     window.location.href,
                     "welcome-alert"
@@ -709,7 +739,7 @@ window.GharBandhuPush = (function() {
             targetUrl = titleOrObj.url || titleOrObj.targetUrl || targetUrl || window.location.href;
             tag = titleOrObj.tag || tag || ('gk-alert-' + Date.now());
             extraOptions = Object.assign({}, titleOrObj.options || {}, extraOptions);
-            title = titleOrObj.title || 'घरबंधू (GharBandhu) अपडेट';
+            title = titleOrObj.title || 'स्पीडीहोम (SpeedyHome) अपडेट';
         }
 
         // Native mobile vibration
@@ -761,7 +791,7 @@ window.GharBandhuPush = (function() {
     function testPushNotification(role = 'user') {
         const title = role === 'worker'
             ? "⚡ नवीन काम उपलब्ध! ₹500"
-            : (role === 'customer' ? "🚗 कारागीर आपल्या घराकडे निघाला आहे!" : "🏠 घरबंधू टेस्ट पुश अलर्ट!");
+            : (role === 'customer' ? "🚗 कारागीर आपल्या घराकडे निघाला आहे!" : "🏠 स्पीडीहोम टेस्ट पुश अलर्ट!");
         const body = role === 'worker'
             ? "कोथरूड, पुणे येथे दीप क्लिनिंगचे काम आले आहे. स्वीकारण्यासाठी त्वरित टॅप करा."
             : (role === 'customer' ? "सचिन शिंदे (प्लंबर) ५ मिनिटांत पोहोचत आहेत. स्टार्ट पिन तयार ठेवा." : "हे एक टेस्ट नोटिफिकेशन आहे. आपली सिस्टीम यशस्वीरित्या कार्यरत आहे!");
@@ -824,7 +854,7 @@ window.GharBandhuPush = (function() {
 
             if (isAudience) {
                 showSystemNotification(
-                    b.title || '📢 घरबंधू ॲडमिन अलर्ट',
+                    b.title || '📢 स्पीडीहोम ॲडमिन अलर्ट',
                     b.body || b.message || 'नवीन अपडेट उपलब्ध आहे.',
                     b.targetUrl || window.location.href,
                     'broadcast-' + snap.key

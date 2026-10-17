@@ -1,9 +1,9 @@
-﻿/**
- * GharBandhu - Direct Real Phone Calling System with Screen Privacy
+/**
+ * SpeedyHome - Direct Real Phone Calling System with Screen Privacy
  * Option 1: Direct cellular call to real number + on-screen masking.
  */
 
-const GharBandhuCallMasking = (function() {
+const SpeedyHomeCallMasking = (function() {
     function maskDisplayNumber(phoneNumber) {
         if (!phoneNumber) return 'Not available';
         const cleaned = String(phoneNumber).replace(/\D/g, '');
@@ -28,7 +28,12 @@ const GharBandhuCallMasking = (function() {
     };
 })();
 
+// Backward compatibility alias
+const GharBandhuCallMasking = SpeedyHomeCallMasking;
+window.SpeedyHomeCallMasking = SpeedyHomeCallMasking;
+window.GharBandhuCallMasking = GharBandhuCallMasking;
+
 // Global helper for HTML buttons
 function initiateDirectCall(realNumber, personName) {
-    GharBandhuCallMasking.dialRealPhoneCall(realNumber, personName);
+    SpeedyHomeCallMasking.dialRealPhoneCall(realNumber, personName);
 }

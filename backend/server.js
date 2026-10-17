@@ -111,7 +111,7 @@ async function syncWalletToFirebase(mobile, balance) {
 app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
-        service: 'Gharmitra Production API & Payment Backend',
+        service: 'SpeedyHome Production API & Payment Backend',
         key_configured: Boolean(keyId && keySecret),
         auth_configured: Boolean(process.env.AUTH_TOKEN_SECRET)
     });
@@ -814,7 +814,7 @@ app.post('/api/create-order', rateLimiter(20, 60 * 1000), async (req, res) => {
             amount: amountInPaise,
             currency: 'INR',
             receipt: safeReceipt,
-            notes: (typeof notes === 'object' && notes !== null) ? notes : { service: 'Gharmitra Partner Service Credits' }
+            notes: (typeof notes === 'object' && notes !== null) ? notes : { service: 'SpeedyHome Partner Service Credits' }
         };
 
         const order = await razorpay.orders.create(options);
