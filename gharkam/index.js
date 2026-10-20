@@ -1076,7 +1076,7 @@ let currentRole = 'customer';
                 passwordContainer.classList.remove('hidden');
                 passwordInput.required = true;
                 forgotLinkContainer.classList.add('hidden');
-                btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition duration-200";
+                btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition duration-200";
                 toggleTxt.innerHTML = `Already have an account? <a href="#" onclick="toggleMode()" class="text-blue-600 font-bold hover:underline">Sign In</a>`;
             } else {
                 title.innerText = roleName + " Sign In";
@@ -1089,7 +1089,7 @@ let currentRole = 'customer';
                 passwordContainer.classList.remove('hidden');
                 passwordInput.required = true;
                 forgotLinkContainer.classList.remove('hidden');
-                btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition duration-200";
+                btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition duration-200";
                 toggleTxt.innerHTML = `Don't have an account? <a href="#" onclick="toggleMode()" class="text-blue-600 font-bold hover:underline">Sign Up</a>`;
             }
             applyWorkerStepUI();

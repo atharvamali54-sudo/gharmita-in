@@ -394,14 +394,21 @@ html.terms-consent-required #termsConsentModal {
 
 /* Zero-scroll viewport layout */
 html, body.hero-bg {
-    height: 100%;
+    height: 100vh;
     height: 100dvh;
+    max-height: 100vh;
     max-height: 100dvh;
-    overflow: hidden;
+    overflow: hidden !important;
 }
 
-@media (max-height: 600px) {
-    body.hero-bg {
+#mainAuthContainer {
+    max-height: 100vh;
+    max-height: 100dvh;
+}
+
+@media (max-height: 550px) {
+    body.hero-bg, #mainAuthContainer {
         overflow-y: auto !important;
     }
+}
 }
