@@ -236,6 +236,8 @@ function populateSavedAddress() {
             apkHeaderAddr.innerText = savedAddr.length > 32 ? savedAddr.substring(0, 30) + '...' : savedAddr;
         } else if (savedArea) {
             apkHeaderAddr.innerText = savedArea + ', Pune';
+        } else {
+            apkHeaderAddr.innerText = 'Sinhagad Road, Pune';
         }
     }
     const profName = (customerProfile && (customerProfile.fullName || customerProfile.name)) || (apkNameInput && apkNameInput.value) || (nameInput && nameInput.value) || '';
@@ -2886,6 +2888,11 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
         }
 
         function openMyOrdersModal() {
+            const ordersView = document.getElementById('apkOrdersView');
+            if (ordersView) {
+                customerNavTo('orders');
+                return;
+            }
             const modal = document.getElementById('myOrdersModal');
             if (!modal) return;
             modal.classList.remove('hidden');
@@ -2895,9 +2902,8 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
             const searchInput = document.getElementById('searchMobileInput');
 
             if (!signedInMobile || signedInMobile.length < 10) {
-                alert("ऑर्डर हिस्टरी पाहण्यासाठी आधी तुमच्या मोबाईल नंबरने लॉगिन किंवा बुकिंग करा.");
                 if (searchInput) searchInput.value = "";
-                const container = document.getElementById('ordersListContainer');
+                const container = document.getElementById('desktopOrdersListContainer') || document.getElementById('ordersListContainer');
                 if (container) {
                     container.innerHTML = '<p class="text-xs text-amber-700 bg-amber-50 p-4 rounded-xl text-center border border-amber-200">सुरक्षेसाठी कृपया आधी लॉगिन करा. तुम्ही फक्त तुमच्याच लॉगिन नंबरची ऑर्डर हिस्टरी पाहू शकता.</p>';
                 }
@@ -2922,12 +2928,25 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
         function fetchCustomerOrders() {
             const inputEl = document.getElementById('searchMobileInput');
             const container = document.getElementById('ordersListContainer');
+            const desktopContainer = document.getElementById('desktopOrdersListContainer');
             const searchBtn = document.getElementById('searchOrdersBtn');
-            if (!container) return;
 
             const signedInMobile = getLoggedInCustomerMobile();
             if (!signedInMobile || signedInMobile.length !== 10) {
-                alert("कृपया आधी तुमच्या मोबाईल नंबरने लॉगिन करा!");
+                const noLoginHtml = `
+                    <div class="text-center py-12 px-4 bg-white rounded-2xl border border-slate-200 space-y-3 shadow-xs">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-xl shadow-inner">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-sm">लॉगिन आवश्यक आहे</h3>
+                        <p class="text-xs text-slate-500 max-w-xs mx-auto">तुमच्या चालू आणि मागील ऑर्डर्स पाहण्यासाठी कृपया आधी लॉगिन करा.</p>
+                        <a href="index.html" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-5 rounded-xl shadow transition">
+                            <i class="fa-solid fa-right-to-bracket"></i> लॉगिन करा
+                        </a>
+                    </div>
+                `;
+                if (container) container.innerHTML = noLoginHtml;
+                if (desktopContainer) desktopContainer.innerHTML = noLoginHtml;
                 return;
             }
 
@@ -2940,7 +2959,8 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                 searchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Searching...</span>';
             }
 
-            container.innerHTML = '<p class="text-xs text-slate-400 text-center py-8"><i class="fa-solid fa-spinner fa-spin mr-1"></i> ऑर्डर्स शोधत आहोत...</p>';
+            if (container) container.innerHTML = '<p class="text-xs text-slate-400 text-center py-8"><i class="fa-solid fa-spinner fa-spin mr-1"></i> ऑर्डर्स शोधत आहोत...</p>';
+            if (desktopContainer) desktopContainer.innerHTML = '<p class="text-xs text-slate-400 text-center py-8"><i class="fa-solid fa-spinner fa-spin mr-1"></i> ऑर्डर्स शोधत आहोत...</p>';
 
             // Load orders and match by mobile
             database.ref("orders").once("value", (snapshot) => {
@@ -2969,14 +2989,18 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                     searchBtn.disabled = false;
                     searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> <span>Search</span>';
                 }
-                container.innerHTML = '<p class="text-xs text-red-500 text-center py-8">ऑर्डर्स लोड करताना अडचण आली: ' + escapeHtml(error.message) + '</p>';
+                const errHtml = '<p class="text-xs text-red-500 text-center py-8">ऑर्डर्स लोड करताना अडचण आली: ' + escapeHtml(error.message) + '</p>';
+                if (container) container.innerHTML = errHtml;
+                if (desktopContainer) desktopContainer.innerHTML = errHtml;
             });
         }
 
         function renderCustomerOrdersList(orders, searchedMobile) {
             const container = document.getElementById('ordersListContainer');
-            if (!container) return;
-            container.innerHTML = '';
+            const desktopContainer = document.getElementById('desktopOrdersListContainer');
+            if (!container && !desktopContainer) return;
+            if (container) container.innerHTML = '';
+            if (desktopContainer) desktopContainer.innerHTML = '';
 
             const keys = Object.keys(orders || {});
             if (keys.length === 0) {
@@ -2987,7 +3011,7 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                         </div>
                         <p class="text-xs font-bold text-slate-700">मोबाईल नंबर ${escapeHtml(searchedMobile)} वर कोणतीही ऑर्डर सापडली नाही.</p>
                         <p class="text-[11px] text-slate-500">तुम्ही नवीन अपॉइंटमेंट बुक करू शकता.</p>
-                        <button type="button" onclick="closeMyOrdersModal()" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-xl transition">
+                        <button type="button" onclick="customerNavTo('home')" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-xl transition">
                             नवीन अपॉइंटमेंट बुक करा
                         </button>
                     </div>
@@ -3017,7 +3041,7 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
                     <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">चालू ऑर्डर्स (Active & Live Orders - ${activeOrders.length})</h4>
                 `;
-                container.appendChild(activeHeader);
+                container.appendChild(activeHeader); if (desktopContainer) desktopContainer.appendChild(activeHeader.cloneNode(true));
 
                 activeOrders.forEach(({ id: orderId, data: order }) => {
                     let badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
@@ -3062,7 +3086,7 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                             <span>थेट ट्रॅक करा (Live Tracking Status)</span>
                         </button>
                     `;
-                    container.appendChild(card);
+                    container.appendChild(card); if (desktopContainer) desktopContainer.appendChild(card.cloneNode(true));
                 });
             }
 
@@ -3074,7 +3098,7 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                     <i class="fa-solid fa-history text-slate-400"></i>
                     <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider">मागील ऑर्डर्स (Past Orders - ${pastOrders.length})</h4>
                 `;
-                container.appendChild(pastHeader);
+                container.appendChild(pastHeader); if (desktopContainer) desktopContainer.appendChild(pastHeader.cloneNode(true));
 
                 pastOrders.forEach(({ id: orderId, data: order }) => {
                     const isDisputed = (order.status === 'Payment Dispute' || order.isPaymentDisputed) && !order.isDisputeResolved && order.paymentStatus !== 'Paid';
@@ -3134,7 +3158,8 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
         }
 
         function trackSelectedOrder(orderId) {
-            closeMyOrdersModal();
+            if (typeof closeMyOrdersModal === 'function') closeMyOrdersModal();
+            customerNavTo('home');
             trackLiveStatus(orderId);
             setTimeout(() => {
                 const target = document.getElementById('customerLiveStatusColumn') || document.getElementById('liveStatusContainer') || document.getElementById('stepsTrackerContainer');
@@ -3144,29 +3169,53 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
             }, 300);
         }
 
-        // Bottom Nav bar handler (Pronto Style: Home, Bookings, Money)
+        // Bottom Nav bar handler (Dedicated Full-Page Screens: Home, Bookings, Money, Profile)
         function customerNavTo(target) {
             document.querySelectorAll('.bottom-nav-item').forEach(btn => btn.classList.remove('active'));
+            const header = document.getElementById('apkCustomerHeader');
+            const homeView = document.getElementById('apkHomeView');
+            const ordersView = document.getElementById('apkOrdersView');
+            const moneyView = document.getElementById('apkMoneyView');
+            const profileScreen = document.getElementById('apkDedicatedProfileScreen');
+
+            if (typeof closeQuickBookingSheet === 'function') closeQuickBookingSheet();
+            if (typeof closeProfileModal === 'function') closeProfileModal();
+            if (typeof closeCustomerWalletModal === 'function') closeCustomerWalletModal();
+            if (typeof closeMyOrdersModal === 'function') closeMyOrdersModal();
+            if (typeof closeCustomerSupportModal === 'function') closeCustomerSupportModal();
+
             if (target === 'home') {
                 document.getElementById('cNavHome')?.classList.add('active');
-                if (typeof closeApkProfileView === 'function') closeApkProfileView();
-                closeMyOrdersModal();
-                if (typeof closeQuickBookingSheet === 'function') closeQuickBookingSheet();
-                if (typeof closeProfileModal === 'function') closeProfileModal();
-                if (typeof closeCustomerWalletModal === 'function') closeCustomerWalletModal();
-                if (typeof closeCustomerSupportModal === 'function') closeCustomerSupportModal();
+                if (ordersView) ordersView.classList.add('hidden');
+                if (moneyView) moneyView.classList.add('hidden');
+                if (profileScreen) profileScreen.classList.add('hidden');
+                if (header) header.classList.remove('hidden');
+                if (homeView) homeView.classList.remove('hidden');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (target === 'orders') {
                 document.getElementById('cNavOrders')?.classList.add('active');
-                openMyOrdersModal();
+                if (homeView) homeView.classList.add('hidden');
+                if (moneyView) moneyView.classList.add('hidden');
+                if (profileScreen) profileScreen.classList.add('hidden');
+                if (header) header.classList.add('hidden');
+                if (ordersView) ordersView.classList.remove('hidden');
+                fetchCustomerOrders();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (target === 'money') {
                 document.getElementById('cNavMoney')?.classList.add('active');
-                if (typeof openCustomerWalletModal === 'function') openCustomerWalletModal();
+                if (homeView) homeView.classList.add('hidden');
+                if (ordersView) ordersView.classList.add('hidden');
+                if (profileScreen) profileScreen.classList.add('hidden');
+                if (header) header.classList.add('hidden');
+                if (moneyView) moneyView.classList.remove('hidden');
+                if (typeof initCustomerWalletAndVip === 'function') initCustomerWalletAndVip();
+                if (typeof updateCustomerVipStampsUI === 'function') updateCustomerVipStampsUI();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (target === 'profile') {
                 if (typeof openApkProfileView === 'function') openApkProfileView();
-                else if (typeof openProfileModal === 'function') openProfileModal();
             } else if (target === 'help') {
-                if (typeof openCustomerSupportModal === 'function') openCustomerSupportModal();
+                if (typeof openAiCareSupportModal === 'function') openAiCareSupportModal('customer');
+                else if (typeof openCustomerSupportModal === 'function') openCustomerSupportModal();
             }
         }
 
@@ -3272,9 +3321,17 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
         }
 
         function openApkProfileView() {
+            document.querySelectorAll('.bottom-nav-item').forEach(btn => btn.classList.remove('active'));
+            const header = document.getElementById('apkCustomerHeader');
             const homeView = document.getElementById('apkHomeView');
+            const ordersView = document.getElementById('apkOrdersView');
+            const moneyView = document.getElementById('apkMoneyView');
             const profileScreen = document.getElementById('apkDedicatedProfileScreen');
+
+            if (header) header.classList.add('hidden');
             if (homeView) homeView.classList.add('hidden');
+            if (ordersView) ordersView.classList.add('hidden');
+            if (moneyView) moneyView.classList.add('hidden');
             if (profileScreen) profileScreen.classList.remove('hidden');
 
             const sess = typeof readCustomerSession === 'function' ? readCustomerSession() : null;
@@ -3298,12 +3355,7 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
         }
 
         function closeApkProfileView() {
-            const homeView = document.getElementById('apkHomeView');
-            const profileScreen = document.getElementById('apkDedicatedProfileScreen');
-            if (profileScreen) profileScreen.classList.add('hidden');
-            if (homeView) homeView.classList.remove('hidden');
-            document.querySelectorAll('.bottom-nav-item').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('cNavHome')?.classList.add('active');
+            customerNavTo('home');
         }
 
         function openApkAddressSelectorModal() {
@@ -4205,6 +4257,23 @@ function updateCustomerVipStampsUI() {
     if (apkStatusText) apkStatusText.innerText = statusMsg;
     if (modalMilestone) modalMilestone.innerText = `${cycle} / ३ पूर्ण (${customerCompletedOrdersCount} एकूण)`;
     if (modalProgress) modalProgress.style.width = `${percent}%`;
+    
+    const apkMoneyBal = document.getElementById('apkMoneyBalance');
+    const apkMoneyMilestone = document.getElementById('apkMoneyMilestone');
+    const apkMoneyProgress = document.getElementById('apkMoneyProgressBar');
+    const apkMoneySub = document.getElementById('apkMoneySubText');
+
+    if (apkMoneyBal) apkMoneyBal.innerText = customerWalletBalance.toLocaleString('en-IN');
+    if (apkMoneyMilestone) apkMoneyMilestone.innerText = `${cycle} / ३ पूर्ण (${customerCompletedOrdersCount} एकूण)`;
+    if (apkMoneyProgress) apkMoneyProgress.style.width = `${percent}%`;
+    if (apkMoneySub) {
+        apkMoneySub.innerText = (cycle === 2 && !isCycleEligible)
+            ? '⚠️ पहिल्या २ ऑर्डर्सचे एकूण बिल किमान ₹५,००० पेक्षा कमी असल्याने या ३ ऱ्या ऑर्डरवर कॅशबॅक लागू होणार नाही.'
+            : (cycle === 2 && isCycleEligible)
+            ? '🎉 तुमची पात्रता पूर्ण झाली आहे! ३ री ऑर्डर पूर्ण होताच १०% कॅशबॅक थेट वॉलेटमध्ये जमा होईल.'
+            : 'पात्रता अट: पहिल्या २ ऑर्डर्सचे एकूण बिल किमान ₹५,००० (उदा. ₹३,००० + ₹३,०००) असणे आवश्यक आहे. २ ऑर्डर्स ₹५,००० पेक्षा कमी असल्यास ऑफर लागू होणार नाही.';
+    }
+
     if (modalSub) {
         modalSub.innerText = (cycle === 2 && !isCycleEligible)
             ? '⚠️ पहिल्या २ ऑर्डर्सचे एकूण बिल ₹५,००० पेक्षा कमी असल्याने या ३ ऱ्या ऑर्डरवर कॅशबॅक लागू होणार नाही.'
@@ -4246,6 +4315,11 @@ function renderCustomerWalletTransactions() {
 }
 
 function openCustomerWalletModal() {
+    const moneyView = document.getElementById('apkMoneyView');
+    if (moneyView) {
+        customerNavTo('money');
+        return;
+    }
     initCustomerWalletAndVip();
     const modal = document.getElementById('customerWalletModal');
     if (modal) {

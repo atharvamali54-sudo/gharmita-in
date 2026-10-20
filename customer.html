@@ -121,64 +121,6 @@
                     </button>
                 </div>
 
-                <!-- Society Bulk Pass Highlight Banner -->
-                <div class="mb-5 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white p-3.5 sm:p-4 shadow-lg border border-indigo-400/30 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-xl bg-indigo-500/25 border border-indigo-400/30 text-amber-300 flex items-center justify-center text-xl shrink-0 shadow-inner">
-                            🏢
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h4 class="font-black text-xs sm:text-sm text-white">पुण्यातील सोसायट्यांसाठी मासिक मेंटेनन्स पास</h4>
-                                <span class="bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider">२०% सूट</span>
-                            </div>
-                            <p class="text-[11px] text-indigo-200 mt-0.5">बाणेर, वाकड, कोथरूड, खराडी इ. सोसायट्यांसाठी नियमित प्लंबिंग, इलेक्ट्रिशियन व फिक्स कारागीर.</p>
-                        </div>
-                    </div>
-                    <button type="button" onclick="openSocietyPassModal()" class="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs py-2 px-4 rounded-xl shadow transition shrink-0 flex items-center justify-center gap-1.5 cursor-pointer">
-                        <span>प्लॅन्स पहा</span>
-                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                    </button>
-                </div>
-
-                <!-- SpeedyHome VIP Club Loyalty & Cashback Banner (Web) -->
-                <div id="webVipClubCard" class="mb-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-indigo-500/10 border-2 border-amber-300/80 p-4 shadow-sm relative overflow-hidden">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <i class="fa-solid fa-crown text-amber-900"></i> VIP लॉयल्टी रिवॉर्ड
-                                </span>
-                                <h4 class="font-extrabold text-sm text-slate-900">VIP क्लब: पहिल्या २ ऑर्डर्स एकूण किमान ₹५k झाल्यास ३ ऱ्या ऑर्डरवर १०% कॅशबॅक!</h4>
-                            </div>
-                            <p id="webVipStatusText" class="text-xs text-slate-600 font-medium">
-                                तुम्ही ० ऑर्डर्स पूर्ण केल्या आहेत. आणखी ३ ऑर्डर्स पूर्ण झाल्यावर बिलाच्या १०% थेट वॉलेट कॅशबॅक अनलॉक होईल!
-                            </p>
-                        </div>
-
-                        <!-- 3 Stamps Visualizer -->
-                        <div class="flex items-center gap-2 shrink-0">
-                            <!-- Stamp 1 -->
-                            <div id="webStamp1" class="w-12 h-14 rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-1 text-center transition shadow-xs">
-                                <span class="text-base text-slate-300" id="webStamp1Icon">⚪</span>
-                                <span class="text-[9px] font-bold text-slate-500 mt-0.5">ऑर्डर १</span>
-                            </div>
-                            <div class="w-2 h-0.5 bg-slate-300"></div>
-                            <!-- Stamp 2 -->
-                            <div id="webStamp2" class="w-12 h-14 rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-1 text-center transition shadow-xs">
-                                <span class="text-base text-slate-300" id="webStamp2Icon">⚪</span>
-                                <span class="text-[9px] font-bold text-slate-500 mt-0.5">ऑर्डर २</span>
-                            </div>
-                            <div class="w-2 h-0.5 bg-slate-300"></div>
-                            <!-- Stamp 3 (Reward) -->
-                            <div id="webStamp3" class="w-14 h-14 rounded-xl border-2 border-amber-400 bg-amber-50 flex flex-col items-center justify-center p-1 text-center shadow-xs relative">
-                                <span class="text-base animate-bounce" id="webStamp3Icon">🎁</span>
-                                <span class="text-[9px] font-black text-amber-800 leading-tight">१०% कॅशबॅक</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <form id="bookingForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
                     
                     <div>
@@ -858,7 +800,7 @@
                         <span>SpeedyHome</span>
                         <span class="text-emerald-400 text-sm">🍃</span>
                     </span>
-                    <span class="text-[9px] text-emerald-200/90 font-semibold tracking-wider uppercase ml-1 block self-end pb-0.5">Gharmitra</span>
+                    
                 </div>
 
                 <!-- Right Action Icons: Rounded White Wallet Pill + Profile Avatar Pill -->
@@ -876,17 +818,23 @@
                 </div>
             </div>
 
-            <!-- Row 2: Location Bar (Dear, Wagholi, Pune, 411023) -->
-            <button type="button" onclick="openApkAddressSelectorModal()" class="w-full flex items-center gap-2.5 text-left group cursor-pointer transition active:opacity-85">
-                <div class="w-8 h-8 rounded-full bg-emerald-800/80 border border-emerald-600/50 flex items-center justify-center shrink-0 shadow-inner">
-                    <i class="fa-solid fa-location-dot text-amber-400 text-xs"></i>
-                </div>
-                <div class="truncate leading-tight flex-1 min-w-0">
-                    <div class="flex items-center gap-1 font-black text-xs text-white">
-                        <span>Home</span>
-                        <i class="fa-solid fa-chevron-down text-[9px] text-emerald-200 group-hover:translate-y-0.5 transition-transform"></i>
+            <!-- Row 2: Prominent Delivery Address Selector (Home ⌄ Sinhagad Road, Pune) -->
+            <button type="button" onclick="openApkAddressSelectorModal()" class="w-full flex items-center justify-between gap-3 bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl px-3.5 py-2.5 text-left group cursor-pointer transition active:scale-[0.99] shadow-inner">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 shadow-xs font-black">
+                        <i class="fa-solid fa-location-dot text-xs"></i>
                     </div>
-                    <p id="apkHeaderAddressText" class="text-[11px] text-emerald-100/90 truncate font-medium mt-0.5">Dear, Wagholi, Pune, 411023</p>
+                    <div class="truncate leading-tight min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-black text-xs text-white tracking-wide">Home</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] text-amber-300 group-hover:translate-y-0.5 transition-transform"></i>
+                            <span class="text-[9px] bg-emerald-500/40 text-emerald-100 px-1.5 py-0.2 rounded font-semibold uppercase">Pune</span>
+                        </div>
+                        <p id="apkHeaderAddressText" class="text-[11px] text-emerald-100 font-medium truncate mt-0.5">Sinhagad Road, Pune</p>
+                    </div>
+                </div>
+                <div class="text-right shrink-0">
+                    <span class="text-[10px] font-bold text-amber-300 group-hover:underline flex items-center gap-1">बदला <i class="fa-solid fa-angle-right text-[9px]"></i></span>
                 </div>
             </button>
         </header>
@@ -1070,69 +1018,6 @@
                 </div>
             </div>
 
-            <!-- Pronto / SpeedyHome Pass Banner (Screenshot 2) -->
-            <div onclick="openSocietyPassModal()" class="cursor-pointer bg-gradient-to-r from-[#07472a] via-[#0b5f3a] to-[#116e43] text-white rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2.5 border border-emerald-600/40 hover:brightness-105 active:scale-[0.99] transition">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
-                        ⭐
-                    </div>
-                    <div class="leading-tight">
-                        <div class="flex items-center gap-1.5">
-                            <h4 class="font-black text-xs tracking-tight text-white">SPEEDYHOME PASS</h4>
-                            <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.2 rounded">Save 50%</span>
-                        </div>
-                        <p class="text-[11px] text-emerald-100 font-medium mt-0.5">Get 3 Visits for ₹99 only • नो व्हिजिटिंग चार्ज</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-1 text-emerald-200 text-xs font-bold shrink-0">
-                    <span>Pass</span>
-                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                </div>
-            </div>
-
-            <!-- SpeedyHome VIP Club Loyalty Card -->
-            <details id="apkVipClubCard" class="group rounded-2xl bg-white border border-amber-300/80 p-2.5 shadow-2xs">
-                <summary class="flex items-center justify-between cursor-pointer select-none list-none">
-                    <div class="flex items-center gap-1.5">
-                        <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[10px] font-black shadow-xs">
-                            <i class="fa-solid fa-crown"></i>
-                        </span>
-                        <h4 class="font-black text-[11px] text-slate-900">VIP क्लब: ३ ऱ्या ऑर्डरवर १०% कॅशबॅक</h4>
-                        <span class="text-[9px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded">ऑफर</span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <button type="button" onclick="event.stopPropagation(); openCustomerWalletModal();" class="text-[10px] font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md transition flex items-center gap-1 cursor-pointer">
-                            <i class="fa-solid fa-wallet text-[9px]"></i> ₹<span id="apkVipCardWalletBal">०</span>
-                        </button>
-                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 group-open:rotate-180 transition-transform"></i>
-                    </div>
-                </summary>
-
-                <!-- 3 Stamps on Mobile -->
-                <div class="mt-2 pt-2 border-t border-amber-200/60 space-y-1.5">
-                    <div class="flex items-center justify-between gap-1.5">
-                        <div id="apkStamp1" class="flex-1 rounded-lg border border-dashed border-slate-300 bg-white p-1 text-center transition">
-                            <span class="text-xs block" id="apkStamp1Icon">⚪</span>
-                            <span class="text-[9px] font-bold text-slate-600 block mt-0.5">ऑर्डर १</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
-                        <div id="apkStamp2" class="flex-1 rounded-lg border border-dashed border-slate-300 bg-white p-1 text-center transition">
-                            <span class="text-xs block" id="apkStamp2Icon">⚪</span>
-                            <span class="text-[9px] font-bold text-slate-600 block mt-0.5">ऑर्डर २</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
-                        <div id="apkStamp3" class="flex-1 rounded-lg border border-amber-400 bg-amber-50 p-1 text-center relative shadow-xs">
-                            <span class="text-xs block animate-bounce" id="apkStamp3Icon">🎁</span>
-                            <span class="text-[9px] font-black text-amber-800 block mt-0.5">१०% कॅशबॅक</span>
-                        </div>
-                    </div>
-
-                    <p id="apkVipStatusText" class="text-[10px] text-slate-600 text-center font-medium bg-white/70 py-1 px-2 rounded-lg border border-slate-200/60">
-                        तुम्ही ० ऑर्डर्स पूर्ण केल्या आहेत. आणखी ३ कामे पूर्ण केल्यावर १०% कॅशबॅक अनलॉक होईल!
-                    </p>
-                </div>
-            </details>
-
             <!-- Category Filter Pills (Horizontal Scroll - Screenshot 2 & 3) -->
             <div class="space-y-2">
                 <div class="flex items-center justify-between px-0.5">
@@ -1176,10 +1061,10 @@
             </div>
 
             <!-- 3-Column Service Catalog Grid (Photos matching Screenshot 2 & 3) -->
-            <div id="apkCatalogGrid" class="grid grid-cols-3 gap-2">
+            <div id="apkCatalogGrid" class="grid grid-cols-3 gap-3.5">
                 
                 <!-- 1. Painting -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="painting">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="painting">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(18k)</span>
@@ -1191,9 +1076,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">रंगकाम</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Painting', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1201,7 +1084,7 @@
                 </div>
 
                 <!-- 2. Cleaning -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(66k)</span>
@@ -1213,9 +1096,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">घर सफाई</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1223,7 +1104,7 @@
                 </div>
 
                 <!-- 3. AC Repair -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="ac appliances">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="ac appliances">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(51k)</span>
@@ -1235,9 +1116,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">एसी दुरुस्ती</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('AC Repair', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1245,7 +1124,7 @@
                 </div>
 
                 <!-- 4. Appliance Repair -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="appliances">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="appliances">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(39k)</span>
@@ -1257,9 +1136,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">उपकरण दुरुस्ती</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Appliance Repair', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1267,7 +1144,7 @@
                 </div>
 
                 <!-- 5. Plumbing -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="plumbing">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="plumbing">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(75k)</span>
@@ -1279,9 +1156,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">प्लंबिंग काम</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Plumbing', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1289,7 +1164,7 @@
                 </div>
 
                 <!-- 6. Electrician -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="electric">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="electric">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(84k)</span>
@@ -1301,9 +1176,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">इलेक्ट्रिशियन</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Electrician', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1311,7 +1184,7 @@
                 </div>
 
                 <!-- 7. Carpenter -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="carpentry">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="carpentry">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(29k)</span>
@@ -1323,9 +1196,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">सुतारकाम</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Carpenter', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1333,7 +1204,7 @@
                 </div>
 
                 <!-- 8. Masonry -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(14k)</span>
@@ -1345,9 +1216,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">बांधकाम (गवंडी)</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Masonry', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1355,7 +1224,7 @@
                 </div>
 
                 <!-- 9. Locksmith -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(22k)</span>
@@ -1367,9 +1236,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">कुलूप दुरुस्ती</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Locksmith', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1377,7 +1244,7 @@
                 </div>
 
                 <!-- 10. Pest Control -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(19k)</span>
@@ -1389,9 +1256,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">पेस्ट कंट्रोल</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Pest Control', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1399,7 +1264,7 @@
                 </div>
 
                 <!-- 11. Gardening -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.7</span><span class="text-slate-400 font-normal">(12k)</span>
@@ -1411,9 +1276,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">बागकाम</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Gardening', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1421,7 +1284,7 @@
                 </div>
 
                 <!-- 12. Glass & Aluminium -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(16k)</span>
@@ -1433,9 +1296,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">काच व ॲल्युमिनियम</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Glass & Aluminium', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1443,7 +1304,7 @@
                 </div>
 
                 <!-- 13. TV & DTH -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="appliances electric other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="appliances electric other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(28k)</span>
@@ -1455,9 +1316,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">टीव्ही व डिश फिटिंग</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('TV & DTH', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1465,7 +1324,7 @@
                 </div>
 
                 <!-- 14. Moving & Shifting -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.7</span><span class="text-slate-400 font-normal">(11k)</span>
@@ -1477,9 +1336,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">सामान वाहतूक</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Moving & Shifting', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1487,7 +1344,7 @@
                 </div>
 
                 <!-- 15. Bathroom Services -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-2 sm:p-2.5 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning plumbing">
+                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning plumbing">
                     <div>
                         <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
                             <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(45k)</span>
@@ -1499,9 +1356,7 @@
                         <p class="text-[9px] text-slate-400 font-medium">बाथरूम काम</p>
                     </div>
                     <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <div class="leading-none">
-                            <span class="text-[11px] font-black text-emerald-700">₹३/मि.</span>
-                        </div>
+                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Bathroom Services', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1510,69 +1365,94 @@
 
             </div>
 
-            <!-- Trust & Social Proof Section (Exact Match to Screenshot 1) -->
-            <div class="rounded-3xl bg-white border border-slate-200/90 p-4.5 space-y-3.5 shadow-2xs">
-                <div class="text-center space-y-0.5">
-                    <h3 class="font-black text-sm text-slate-900 leading-snug">
-                        Relax, your home is in professional hands
-                    </h3>
-                    <p class="text-[11px] text-slate-500 font-medium">
-                        निश्चिंत राहा, तुमचे घर अनुभवी व सुरक्षित कारागिरांच्या हातात आहे
-                    </p>
-                </div>
+            </main><!-- /#apkHomeView -->
 
-                <!-- Laurel Metrics Badges (Exact 3 Columns from Screenshot 1) -->
-                <div class="grid grid-cols-3 divide-x divide-slate-100 py-3 border-y border-slate-100 text-center bg-slate-50/60 rounded-2xl">
-                    <div class="flex flex-col items-center px-1">
-                        <span class="text-sm font-black text-emerald-800 flex items-center gap-1">🌿 15 Lakh+</span>
-                        <span class="text-[9px] text-slate-500 font-semibold mt-0.5">Families in Pune</span>
-                    </div>
-                    <div class="flex flex-col items-center px-1">
-                        <span class="text-sm font-black text-amber-600 flex items-center gap-1">⭐ 3 Lakh+</span>
-                        <span class="text-[9px] text-slate-500 font-semibold mt-0.5">Rated Reviews</span>
-                    </div>
-                    <div class="flex flex-col items-center px-1">
-                        <span class="text-sm font-black text-indigo-700 flex items-center gap-1">🛡️ 7-Day</span>
-                        <span class="text-[9px] text-slate-500 font-semibold mt-0.5">Revisit Guarantee</span>
+        <!-- ==========================================
+             DEDICATED FULL-PAGE BOOKINGS VIEW (#apkOrdersView)
+             ========================================== -->
+        <div id="apkOrdersView" class="hidden p-4 space-y-3.5 bg-slate-50 min-h-screen">
+            <!-- Header with Back Arrow & Refresh -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="customerNavTo('home')" class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-700 shadow-2xs cursor-pointer active:scale-95" title="Back to Home">
+                        <i class="fa-solid fa-arrow-left text-xs"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-base font-black text-slate-900 leading-tight">My Bookings</h2>
+                        <p class="text-[11px] text-slate-500 font-medium">चालू आणि मागील ऑर्डर्सचा तपशील</p>
                     </div>
                 </div>
+                <button type="button" onclick="fetchCustomerOrders()" class="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-blue-600 flex items-center justify-center text-xs transition cursor-pointer active:scale-95" title="Refresh Orders">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
 
-                <!-- 4 Trust Pillars (Clean 2x2 Grid Exact Match to Screenshot 1) -->
-                <div class="grid grid-cols-2 gap-2.5 text-left">
-                    <div class="p-3 rounded-2xl bg-slate-50/90 border border-slate-100 space-y-1 shadow-2xs">
-                        <div class="flex items-center gap-1.5 text-emerald-700 font-black text-xs">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            <span>१००% खात्री</span>
-                        </div>
-                        <p class="text-[10px] text-slate-600 leading-snug">कामात दोष आढळल्यास ७ दिवसांत मोफत रिव्हिजिट.</p>
-                    </div>
+            <!-- Orders List Container (Rendered directly using active session) -->
+            <div id="ordersListContainer" class="space-y-3 pb-8 min-h-[300px]">
+                <p class="text-xs text-slate-400 text-center py-12">
+                    <i class="fa-solid fa-spinner fa-spin mr-1"></i> ऑर्डर्स शोधत आहोत...
+                </p>
+            </div>
+        </div><!-- /#apkOrdersView -->
 
-                    <div class="p-3 rounded-2xl bg-slate-50/90 border border-slate-100 space-y-1 shadow-2xs">
-                        <div class="flex items-center gap-1.5 text-blue-700 font-black text-xs">
-                            <i class="fa-solid fa-id-card-clip"></i>
-                            <span>व्हेरिफाईड</span>
-                        </div>
-                        <p class="text-[10px] text-slate-600 leading-snug">सर्व कारागीर पोलीस व आधार तपासणी केलेले.</p>
-                    </div>
-
-                    <div class="p-3 rounded-2xl bg-slate-50/90 border border-slate-100 space-y-1 shadow-2xs">
-                        <div class="flex items-center gap-1.5 text-amber-700 font-black text-xs">
-                            <i class="fa-solid fa-stopwatch"></i>
-                            <span>पारदर्शक मीटर</span>
-                        </div>
-                        <p class="text-[10px] text-slate-600 leading-snug">फक्त ₹३/मि. अचूक डिजिटल टायमरवर बिलिंग.</p>
-                    </div>
-
-                    <div class="p-3 rounded-2xl bg-slate-50/90 border border-slate-100 space-y-1 shadow-2xs">
-                        <div class="flex items-center gap-1.5 text-purple-700 font-black text-xs">
-                            <i class="fa-solid fa-headset"></i>
-                            <span>पुणे सपोर्ट</span>
-                        </div>
-                        <p class="text-[10px] text-slate-600 leading-snug">कधीही कॉल करा, तत्पर मराठी व हिंदी सहाय्य.</p>
-                    </div>
+        <!-- ==========================================
+             DEDICATED FULL-PAGE MONEY & WALLET VIEW (#apkMoneyView)
+             ========================================== -->
+        <div id="apkMoneyView" class="hidden p-4 space-y-3.5 bg-slate-50 min-h-screen">
+            <!-- Header with Back Arrow -->
+            <div class="flex items-center gap-3 pb-3 border-b border-slate-200">
+                <button type="button" onclick="customerNavTo('home')" class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-700 shadow-2xs cursor-pointer active:scale-95" title="Back to Home">
+                    <i class="fa-solid fa-arrow-left text-xs"></i>
+                </button>
+                <div>
+                    <h2 class="text-base font-black text-slate-900 leading-tight">SpeedyHome Money</h2>
+                    <p class="text-[11px] text-slate-500 font-medium">वॉलेट शिल्लक व VIP लॉयल्टी रिवॉर्ड्स</p>
                 </div>
             </div>
-</main><!-- /#apkHomeView -->
+
+            <!-- Balance Card -->
+            <div class="rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 p-4 shadow-md flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-950/80">उपलब्ध वॉलेट शिल्लक</span>
+                    <div class="text-3xl font-black mt-0.5">₹<span id="apkMoneyBalance">०</span></div>
+                    <span class="text-[10px] text-amber-950/90 font-medium">पुढील कोणत्याही बुकिंगमध्ये आपोआप वजा होईल</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-white/25 flex items-center justify-center text-2xl shadow-inner">
+                    🪙
+                </div>
+            </div>
+
+            <!-- VIP Progress Inside Money View -->
+            <div class="rounded-2xl border border-slate-200 p-4 space-y-2.5 bg-white shadow-xs">
+                <div class="flex items-center justify-between text-xs font-bold text-slate-800">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-crown text-amber-500"></i> VIP प्रोग्रेस (३-ऑर्डर टप्पा)</span>
+                    <span id="apkMoneyMilestone" class="text-amber-600 font-extrabold">० / ३ पूर्ण</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200/50">
+                    <div id="apkMoneyProgressBar" class="bg-gradient-to-r from-amber-400 to-amber-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <p id="apkMoneySubText" class="text-[11px] text-slate-500 leading-relaxed font-medium">
+                    पात्रता अट: पहिल्या २ ऑर्डर्सचे एकूण बिल किमान ₹५,००० (उदा. ₹३k + ₹३k) असणे आवश्यक आहे. २ ऑर्डर्स एकूण ₹५,००० पेक्षा कमी असल्यास ऑफर लागू होणार नाही.
+                </p>
+            </div>
+
+            <!-- Passbook / Recent Transactions -->
+            <div class="rounded-2xl border border-slate-200 p-4 space-y-3 bg-white shadow-xs">
+                <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">अलीकडील व्यवहार (Transactions)</h4>
+                    <span class="text-[10px] text-slate-400 font-medium">पासबुक</span>
+                </div>
+                <div id="apkMoneyTransactionsList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    <p class="text-xs text-slate-400 text-center py-6">कोणताही व्यवहार आढळला नाही.</p>
+                </div>
+            </div>
+
+            <!-- Quick Action: Book Service -->
+            <button type="button" onclick="customerNavTo('home')" class="w-full bg-[#0b5f3a] hover:bg-emerald-800 text-white font-extrabold py-3 px-4 rounded-2xl shadow-sm transition text-xs flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-plus"></i> नवीन सेवा बुक करा
+            </button>
+        </div><!-- /#apkMoneyView -->
+
 
         <!-- ==========================================
              DEDICATED PROFILE VIEW SCREEN (#apkDedicatedProfileScreen)
@@ -2194,32 +2074,18 @@
                     </h3>
                     <p class="text-[11px] text-slate-500 mt-0.5">तुमच्या चालू आणि मागील सर्व ऑर्डर्सची माहिती व थेट ट्रॅकिंग</p>
                 </div>
-                <button onclick="closeMyOrdersModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="py-4 space-y-2 shrink-0">
-                <div class="flex items-center justify-between">
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                        <i class="fa-solid fa-mobile-screen mr-1 text-blue-600"></i> लॉगिन केलेला मोबाईल नंबर (Your Number)
-                    </label>
-                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                        <i class="fa-solid fa-lock text-[9px]"></i> सुरक्षित इतिहास
-                    </span>
-                </div>
-                <div class="flex gap-2">
-                    <input type="tel" id="searchMobileInput" readonly placeholder="लॉगिन मोबाईल नंबर..." class="w-full bg-slate-100 border border-slate-200 text-slate-800 font-bold py-2.5 px-4 rounded-xl focus:outline-none text-sm cursor-not-allowed">
-                    <button type="button" onclick="fetchCustomerOrders()" id="searchOrdersBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl transition text-xs shrink-0 flex items-center gap-1.5 shadow-sm">
-                        <i class="fa-solid fa-rotate-right"></i>
-                        <span>रीफ्रेश</span>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="fetchCustomerOrders()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer" title="Refresh">
+                        <i class="fa-solid fa-rotate-right text-xs"></i>
+                    </button>
+                    <button onclick="closeMyOrdersModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer" title="Close">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                <p class="text-[10px] text-slate-400">सुरक्षेसाठी तुम्ही फक्त तुमच्याच लॉगिन नंबरची ऑर्डर हिस्टरी पाहू शकता.</p>
             </div>
 
             <!-- Orders List Container (Scrollable) -->
-            <div id="ordersListContainer" class="flex-1 overflow-y-auto space-y-3 pr-1 min-h-[160px] pb-2">
+            <div id="desktopOrdersListContainer" class="flex-1 overflow-y-auto space-y-3 pr-1 min-h-[160px] pb-2">
                 <p class="text-xs text-slate-400 text-center py-8">
                     <i class="fa-solid fa-spinner fa-spin mr-1"></i> ऑर्डर्स शोधत आहोत...
                 </p>
