@@ -66,8 +66,8 @@
         </div>
     </header>
 
-    <main class="flex-grow flex items-center justify-center px-4 sm:px-6 py-10 sm:py-14 w-full">
-        <div class="max-w-md w-full mx-auto glass-card p-6 sm:p-8 rounded-3xl shadow-xl">
+    <main class="flex-grow flex items-center justify-center px-4 sm:px-6 pt-6 pb-16 sm:pb-20 w-full mt-3">
+        <div class="max-w-md w-full mx-auto glass-card p-6 sm:p-8 rounded-2xl shadow-sm border border-white/60">
             
              <div class="role-switch flex mb-6 p-1 rounded-2xl">
                 <button type="button" onclick="setRole('customer')" id="tabCustomer" class="flex-1 py-2.5 text-sm font-bold rounded-xl bg-blue-600 text-white shadow-sm transition">Customer</button>
@@ -85,23 +85,23 @@
                 
                 <div id="fullNameContainer" class="space-y-1.5">
                     <label class="block text-xs font-semibold text-slate-700">Full Name:</label>
-                    <input type="text" id="fullName" placeholder="Enter full name" class="w-full py-3 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition bg-white/80">
+                    <input type="text" id="fullName" placeholder="Enter full name" class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="block text-xs font-semibold text-slate-700">Mobile Number:</label>
-                    <input type="tel" id="mobile" placeholder="10-digit mobile number" pattern="[0-9]{10}" required class="w-full py-3 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition bg-white/80">
+                    <input type="tel" id="mobile" placeholder="10-digit mobile number" pattern="[0-9]{10}" required class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
                 </div>
 
                 <div id="emailContainer" class="space-y-1.5">
                     <label class="block text-xs font-semibold text-slate-700">Email ID:</label>
-                    <input type="email" id="email" placeholder="e.g. name@gmail.com" class="w-full py-3 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition bg-white/80">
+                    <input type="email" id="email" placeholder="e.g. name@gmail.com" class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
                 </div>
 
                 <div id="passwordContainer" class="space-y-1.5">
                     <label class="block text-xs font-semibold text-slate-700">Password:</label>
                     <div class="relative">
-                        <input type="password" id="password" placeholder="Enter password (min 6 characters)" minlength="6" class="w-full py-3 pl-4 pr-11 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition bg-white/80">
+                        <input type="password" id="password" placeholder="Enter password (min 6 characters)" minlength="6" class="w-full py-3.5 pl-4 pr-11 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
                         <button type="button" onclick="togglePasswordVisibility('password', 'togglePasswordIcon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition cursor-pointer" aria-label="Toggle password visibility">
                             <i id="togglePasswordIcon" class="fa-solid fa-eye text-sm"></i>
                         </button>
@@ -110,7 +110,7 @@
 
                 <div id="workTypeContainer" class="hidden space-y-1.5">
                     <label class="block text-xs font-semibold text-slate-700">Work Expertise (Service):</label>
-                    <select id="workType" class="w-full py-3 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white/90 transition">
+                    <select id="workType" class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white/90 transition">
                         <option value="Cleaning">🧹 Cleaning</option>
                         <option value="Electrician">⚡ Electrician</option>
                         <option value="Plumbing">🪠 Plumbing</option>
@@ -273,7 +273,7 @@
                     <div class="space-y-1.5">
                         <label class="block text-xs font-semibold text-slate-700">New Password:</label>
                         <div class="relative">
-                            <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" minlength="6" class="w-full py-3 pl-4 pr-11 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition bg-white/80">
+                            <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" minlength="6" class="w-full py-3.5 pl-4 pr-11 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
                             <button type="button" onclick="togglePasswordVisibility('newPassword', 'toggleNewPasswordIcon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition cursor-pointer" aria-label="Toggle new password visibility">
                                 <i id="toggleNewPasswordIcon" class="fa-solid fa-eye text-sm"></i>
                             </button>
@@ -282,7 +282,7 @@
                     <div class="space-y-1.5">
                         <label class="block text-xs font-semibold text-slate-700">Confirm New Password:</label>
                         <div class="relative">
-                            <input type="password" id="confirmNewPassword" placeholder="Re-enter new password" minlength="6" class="w-full py-3 pl-4 pr-11 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition bg-white/80">
+                            <input type="password" id="confirmNewPassword" placeholder="Re-enter new password" minlength="6" class="w-full py-3.5 pl-4 pr-11 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
                             <button type="button" onclick="togglePasswordVisibility('confirmNewPassword', 'toggleConfirmPasswordIcon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition cursor-pointer" aria-label="Toggle confirm password visibility">
                                 <i id="toggleConfirmPasswordIcon" class="fa-solid fa-eye text-sm"></i>
                             </button>
@@ -294,8 +294,8 @@
                 </div>
             </form>
 
-            <div class="text-center mt-6">
-                <p id="toggleText" class="text-xs text-gray-600">
+            <div class="text-center mt-6 pb-8">
+                <p id="toggleText" class="text-xs sm:text-sm text-slate-600">
                     Already have an account? <a href="#" onclick="toggleMode()" class="text-blue-600 font-bold hover:underline">Sign In</a>
                 </p>
             </div>

@@ -72,11 +72,8 @@
             backdrop-filter: blur(28px) saturate(155%);
             -webkit-backdrop-filter: blur(28px) saturate(155%);
             border: 1px solid rgba(255,255,255,.72);
-            border-radius: 30px;
-            box-shadow:
-                0 30px 80px rgba(5, 15, 55, .28),
-                inset 0 1px 0 rgba(255,255,255,.9),
-                inset 0 -1px 0 rgba(255,255,255,.22);
+            border-radius: 1rem;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
         }
 
         .glass-card::before {
@@ -319,7 +316,7 @@
         }
 
         @media (max-width: 480px) {
-            .glass-card { border-radius: 24px; padding: 1.35rem !important; }
+            .glass-card { border-radius: 1rem; padding: 1.35rem !important; }
             .hero-bg::before, .hero-bg::after { width: 16rem; height: 16rem; }
         }
 
@@ -372,3 +369,9 @@
         .otp-success { border-radius: 1.45rem; color: #2fd16d; background: rgba(18,18,23,.98); }
         .otp-success-check { width: 3.7rem; height: 3.7rem; border: 0; color: white; background: linear-gradient(135deg, #33d66f, #0cae4e); box-shadow: 0 0 0 10px rgba(44,211,105,.08), 0 0 28px rgba(44,211,105,.3); }
         .otp-particle { background: #f4bd55; }
+
+/* Softened placeholder colors */
+input::placeholder, textarea::placeholder, select::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1;
+}
