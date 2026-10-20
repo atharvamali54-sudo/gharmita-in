@@ -4307,3 +4307,26 @@ window.openWorkCompletionOtpModal = openWorkCompletionOtpModal;
 window.closeCompletionOtpModal = closeCompletionOtpModal;
 window.verifyAndCompleteWork = verifyAndCompleteWork;
 window.resendCompletionOtp = resendCompletionOtp;
+
+
+// =========================================================
+// AI Care Worker Support Drawer & Chat Modal Handlers
+// =========================================================
+function openWorkerAiCareModal() {
+    const modal = document.getElementById('workerAiCareModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeWorkerAiCareModal() {
+    const modal = document.getElementById('workerAiCareModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+window.openWorkerAiCareModal = openWorkerAiCareModal;
+window.closeWorkerAiCareModal = closeWorkerAiCareModal;

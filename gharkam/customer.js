@@ -4508,3 +4508,26 @@ document.addEventListener('DOMContentLoaded', () => {
     bindSync('areaSelect', 'apkAreaSelect');
     bindSync('serviceSelect', 'apkServiceSelect');
 });
+
+
+// =========================================================
+// AI Care Customer Support Drawer & Chat Modal Handlers
+// =========================================================
+function openAiCareSupportModal(role) {
+    const modal = document.getElementById('aiCareDrawerModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeAiCareSupportModal() {
+    const modal = document.getElementById('aiCareDrawerModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+window.openAiCareSupportModal = openAiCareSupportModal;
+window.closeAiCareSupportModal = closeAiCareSupportModal;
