@@ -1043,8 +1043,82 @@ let currentRole = 'customer';
             }
         }
 
+        
+// --- Terms & Conditions Consent Gate ---
+function isTermsAccepted() {
+    try {
+        return localStorage.getItem('speedy_terms_accepted') === 'true';
+    } catch (e) {
+        return false;
+    }
+}
+
+function initTermsConsentGate() {
+    try {
+        const accepted = isTermsAccepted();
+        const modal = document.getElementById('termsConsentModal');
+        const mainContainer = document.getElementById('mainAuthContainer');
+
+        if (accepted) {
+            document.documentElement.classList.remove('terms-consent-required');
+            if (modal) modal.classList.add('hidden');
+            if (mainContainer) {
+                mainContainer.classList.remove('blur-sm', 'pointer-events-none', 'select-none');
+            }
+        } else {
+            document.documentElement.classList.add('terms-consent-required');
+            if (modal) modal.classList.remove('hidden');
+            if (mainContainer) {
+                mainContainer.classList.add('blur-sm', 'pointer-events-none', 'select-none');
+            }
+        }
+    } catch (e) {
+        console.warn('Error initializing terms consent gate:', e);
+    }
+}
+
+function acceptSpeedyTerms() {
+    try {
+        localStorage.setItem('speedy_terms_accepted', 'true');
+    } catch (e) {
+        console.warn('Error saving terms consent:', e);
+    }
+
+    document.documentElement.classList.remove('terms-consent-required');
+
+    const modal = document.getElementById('termsConsentModal');
+    const card = document.getElementById('termsConsentCard');
+    const mainContainer = document.getElementById('mainAuthContainer');
+
+    if (card) {
+        card.classList.add('opacity-0', 'scale-95', 'translate-y-4');
+    }
+    if (modal) {
+        modal.classList.add('opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('opacity-0');
+            if (card) {
+                card.classList.remove('opacity-0', 'scale-95', 'translate-y-4');
+            }
+        }, 300);
+    }
+    if (mainContainer) {
+        mainContainer.classList.remove('blur-sm', 'pointer-events-none', 'select-none');
+    }
+}
+
+window.isTermsAccepted = isTermsAccepted;
+window.initTermsConsentGate = initTermsConsentGate;
+window.acceptSpeedyTerms = acceptSpeedyTerms;
+
         async function handleSubmit(event) {
             event.preventDefault();
+
+            if (!isTermsAccepted()) {
+                initTermsConsentGate();
+                return;
+            }
 
             let mobile = document.getElementById('mobile').value.trim().replace(/\D/g, '').slice(-10);
             let password = document.getElementById('password').value.trim();
@@ -1308,6 +1382,7 @@ let currentRole = 'customer';
 
 // Automatically sync any existing local accounts on this device up to the cloud
 document.addEventListener('DOMContentLoaded', () => {
+    initTermsConsentGate();
     syncExistingLocalAccountsToCloud();
     const mobileInput = document.getElementById('mobile');
     if (mobileInput) {

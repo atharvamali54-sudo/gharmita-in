@@ -375,3 +375,14 @@ input::placeholder, textarea::placeholder, select::placeholder {
     color: #94a3b8 !important;
     opacity: 1;
 }
+
+/* Terms & Conditions Consent Gate Styling */
+html.terms-consent-required #mainAuthContainer {
+    filter: blur(5px);
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+html.terms-consent-required #termsConsentModal {
+    display: flex !important;
+}
