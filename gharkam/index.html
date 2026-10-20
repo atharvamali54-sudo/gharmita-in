@@ -86,152 +86,191 @@
 
             <form id="authForm" onsubmit="handleSubmit(event)" class="space-y-4 sm:space-y-5">
                 
-                <div id="fullNameContainer" class="space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-700">Full Name:</label>
-                    <input type="text" id="fullName" placeholder="Enter full name" class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
+                <!-- Worker 2-Step Multi-Step Wizard Indicator -->
+                <div id="workerStepIndicator" class="hidden mb-4">
+                    <div class="flex items-center justify-between text-xs mb-2 px-1">
+                        <div id="stepPill1" class="flex items-center gap-1.5 text-blue-600 font-bold transition">
+                            <span id="stepBadge1" class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold shadow-sm">1</span>
+                            <span>Basic Details</span>
+                        </div>
+                        <span id="stepDivider" class="text-slate-300 mx-2 text-xs">• • •</span>
+                        <div id="stepPill2" class="flex items-center gap-1.5 text-slate-400 font-medium transition">
+                            <span id="stepBadge2" class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold">2</span>
+                            <span>KYC Verification</span>
+                        </div>
+                    </div>
+                    <!-- Subtle Top Progress Bar -->
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200/60">
+                        <div id="stepProgressBar" class="h-full bg-blue-600 rounded-full transition-all duration-300 w-1/2"></div>
+                    </div>
                 </div>
 
-                <div class="space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-700">Mobile Number:</label>
-                    <input type="tel" id="mobile" placeholder="10-digit mobile number" pattern="[0-9]{10}" required class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
+                <!-- STEP 1 FIELDS CONTAINER -->
+                <div id="authStep1Fields" class="space-y-3.5 sm:space-y-4 transition-all duration-200">
+                    <div id="fullNameContainer" class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700">Full Name:</label>
+                        <input type="text" id="fullName" placeholder="Enter full name" class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
+                    </div>
+
+                    <div id="mobileContainer" class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700">Mobile Number:</label>
+                        <input type="tel" id="mobile" placeholder="10-digit mobile number" pattern="[0-9]{10}" required class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
+                    </div>
+
+                    <div id="emailContainer" class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700">Email ID:</label>
+                        <input type="email" id="email" placeholder="e.g. name@gmail.com" class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
+                    </div>
+
+                    <div id="passwordContainer" class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700">Password:</label>
+                        <div class="relative">
+                            <input type="password" id="password" placeholder="Enter password (min 6 characters)" minlength="6" class="w-full py-3.5 pl-4 pr-11 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
+                            <button type="button" onclick="togglePasswordVisibility('password', 'togglePasswordIcon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition cursor-pointer" aria-label="Toggle password visibility">
+                                <i id="togglePasswordIcon" class="fa-solid fa-eye text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="workTypeContainer" class="hidden space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700">Work Expertise (Service):</label>
+                        <select id="workType" class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white/90 transition">
+                            <option value="Cleaning">🧹 Cleaning</option>
+                            <option value="Electrician">⚡ Electrician</option>
+                            <option value="Plumbing">🪠 Plumbing</option>
+                            <option value="Painting">🎨 Painting</option>
+                            <option value="Carpenter">🪚 Carpenter</option>
+                            <option value="Electronics repair">🔌 Electronics repair</option>
+                            <option value="Locksmith">🔑 Locksmith</option>
+                            <option value="Pest Control">🦟 Pest Control</option>
+                            <option value="Gardening">🌿 Gardening</option>
+                            <option value="Moving & Shifting">📦 Moving & Shifting</option>
+                        </select>
+                    </div>
+
+                    <div id="forgotPasswordLinkContainer" class="hidden text-right">
+                        <button type="button" onclick="showForgotPasswordUI()" class="text-xs text-blue-600 font-semibold hover:underline">Forgot Password?</button>
+                    </div>
                 </div>
 
-                <div id="emailContainer" class="space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-700">Email ID:</label>
-                    <input type="email" id="email" placeholder="e.g. name@gmail.com" class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
-                </div>
-
-                <div id="passwordContainer" class="space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-700">Password:</label>
-                    <div class="relative">
-                        <input type="password" id="password" placeholder="Enter password (min 6 characters)" minlength="6" class="w-full py-3.5 pl-4 pr-11 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder-slate-400 transition bg-white/80">
-                        <button type="button" onclick="togglePasswordVisibility('password', 'togglePasswordIcon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition cursor-pointer" aria-label="Toggle password visibility">
-                            <i id="togglePasswordIcon" class="fa-solid fa-eye text-sm"></i>
+                <!-- STEP 2 KYC CONTAINER -->
+                <div id="authStep2Fields" class="hidden space-y-3.5 sm:space-y-4 transition-all duration-200">
+                    <div class="flex items-center justify-between pb-1">
+                        <button type="button" onclick="backToWorkerStep1()" class="text-xs text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1.5 cursor-pointer py-1 px-2 rounded-lg hover:bg-blue-50 transition">
+                            <i class="fa-solid fa-arrow-left text-[11px]"></i>
+                            <span>Back to Basic Details</span>
                         </button>
+                        <span class="text-[11px] text-slate-500 font-semibold bg-slate-100 px-2.5 py-0.5 rounded-full">Step 2 of 2</span>
                     </div>
-                </div>
 
-                <div id="workTypeContainer" class="hidden space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-700">Work Expertise (Service):</label>
-                    <select id="workType" class="w-full py-3.5 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white/90 transition">
-                        <option value="Cleaning">🧹 Cleaning</option>
-                        <option value="Electrician">⚡ Electrician</option>
-                        <option value="Plumbing">🪠 Plumbing</option>
-                        <option value="Painting">🎨 Painting</option>
-                        <option value="Carpenter">🪚 Carpenter</option>
-                        <option value="Electronics repair">🔌 Electronics repair</option>
-                        <option value="Locksmith">🔑 Locksmith</option>
-                        <option value="Pest Control">🦟 Pest Control</option>
-                        <option value="Gardening">🌿 Gardening</option>
-                        <option value="Moving & Shifting">📦 Moving & Shifting</option>
-                    </select>
-                </div>
-
-                <!-- Worker Photo / Selfie Container (Strictly for Registration & KYC) -->
-                <div id="workerPhotoContainer" class="hidden p-4 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 border border-blue-100 rounded-2xl transition space-y-3">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                            <i class="fa-solid fa-camera text-blue-600 text-sm"></i> 
-                            <span>Worker Photo / Live Selfie <span class="text-rose-600 font-bold">*</span></span>
-                        </label>
-                        <span id="workerPhotoStatusBadge" class="hidden text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-300">
-                            <i class="fa-solid fa-check"></i> Selfie Added
-                        </span>
-                    </div>
-                    <p id="workerPhotoSubtext" class="text-xs text-slate-500 leading-relaxed">
-                        Take a live selfie or upload a photo to create your account. This photo will be displayed on your Worker Dashboard.
-                    </p>
-
-                    <div class="flex items-center gap-3">
-                        <!-- Photo Preview Box -->
-                        <div class="relative shrink-0">
-                            <div id="workerPhotoPreviewBox" onclick="triggerWorkerCamera()" class="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-blue-200 flex flex-col items-center justify-center text-blue-500 cursor-pointer overflow-hidden shadow-inner hover:border-blue-400 transition group" title="Click to take live selfie">
-                                <i id="workerPhotoPlaceholderIcon" class="fa-solid fa-user-circle text-3xl text-blue-300 group-hover:scale-110 transition"></i>
-                                <img id="workerPhotoPreviewImg" src="" alt="Worker Photo" class="hidden w-full h-full object-cover">
-                            </div>
-                            <button type="button" id="removeWorkerPhotoBtn" onclick="clearWorkerPhoto(event)" class="hidden absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow hover:bg-rose-600 transition" title="Remove photo">
-                                ✕
-                            </button>
+                    <!-- Worker Photo / Selfie Container (Strictly for Registration & KYC) -->
+                    <div id="workerPhotoContainer" class="hidden p-4 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 border border-blue-100 rounded-2xl transition space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-camera text-blue-600 text-sm"></i> 
+                                <span>Worker Photo / Live Selfie <span class="text-rose-600 font-bold">*</span></span>
+                            </label>
+                            <span id="workerPhotoStatusBadge" class="hidden text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-300">
+                                <i class="fa-solid fa-check"></i> Selfie Added
+                            </span>
                         </div>
+                        <p id="workerPhotoSubtext" class="text-xs text-slate-500 leading-relaxed">
+                            Take a live selfie or upload a photo to create your account. This photo will be displayed on your Worker Dashboard.
+                        </p>
 
-                        <!-- Action Buttons -->
-                        <div class="flex-1 space-y-1.5">
-                            <div class="flex gap-2">
-                                <button type="button" onclick="triggerWorkerCamera()" class="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-2 px-3 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
-                                    <i class="fa-solid fa-camera text-white"></i>
-                                    <span>Take Selfie</span>
-                                </button>
-                                <button type="button" onclick="triggerWorkerGallery()" class="bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-semibold text-xs py-2 px-3 rounded-xl shadow-sm transition flex items-center justify-center gap-1 border border-slate-200 cursor-pointer">
-                                    <i class="fa-solid fa-image text-slate-500"></i>
-                                    <span>Gallery</span>
+                        <div class="flex items-center gap-3">
+                            <!-- Photo Preview Box -->
+                            <div class="relative shrink-0">
+                                <div id="workerPhotoPreviewBox" onclick="triggerWorkerCamera()" class="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-blue-200 flex flex-col items-center justify-center text-blue-500 cursor-pointer overflow-hidden shadow-inner hover:border-blue-400 transition group" title="Click to take live selfie">
+                                    <i id="workerPhotoPlaceholderIcon" class="fa-solid fa-user-circle text-3xl text-blue-300 group-hover:scale-110 transition"></i>
+                                    <img id="workerPhotoPreviewImg" src="" alt="Worker Photo" class="hidden w-full h-full object-cover">
+                                </div>
+                                <button type="button" id="removeWorkerPhotoBtn" onclick="clearWorkerPhoto(event)" class="hidden absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow hover:bg-rose-600 transition" title="Remove photo">
+                                    ✕
                                 </button>
                             </div>
-                            <p id="workerPhotoHint" class="text-[10px] text-slate-400">
-                                Take a live selfie using camera or choose a photo from gallery.
-                            </p>
-                        </div>
-                    </div>
 
-                    <!-- Hidden file inputs for Camera & Gallery -->
-                    <input type="file" id="workerPhotoCameraInput" accept="image/*" capture="user" class="hidden" onchange="handleWorkerPhotoSelected(event)">
-                    <input type="file" id="workerPhotoGalleryInput" accept="image/*" class="hidden" onchange="handleWorkerPhotoSelected(event)">
-                    <input type="hidden" id="workerPhotoBase64" value="">
-                </div>
-
-                <!-- Worker Aadhaar Card Upload Container (Required for Worker KYC Verification & Approval) -->
-                <div id="workerAadharContainer" class="hidden p-4 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 border border-blue-100 rounded-2xl transition space-y-3">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                            <i class="fa-solid fa-id-card text-blue-600 text-sm"></i> 
-                            <span>Aadhaar Card Photo <span class="text-rose-600 font-bold">*</span></span>
-                        </label>
-                        <span id="workerAadharStatusBadge" class="hidden text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-300">
-                            <i class="fa-solid fa-check"></i> Aadhaar Added
-                        </span>
-                    </div>
-                    <p id="workerAadharSubtext" class="text-xs text-slate-500 leading-relaxed">
-                        A clear photo of your Aadhaar card is required for safety and KYC verification. Work can begin after verification.
-                    </p>
-
-                    <div class="flex items-center gap-3">
-                        <!-- Aadhaar Preview Box -->
-                        <div class="relative shrink-0">
-                            <div id="workerAadharPreviewBox" onclick="triggerWorkerAadharCamera()" class="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-blue-200 flex flex-col items-center justify-center text-blue-500 cursor-pointer overflow-hidden shadow-inner hover:border-blue-400 transition group" title="Take photo or select Aadhaar card">
-                                <i id="workerAadharPlaceholderIcon" class="fa-solid fa-id-card text-2xl text-blue-300 group-hover:scale-110 transition"></i>
-                                <img id="workerAadharPreviewImg" src="" alt="Aadhaar Card" class="hidden w-full h-full object-cover">
+                            <!-- Action Buttons -->
+                            <div class="flex-1 space-y-1.5">
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="triggerWorkerCamera()" class="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-2 px-3 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-camera text-white"></i>
+                                        <span>Take Selfie</span>
+                                    </button>
+                                    <button type="button" onclick="triggerWorkerGallery()" class="bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-semibold text-xs py-2 px-3 rounded-xl shadow-sm transition flex items-center justify-center gap-1 border border-slate-200 cursor-pointer">
+                                        <i class="fa-solid fa-image text-slate-500"></i>
+                                        <span>Gallery</span>
+                                    </button>
+                                </div>
+                                <p id="workerPhotoHint" class="text-[10px] text-slate-400">
+                                    Take a live selfie using camera or choose a photo from gallery.
+                                </p>
                             </div>
-                            <button type="button" id="removeWorkerAadharBtn" onclick="clearWorkerAadhar(event)" class="hidden absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow hover:bg-rose-600 transition" title="Remove Aadhaar">
-                                ✕
-                            </button>
                         </div>
 
-                        <!-- Action Buttons -->
-                        <div class="flex-1 space-y-1.5">
-                            <div class="flex gap-2">
-                                <button type="button" onclick="triggerWorkerAadharCamera()" class="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-2 px-3 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
-                                    <i class="fa-solid fa-camera text-white"></i>
-                                    <span>Take Photo</span>
-                                </button>
-                                <button type="button" onclick="triggerWorkerAadharGallery()" class="bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-semibold text-xs py-2 px-3 rounded-xl shadow-sm transition flex items-center justify-center gap-1 border border-slate-200 cursor-pointer">
-                                    <i class="fa-solid fa-image text-slate-500"></i>
-                                    <span>Gallery</span>
-                                </button>
-                            </div>
-                            <p id="workerAadharHint" class="text-[10px] text-slate-400">
-                                Upload a clear photo of the front of your Aadhaar card.
-                            </p>
-                        </div>
+                        <!-- Hidden file inputs for Camera & Gallery -->
+                        <input type="file" id="workerPhotoCameraInput" accept="image/*" capture="user" class="hidden" onchange="handleWorkerPhotoSelected(event)">
+                        <input type="file" id="workerPhotoGalleryInput" accept="image/*" class="hidden" onchange="handleWorkerPhotoSelected(event)">
+                        <input type="hidden" id="workerPhotoBase64" value="">
                     </div>
 
-                    <!-- Hidden file inputs for Aadhaar Camera & Gallery -->
-                    <input type="file" id="workerAadharCameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleWorkerAadharSelected(event)">
-                    <input type="file" id="workerAadharGalleryInput" accept="image/*" class="hidden" onchange="handleWorkerAadharSelected(event)">
-                    <input type="hidden" id="workerAadharBase64" value="">
+                    <!-- Worker Aadhaar Card Upload Container (Required for Worker KYC Verification & Approval) -->
+                    <div id="workerAadharContainer" class="hidden p-4 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 border border-blue-100 rounded-2xl transition space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-id-card text-blue-600 text-sm"></i> 
+                                <span>Aadhaar Card Photo <span class="text-rose-600 font-bold">*</span></span>
+                            </label>
+                            <span id="workerAadharStatusBadge" class="hidden text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-300">
+                                <i class="fa-solid fa-check"></i> Aadhaar Added
+                            </span>
+                        </div>
+                        <p id="workerAadharSubtext" class="text-xs text-slate-500 leading-relaxed">
+                            A clear photo of your Aadhaar card is required for safety and KYC verification. Work can begin after verification.
+                        </p>
+
+                        <div class="flex items-center gap-3">
+                            <!-- Aadhaar Preview Box -->
+                            <div class="relative shrink-0">
+                                <div id="workerAadharPreviewBox" onclick="triggerWorkerAadharCamera()" class="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-blue-200 flex flex-col items-center justify-center text-blue-500 cursor-pointer overflow-hidden shadow-inner hover:border-blue-400 transition group" title="Take photo or select Aadhaar card">
+                                    <i id="workerAadharPlaceholderIcon" class="fa-solid fa-id-card text-2xl text-blue-300 group-hover:scale-110 transition"></i>
+                                    <img id="workerAadharPreviewImg" src="" alt="Aadhaar Card" class="hidden w-full h-full object-cover">
+                                </div>
+                                <button type="button" id="removeWorkerAadharBtn" onclick="clearWorkerAadhar(event)" class="hidden absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow hover:bg-rose-600 transition" title="Remove Aadhaar">
+                                    ✕
+                                </button>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex-1 space-y-1.5">
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="triggerWorkerAadharCamera()" class="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs py-2 px-3 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-camera text-white"></i>
+                                        <span>Take Photo</span>
+                                    </button>
+                                    <button type="button" onclick="triggerWorkerAadharGallery()" class="bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-semibold text-xs py-2 px-3 rounded-xl shadow-sm transition flex items-center justify-center gap-1 border border-slate-200 cursor-pointer">
+                                        <i class="fa-solid fa-image text-slate-500"></i>
+                                        <span>Gallery</span>
+                                    </button>
+                                </div>
+                                <p id="workerAadharHint" class="text-[10px] text-slate-400">
+                                    Upload a clear photo of the front of your Aadhaar card.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Hidden file inputs for Aadhaar Camera & Gallery -->
+                        <input type="file" id="workerAadharCameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleWorkerAadharSelected(event)">
+                        <input type="file" id="workerAadharGalleryInput" accept="image/*" class="hidden" onchange="handleWorkerAadharSelected(event)">
+                        <input type="hidden" id="workerAadharBase64" value="">
+                    </div>
                 </div>
 
-                <div id="forgotPasswordLinkContainer" class="hidden text-right">
-                    <button type="button" onclick="showForgotPasswordUI()" class="text-xs text-blue-600 font-semibold hover:underline">Forgot Password?</button>
-                </div>
+                <!-- Primary Action Buttons -->
+                <button type="button" id="workerNextStepBtn" onclick="validateAndGoToWorkerStep2()" class="hidden w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer">
+                    <span>Next: Upload Documents</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
 
                 <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition duration-200">
                     Send OTP & Verify

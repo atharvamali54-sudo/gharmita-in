@@ -386,3 +386,8 @@ html.terms-consent-required #mainAuthContainer {
 html.terms-consent-required #termsConsentModal {
     display: flex !important;
 }
+
+/* Multi-step transition helpers */
+#authStep1Fields, #authStep2Fields {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}

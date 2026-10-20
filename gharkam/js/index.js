@@ -823,7 +823,9 @@ let currentRole = 'customer';
                 tabC.className = "flex-1 py-2.5 text-sm font-bold rounded-xl text-slate-700 hover:text-slate-900 transition";
                 checkWorkerSavedPhotoOnMobileInput();
             }
-            if(!isForgotPasswordMode) updateFormUI();
+            currentWorkerStep = 1;
+            if(!isForgotPasswordMode) currentWorkerStep = 1;
+            updateFormUI();
         }
 
         function toggleMode() {
@@ -838,6 +840,186 @@ let currentRole = 'customer';
             }
             updateFormUI();
         }
+
+        
+        // =========================================================
+        // Worker Signup 2-Step Multi-Step Wizard Engine
+        // =========================================================
+        let currentWorkerStep = 1;
+
+        function goToWorkerStep(step) {
+            currentWorkerStep = step;
+            applyWorkerStepUI();
+        }
+
+        function applyWorkerStepUI() {
+            const stepIndicator = document.getElementById('workerStepIndicator');
+            const step1Fields = document.getElementById('authStep1Fields');
+            const step2Fields = document.getElementById('authStep2Fields');
+            const nextBtn = document.getElementById('workerNextStepBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            const formTitle = document.getElementById('formTitle');
+            const formSub = document.getElementById('formSub');
+            const stepPill1 = document.getElementById('stepPill1');
+            const stepBadge1 = document.getElementById('stepBadge1');
+            const stepPill2 = document.getElementById('stepPill2');
+            const stepBadge2 = document.getElementById('stepBadge2');
+            const progressBar = document.getElementById('stepProgressBar');
+
+            if (currentRole === 'worker' && isSignupMode) {
+                if (stepIndicator) stepIndicator.classList.remove('hidden');
+
+                if (currentWorkerStep === 1) {
+                    if (formTitle) formTitle.innerText = "Worker Signup";
+                    if (formSub) formSub.innerText = "Step 1 of 2: Basic Details & Expertise";
+
+                    if (step1Fields) {
+                        step1Fields.classList.remove('hidden', 'opacity-0', '-translate-x-3');
+                    }
+                    if (step2Fields) {
+                        step2Fields.classList.add('hidden');
+                    }
+
+                    if (nextBtn) nextBtn.classList.remove('hidden');
+                    if (submitBtn) submitBtn.classList.add('hidden');
+
+                    if (stepPill1) stepPill1.className = "flex items-center gap-1.5 text-blue-600 font-bold transition";
+                    if (stepBadge1) {
+                        stepBadge1.className = "w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold shadow-sm";
+                        stepBadge1.innerHTML = "1";
+                    }
+                    if (stepPill2) stepPill2.className = "flex items-center gap-1.5 text-slate-400 font-medium transition";
+                    if (stepBadge2) {
+                        stepBadge2.className = "w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold";
+                        stepBadge2.innerHTML = "2";
+                    }
+                    if (progressBar) {
+                        progressBar.style.width = "50%";
+                    }
+                } else if (currentWorkerStep === 2) {
+                    if (formTitle) formTitle.innerText = "Worker Signup";
+                    if (formSub) formSub.innerText = "Step 2 of 2: KYC & Document Verification";
+
+                    if (step1Fields) {
+                        step1Fields.classList.add('hidden');
+                    }
+                    if (step2Fields) {
+                        step2Fields.classList.remove('hidden', 'opacity-0', 'translate-x-3');
+                    }
+
+                    if (nextBtn) nextBtn.classList.add('hidden');
+                    if (submitBtn) {
+                        submitBtn.classList.remove('hidden');
+                        submitBtn.innerText = "Send OTP & Register";
+                    }
+
+                    if (stepPill1) stepPill1.className = "flex items-center gap-1.5 text-emerald-600 font-semibold transition";
+                    if (stepBadge1) {
+                        stepBadge1.className = "w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold shadow-sm";
+                        stepBadge1.innerHTML = '<i class="fa-solid fa-check text-[9px]"></i>';
+                    }
+                    if (stepPill2) stepPill2.className = "flex items-center gap-1.5 text-blue-600 font-bold transition";
+                    if (stepBadge2) {
+                        stepBadge2.className = "w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold shadow-sm";
+                        stepBadge2.innerHTML = "2";
+                    }
+                    if (progressBar) {
+                        progressBar.style.width = "100%";
+                    }
+                }
+            } else {
+                // Customer Signup, Customer Sign In, or Worker Sign In
+                if (stepIndicator) stepIndicator.classList.add('hidden');
+                if (step1Fields) {
+                    step1Fields.classList.remove('hidden', 'opacity-0', '-translate-x-3');
+                }
+                if (step2Fields) {
+                    step2Fields.classList.add('hidden');
+                }
+                if (nextBtn) nextBtn.classList.add('hidden');
+                if (submitBtn) submitBtn.classList.remove('hidden');
+            }
+        }
+
+        function validateAndGoToWorkerStep2() {
+            const fullNameInput = document.getElementById('fullName');
+            const mobileInput = document.getElementById('mobile');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const workTypeInput = document.getElementById('workType');
+
+            const fullName = fullNameInput ? fullNameInput.value.trim() : '';
+            const mobile = mobileInput ? mobileInput.value.trim().replace(/\D/g, '').slice(-10) : '';
+            const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+            const password = passwordInput ? passwordInput.value.trim() : '';
+            const workType = workTypeInput ? workTypeInput.value : '';
+
+            if (!fullName) {
+                showStatus("❌ Please enter your full name!", "error");
+                if (fullNameInput) fullNameInput.focus();
+                return;
+            }
+            if (!mobile || mobile.length !== 10) {
+                showStatus("❌ Please enter a valid 10-digit mobile number!", "error");
+                if (mobileInput) mobileInput.focus();
+                return;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) {
+                showStatus("❌ Please enter a valid email address!", "error");
+                if (emailInput) emailInput.focus();
+                return;
+            }
+            if (!password || password.length < 6) {
+                showStatus("❌ Password must be at least 6 characters long!", "error");
+                if (passwordInput) passwordInput.focus();
+                return;
+            }
+            if (!workType) {
+                showStatus("❌ Please select your work expertise!", "error");
+                if (workTypeInput) workTypeInput.focus();
+                return;
+            }
+
+            showStatus("", "hidden");
+
+            // Smooth transition to Step 2
+            const step1Fields = document.getElementById('authStep1Fields');
+            const step2Fields = document.getElementById('authStep2Fields');
+            if (step1Fields) {
+                step1Fields.classList.add('opacity-0', '-translate-x-3');
+                setTimeout(() => {
+                    goToWorkerStep(2);
+                    if (step2Fields) {
+                        step2Fields.classList.remove('opacity-0', 'translate-x-3');
+                    }
+                }, 150);
+            } else {
+                goToWorkerStep(2);
+            }
+        }
+
+        function backToWorkerStep1() {
+            showStatus("", "hidden");
+            const step1Fields = document.getElementById('authStep1Fields');
+            const step2Fields = document.getElementById('authStep2Fields');
+            if (step2Fields) {
+                step2Fields.classList.add('opacity-0', 'translate-x-3');
+                setTimeout(() => {
+                    goToWorkerStep(1);
+                    if (step1Fields) {
+                        step1Fields.classList.remove('opacity-0', '-translate-x-3');
+                    }
+                }, 150);
+            } else {
+                goToWorkerStep(1);
+            }
+        }
+
+        window.goToWorkerStep = goToWorkerStep;
+        window.backToWorkerStep1 = backToWorkerStep1;
+        window.validateAndGoToWorkerStep2 = validateAndGoToWorkerStep2;
+        window.applyWorkerStepUI = applyWorkerStepUI;
 
         function updateFormUI() {
             const title = document.getElementById('formTitle');
@@ -910,6 +1092,7 @@ let currentRole = 'customer';
                 btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition duration-200";
                 toggleTxt.innerHTML = `Don't have an account? <a href="#" onclick="toggleMode()" class="text-blue-600 font-bold hover:underline">Sign Up</a>`;
             }
+            applyWorkerStepUI();
         }
 
         function showStatus(msg, type) {
@@ -1117,6 +1300,11 @@ window.acceptSpeedyTerms = acceptSpeedyTerms;
 
             if (!isTermsAccepted()) {
                 initTermsConsentGate();
+                return;
+            }
+
+            if (currentRole === 'worker' && isSignupMode && currentWorkerStep === 1) {
+                validateAndGoToWorkerStep2();
                 return;
             }
 
