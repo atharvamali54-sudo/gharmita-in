@@ -447,6 +447,25 @@ html.is-mobile-app body::after {
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     border: 1px solid rgba(226, 232, 240, 0.9);
 }
+.apk-catalog-card .apk-card-img-box {
+    width: 72px;
+    height: 72px;
+    font-size: 1.875rem;
+}
+@media (max-width: 375px) {
+    .apk-catalog-card .apk-card-img-box {
+        width: 66px;
+        height: 66px;
+        font-size: 1.65rem;
+    }
+}
+@media (max-width: 340px) {
+    .apk-catalog-card .apk-card-img-box {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+}
 .apk-catalog-card:active {
     transform: scale(0.97);
 }
