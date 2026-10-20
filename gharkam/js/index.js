@@ -1,3 +1,23 @@
+// Password Visibility Toggle Helper
+function togglePasswordVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    } else {
+        input.type = 'password';
+        if (icon) {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+}
+
 ﻿// =========================================================
 // Cryptographic Password Hashing & Security Helpers
 // =========================================================
@@ -369,7 +389,7 @@ let currentRole = 'customer';
             if (placeholder) placeholder.classList.remove('hidden');
             if (removeBtn) removeBtn.classList.add('hidden');
             if (badge) badge.classList.add('hidden');
-            if (hint) hint.innerText = "आधार कार्डचा समोरील स्पष्ट फोटो अपलोड करा.";
+            if (hint) hint.innerText = "Upload a clear photo of the front of your Aadhaar card.";
         }
 
         function setWorkerAadharPreview(dataUrl, isExisting = false) {
@@ -391,11 +411,11 @@ let currentRole = 'customer';
             if (placeholder) placeholder.classList.add('hidden');
             if (removeBtn) removeBtn.classList.remove('hidden');
             if (badge) {
-                badge.innerHTML = isExisting ? '<i class="fa-solid fa-check"></i> सेव्ह केलेले आधार' : '<i class="fa-solid fa-check"></i> आधार जोडले';
+                badge.innerHTML = isExisting ? '<i class="fa-solid fa-check"></i> Saved Aadhaar' : '<i class="fa-solid fa-check"></i> Aadhaar Added';
                 badge.classList.remove('hidden');
             }
             if (hint) {
-                hint.innerText = isExisting ? "खात्यातील आधार कार्ड फोटो लोड केला आहे." : "आधार कार्ड फोटो यशस्वीरीत्या जोडला गेला!";
+                hint.innerText = isExisting ? "Saved Aadhaar photo loaded from your account." : "Aadhaar card photo added successfully!";
             }
         }
 
@@ -403,15 +423,15 @@ let currentRole = 'customer';
             const file = event.target.files && event.target.files[0];
             if (!file) return;
 
-            showStatus("⏳ आधार कार्ड फोटो कॉम्प्रेस होत आहे...", "info");
+            showStatus("⏳ Compressing Aadhaar photo...", "info");
             try {
                 const compressedBase64 = await compressImageFile(file, 900, 900, 0.78);
                 setWorkerAadharPreview(compressedBase64, false);
-                showStatus("✅ आधार कार्ड फोटो जोडला गेला!", "success");
+                showStatus("✅ Aadhaar card photo added successfully!", "success");
                 setTimeout(() => showStatus("", "hidden"), 2000);
             } catch (err) {
                 console.error("Aadhaar photo compression error:", err);
-                showStatus("❌ फोटो लोड करण्यात अयशस्वी. कृपया दुसरा फोटो निवडा.", "error");
+                showStatus("❌ Failed to load photo. Please choose another image.", "error");
             }
         }
 
@@ -796,11 +816,11 @@ let currentRole = 'customer';
             const tabW = document.getElementById('tabWorker');
 
             if (role === 'customer') {
-                tabC.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-blue-600 text-white transition";
-                tabW.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-700 transition";
+                tabC.className = "flex-1 py-2.5 text-sm font-bold rounded-xl bg-blue-600 text-white shadow-sm transition";
+                tabW.className = "flex-1 py-2.5 text-sm font-bold rounded-xl text-slate-700 hover:text-slate-900 transition";
             } else {
-                tabW.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-yellow-500 text-gray-900 transition";
-                tabC.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-700 transition";
+                tabW.className = "flex-1 py-2.5 text-sm font-bold rounded-xl bg-blue-600 text-white shadow-sm transition";
+                tabC.className = "flex-1 py-2.5 text-sm font-bold rounded-xl text-slate-700 hover:text-slate-900 transition";
                 checkWorkerSavedPhotoOnMobileInput();
             }
             if(!isForgotPasswordMode) updateFormUI();
@@ -844,20 +864,18 @@ let currentRole = 'customer';
                 workTypeContainer.classList.add('hidden');
             }
 
-            // Worker Photo / Selfie Container Control
-            if (currentRole === 'worker') {
+            // Worker Photo / Selfie Container Control (Strictly for Registration & KYC)
+            if (currentRole === 'worker' && isSignupMode) {
                 if (workerPhotoContainer) workerPhotoContainer.classList.remove('hidden');
                 if (workerPhotoSubtext) {
-                    workerPhotoSubtext.innerText = isSignupMode
-                        ? "Take a live selfie or upload a photo to create your account. This photo will be displayed on your Worker Dashboard."
-                        : "Live selfie or worker photo is required for worker login & verification.";
+                    workerPhotoSubtext.innerText = "Take a live selfie or upload a photo to create your account. This photo will be displayed on your Worker Dashboard.";
                 }
             } else {
                 if (workerPhotoContainer) workerPhotoContainer.classList.add('hidden');
-                clearWorkerPhoto();
+                if (currentRole !== 'worker') clearWorkerPhoto();
             }
 
-            // Worker Aadhaar Card Container Control (Required for worker registration & KYC verification)
+            // Worker Aadhaar Card Container Control (Strictly for Registration & KYC)
             if (currentRole === 'worker' && isSignupMode) {
                 if (workerAadharContainer) workerAadharContainer.classList.remove('hidden');
             } else {
@@ -876,11 +894,11 @@ let currentRole = 'customer';
                 passwordContainer.classList.remove('hidden');
                 passwordInput.required = true;
                 forgotLinkContainer.classList.add('hidden');
-                btn.className = currentRole === 'customer' ? "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition" : "w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 rounded-xl shadow-lg transition";
+                btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition duration-200";
                 toggleTxt.innerHTML = `Already have an account? <a href="#" onclick="toggleMode()" class="text-blue-600 font-bold hover:underline">Sign In</a>`;
             } else {
                 title.innerText = roleName + " Sign In";
-                sub.innerText = currentRole === 'worker' ? "Enter Mobile, Password & Photo to Sign In" : "Enter Mobile & Password to Sign In";
+                sub.innerText = "Enter your registered mobile number and password to sign in";
                 btn.innerText = "Sign In";
                 fullNameContainer.classList.add('hidden');
                 fullNameInput.required = false;
@@ -889,7 +907,7 @@ let currentRole = 'customer';
                 passwordContainer.classList.remove('hidden');
                 passwordInput.required = true;
                 forgotLinkContainer.classList.remove('hidden');
-                btn.className = currentRole === 'customer' ? "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition" : "w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 rounded-xl shadow-lg transition";
+                btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition duration-200";
                 toggleTxt.innerHTML = `Don't have an account? <a href="#" onclick="toggleMode()" class="text-blue-600 font-bold hover:underline">Sign Up</a>`;
             }
         }
@@ -1059,7 +1077,7 @@ let currentRole = 'customer';
 
                 // Worker Aadhaar Card Verification during Signup
                 if (currentRole === 'worker' && !currentWorkerAadhar) {
-                    showStatus("❌ कामगार सुरक्षिततेसाठी आधार कार्ड फोटो (Aadhaar Card) आवश्यक आहे! कृपया आधार कार्डचा स्पष्ट फोटो जोडा.", "error");
+                    showStatus("❌ Aadhaar card photo is required for worker KYC verification! Please upload a clear photo.", "error");
                     highlightWorkerAadharInput();
                     return;
                 }
@@ -1111,38 +1129,31 @@ let currentRole = 'customer';
                     return;
                 }
 
-                // Worker Photo / Selfie Verification during Sign In
+                // Worker Photo / Selfie Handling during Sign In (Seamless login, no selfie required)
                 if (currentRole === 'worker') {
-                    let workerPhotoToUse = currentWorkerPhoto;
-                    if (!workerPhotoToUse && savedUser) {
-                        workerPhotoToUse = savedUser.photo || savedUser.photoUrl || null;
-                    }
+                    let workerPhotoToUse = savedUser ? (savedUser.photo || savedUser.photoUrl || currentWorkerPhoto || null) : null;
 
-                    if (!workerPhotoToUse) {
-                        showStatus("❌ Worker photo (Selfie / Photo) is required! Please take a live selfie or select a photo to log in.", "error");
-                        highlightWorkerPhotoInput();
-                        return;
-                    }
+                    if (workerPhotoToUse) {
+                        savedUser.photo = workerPhotoToUse;
+                        savedUser.photoUrl = workerPhotoToUse;
+                        savedUser.lastLoginPhoto = workerPhotoToUse;
+                        savedUser.lastLoginAt = new Date().toISOString();
 
-                    savedUser.photo = workerPhotoToUse;
-                    savedUser.photoUrl = workerPhotoToUse;
-                    savedUser.lastLoginPhoto = workerPhotoToUse;
-                    savedUser.lastLoginAt = new Date().toISOString();
+                        // Sync photo to Firebase worker records
+                        if (typeof database !== 'undefined') {
+                            database.ref('workers/accounts/workers/' + mobile).update({
+                                photo: workerPhotoToUse,
+                                photoUrl: workerPhotoToUse,
+                                lastLoginPhoto: workerPhotoToUse,
+                                lastLoginAt: firebase.database.ServerValue.TIMESTAMP
+                            }).catch(() => {});
 
-                    // Sync photo to Firebase worker records
-                    if (typeof database !== 'undefined') {
-                        database.ref('workers/accounts/workers/' + mobile).update({
-                            photo: workerPhotoToUse,
-                            photoUrl: workerPhotoToUse,
-                            lastLoginPhoto: workerPhotoToUse,
-                            lastLoginAt: firebase.database.ServerValue.TIMESTAMP
-                        }).catch(() => {});
-
-                        database.ref('workers/local_worker_' + mobile).update({
-                            photo: workerPhotoToUse,
-                            photoUrl: workerPhotoToUse,
-                            lastLoginPhoto: workerPhotoToUse
-                        }).catch(() => {});
+                            database.ref('workers/local_worker_' + mobile).update({
+                                photo: workerPhotoToUse,
+                                photoUrl: workerPhotoToUse,
+                                lastLoginPhoto: workerPhotoToUse
+                            }).catch(() => {});
+                        }
                     }
                 }
 

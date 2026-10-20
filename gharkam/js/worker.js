@@ -526,17 +526,7 @@ function startDispatchTimers() {
 (function initWorkerPhotoImmediately() {
     try {
         const session = JSON.parse(localStorage.getItem('current_user_session') || '{}');
-        let photo = session.photo || session.photoUrl;
-        if (!photo && session.mobile) {
-            try {
-                const k1 = JSON.parse(localStorage.getItem('gharmitra_user_worker_' + session.mobile) || '{}');
-                photo = k1.photo || k1.photoUrl || null;
-            } catch(e) {}
-        }
-        if (photo) {
-            const setAvatar = () => {
-                const el = document.getElementById('workerHeaderAvatar');
-                if (el) el.src = photo;
+        let finalPhoto = session.photo || session.photoUrl; if (!finalPhoto && session.mobile) { try { const k1 = JSON.parse(localStorage.getItem('gharmitra_user_worker_' + session.mobile) || '{}'); finalPhoto = k1.photo || k1.photoUrl || null; } catch(e) {} } const combinedData = { photo: finalPhoto }; if (finalPhoto) { const setAvatar = () => { const el = document.getElementById('workerHeaderAvatar'); if (el) el.src = finalPhoto;
             };
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', setAvatar);

@@ -111,7 +111,7 @@
 
         .role-switch button:hover { transform: translateY(-1px); }
         #tabCustomer.bg-blue-600,
-        #tabWorker.bg-yellow-500 {
+        #tabWorker.bg-blue-600 {
             box-shadow: 0 7px 18px rgba(30, 77, 170, .25), inset 0 1px 0 rgba(255,255,255,.3);
         }
 
