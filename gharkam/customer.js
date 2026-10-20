@@ -1973,7 +1973,7 @@ populateBookingProfile();
                         }
                     } catch(err) {
                         console.error("Dispute payment resolution error:", err);
-                        alert("पेमेंट झाले पण सिस्टीम अपडेट करताना त्रुटी आली. कृपया 8806283584 वर संपर्क साधा: " + err.message);
+                        alert("पेमेंट झाले पण सिस्टीम अपडेट करताना त्रुटी आली. कृपया 7875160724 वर संपर्क साधा: " + err.message);
                     }
                 }
             };
@@ -2688,8 +2688,8 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                                         <button type="button" onclick="payUnpaidDisputeBill('${orderId}', ${unpaidAmt})" class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 hover:from-emerald-700 hover:to-green-700 text-white font-black px-4 py-2.5 rounded-xl text-xs transition shadow-md cursor-pointer active:scale-95">
                                             <i class="fa-solid fa-credit-card"></i> <span>₹${unpaidAmt} त्वरित भरा (UPI / GPay / PhonePe)</span>
                                         </button>
-                                        <a href="tel:8806283584" class="inline-flex items-center justify-center gap-1.5 bg-white border border-rose-200 text-rose-700 font-bold px-3 py-2 rounded-xl text-xs hover:bg-rose-50 transition">
-                                            <i class="fa-solid fa-phone"></i> हेल्पलाइन कॉल (8806283584)
+                                        <a href="tel:7875160724" class="inline-flex items-center justify-center gap-1.5 bg-white border border-rose-200 text-rose-700 font-bold px-3 py-2 rounded-xl text-xs hover:bg-rose-50 transition">
+                                            <i class="fa-solid fa-phone"></i> हेल्पलाइन कॉल (7875160724)
                                         </a>
                                     </div>
                                 </div>
@@ -3106,8 +3106,8 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                                 <button type="button" onclick="payUnpaidDisputeBill('${orderId}', ${order.unpaidAmount || order.finalAmount || order.orderAmount || 160})" class="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-black px-3 py-1.5 rounded-lg text-[11px] inline-flex items-center gap-1 shadow-xs cursor-pointer active:scale-95">
                                     <i class="fa-solid fa-credit-card"></i> <span>₹${order.unpaidAmount || order.finalAmount || order.orderAmount || 160} त्वरित भरा (Pay Now)</span>
                                 </button>
-                                <a href="tel:8806283584" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] inline-flex items-center gap-1 shadow-xs">
-                                    <i class="fa-solid fa-phone"></i> कॉल (8806283584)
+                                <a href="tel:7875160724" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] inline-flex items-center gap-1 shadow-xs">
+                                    <i class="fa-solid fa-phone"></i> कॉल (7875160724)
                                 </a>
                             </div>
                         </div>
