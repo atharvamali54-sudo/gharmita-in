@@ -1451,7 +1451,9 @@ window.acceptSpeedyTerms = acceptSpeedyTerms;
                 saveUserForRole(currentRole, savedUser);
                 const safeSession = { ...savedUser };
                 delete safeSession.password;
+                if (!safeSession.role) safeSession.role = currentRole;
                 localStorage.setItem('current_user_session', JSON.stringify(safeSession));
+                localStorage.setItem('speedy_user_session', JSON.stringify(safeSession));
 
                 showStatus("🎉 Login Successful! Redirecting...", "success");
 
@@ -1518,7 +1520,11 @@ window.acceptSpeedyTerms = acceptSpeedyTerms;
                     }
                     // Save to both LocalStorage AND Firebase Realtime Database
                     saveUserForRole(pendingUserData.role, pendingUserData);
-                    localStorage.setItem('current_user_session', JSON.stringify(pendingUserData));
+                    const regSession = { ...pendingUserData };
+                    delete regSession.password;
+                    if (!regSession.role) regSession.role = pendingUserData.role || currentRole;
+                    localStorage.setItem('current_user_session', JSON.stringify(regSession));
+                    localStorage.setItem('speedy_user_session', JSON.stringify(regSession));
 
                     // Confirm cloud write immediately
                     if (typeof database !== 'undefined') {
@@ -1560,6 +1566,33 @@ window.acceptSpeedyTerms = acceptSpeedyTerms;
             }
         }
 
+        
+function checkAutoLoginSession() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logout') === 'true') {
+            return false;
+        }
+        const rawSession = localStorage.getItem('speedy_user_session') || localStorage.getItem('current_user_session');
+        if (!rawSession) return false;
+        const session = JSON.parse(rawSession);
+        if (!session) return false;
+        const role = (session.role || session.userType || session.type || '').toLowerCase();
+        if (role === 'worker' || role === 'partner' || session.workerId) {
+            redirectUser('worker');
+            return true;
+        } else if (role === 'customer' || session.customerId || session.phone || session.mobile) {
+            redirectUser('customer');
+            return true;
+        }
+        return false;
+    } catch(e) {
+        console.warn('Auto-login session check error:', e);
+        return false;
+    }
+}
+window.checkAutoLoginSession = checkAutoLoginSession;
+
         function redirectUser(role) {
             if (role === 'customer') {
                 window.location.href = "./customer.html";
@@ -1570,6 +1603,7 @@ window.acceptSpeedyTerms = acceptSpeedyTerms;
 
 // Automatically sync any existing local accounts on this device up to the cloud
 document.addEventListener('DOMContentLoaded', () => {
+    if (checkAutoLoginSession()) return;
     initTermsConsentGate();
     syncExistingLocalAccountsToCloud();
     const mobileInput = document.getElementById('mobile');

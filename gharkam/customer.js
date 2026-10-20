@@ -144,8 +144,8 @@ function customerStorageKey(mobile) {
 
 function readCustomerSession() {
     try {
-        const saved = JSON.parse(localStorage.getItem('current_user_session') || 'null');
-        return saved && saved.role === 'customer' ? saved : null;
+        const saved = JSON.parse(localStorage.getItem('speedy_user_session') || localStorage.getItem('current_user_session') || 'null');
+        return saved && (saved.role === 'customer' || !saved.role || saved.customerId) ? saved : null;
     } catch (error) {
         console.warn('Could not read customer session:', error);
         return null;
@@ -370,6 +370,8 @@ function handleAddressChange() {
             customerProfile.address = val;
             try {
                 localStorage.setItem('current_user_session', JSON.stringify(customerProfile));
+                localStorage.setItem('speedy_user_session', JSON.stringify(customerProfile));
+                localStorage.setItem('speedy_user_session', JSON.stringify(customerProfile));
             } catch(e) {}
         }
 
@@ -958,6 +960,8 @@ function writeCustomerProfile(profile, previousMobile) {
     localStorage.setItem(customerStorageKey(profile.mobile), serialized);
     localStorage.setItem('gharmitra_user_' + profile.mobile, serialized);
     localStorage.setItem('current_user_session', serialized);
+    localStorage.setItem('speedy_user_session', serialized);
+    localStorage.setItem('speedy_user_session', serialized);
 
     if (oldMobile !== profile.mobile) {
         localStorage.removeItem(customerStorageKey(oldMobile));
@@ -2223,6 +2227,7 @@ populateBookingProfile();
                     customerProfile.address = address.trim();
                     customerProfile.area = area;
                     localStorage.setItem('current_user_session', JSON.stringify(customerProfile));
+                localStorage.setItem('speedy_user_session', JSON.stringify(customerProfile));
                 }
             } catch(e) {}
 
@@ -3377,12 +3382,24 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
         }
 
         function handleApkSignOut() {
-            if (confirm("तुम्हाला नक्की लॉग आउट करायचे आहे का?")) {
-                localStorage.removeItem('current_user_session');
-                localStorage.removeItem('gharmitra_current_order_id');
-                window.location.reload();
+            if (confirm("तुम्हाला नक्की साइन आउट (Logout) करायचे आहे का?")) {
+                try {
+                    localStorage.removeItem('speedy_user_session');
+                    localStorage.removeItem('current_user_session');
+                    localStorage.removeItem('gharmitra_current_order_id');
+                    localStorage.removeItem('gharmitra_auth_token');
+                    if (window.firebase && window.firebase.auth) {
+                        window.firebase.auth().signOut().catch(() => {});
+                    }
+                } catch(e) {}
+                window.location.href = "index.html?logout=true";
             }
         }
+
+        function customerLogout() {
+            handleApkSignOut();
+        }
+        window.customerLogout = customerLogout;
 
         window.openMyOrdersModal = openMyOrdersModal;
         window.closeMyOrdersModal = closeMyOrdersModal;

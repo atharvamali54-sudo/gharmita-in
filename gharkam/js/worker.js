@@ -598,6 +598,8 @@ function applyWorkerName(foundName) {
         s.fullName = foundName;
         s.name = foundName;
         localStorage.setItem('current_user_session', JSON.stringify(s));
+        localStorage.setItem('speedy_user_session', JSON.stringify(s));
+        localStorage.setItem('speedy_user_session', JSON.stringify(s));
     } catch (e) {}
 }
 
@@ -645,6 +647,7 @@ function applyWorkerPhoto(photoUrl) {
         s.photo = photoUrl;
         s.photoUrl = photoUrl;
         localStorage.setItem('current_user_session', JSON.stringify(s));
+        localStorage.setItem('speedy_user_session', JSON.stringify(s));
         if (s.mobile) {
             ['gharmitra_user_worker_' + s.mobile, 'gharkam_user_' + s.mobile, 'gharmitra_user_' + s.mobile].forEach(k => {
                 try {
@@ -1000,7 +1003,7 @@ async function submitReuploadAadhar() {
 }
 
 function loadLocalWorkerSession() {
-    let session = localStorage.getItem('current_user_session');
+    let session = localStorage.getItem('speedy_user_session') || localStorage.getItem('current_user_session');
     if (session) {
         let userData;
         try {
@@ -1557,6 +1560,7 @@ function updateWorkerWalletUI(newBalance) {
         s.balance = cleanBal;
         s.wallet = cleanBal;
         localStorage.setItem('current_user_session', JSON.stringify(s));
+        localStorage.setItem('speedy_user_session', JSON.stringify(s));
     } catch(e) {}
 }
 
@@ -3566,14 +3570,18 @@ function closeWorkerProfileModal() {
 }
 
 function workerLogout() {
-    if (confirm("तुम्हाला खात्रीने लॉगआऊट करायचे आहे का?")) {
+    if (confirm("तुम्हाला नक्की लॉगआउट (Logout) करायचे आहे का?")) {
         try {
+            localStorage.removeItem('speedy_user_session');
             localStorage.removeItem('current_worker_session');
             sessionStorage.removeItem('current_worker_session');
             localStorage.removeItem('current_user_session');
-            if (firebase && firebase.auth) firebase.auth().signOut().catch(() => {});
+            localStorage.removeItem('gharmitra_auth_token');
+            if (window.firebase && window.firebase.auth) {
+                window.firebase.auth().signOut().catch(() => {});
+            }
         } catch(e) {}
-        window.location.href = "index.html";
+        window.location.href = "index.html?logout=true";
     }
 }
 

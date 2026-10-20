@@ -22,6 +22,27 @@
   <script>
       (function(){
           try {
+              var urlParams = new URLSearchParams(window.location.search);
+              var isExplicitLogout = urlParams.get('logout') === 'true';
+
+              // Persistent Authentication Auto-Login: Bypass login/signup if valid session exists
+              if (!isExplicitLogout) {
+                  var rawSession = localStorage.getItem('speedy_user_session') || localStorage.getItem('current_user_session');
+                  if (rawSession) {
+                      var session = JSON.parse(rawSession);
+                      if (session) {
+                          var role = (session.role || session.userType || session.type || '').toLowerCase();
+                          if (role === 'worker' || role === 'partner' || session.workerId) {
+                              window.location.replace('worker.html');
+                              return;
+                          } else if (role === 'customer' || session.customerId || session.phone || session.mobile) {
+                              window.location.replace('customer.html');
+                              return;
+                          }
+                      }
+                  }
+              }
+
               var isStandalone = window.matchMedia && (
                   window.matchMedia('(display-mode: standalone)').matches ||
                   window.matchMedia('(display-mode: fullscreen)').matches ||
