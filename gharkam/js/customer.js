@@ -2621,7 +2621,7 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                     closeCustomerChatModal();
                 }
 
-                // Swiggy-style live moving location handling. The worker
+                // SpeedyHome live moving location handling. The worker
                 // publishes GPS coordinates under this order in Firebase.
                 if (data.status === 'On The Way' || data.status === 'In Progress') {
                     mapContainer.classList.remove('hidden');

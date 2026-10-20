@@ -68,7 +68,7 @@ body.is-app-env [onclick*="showPwaInstallModal"],
 }
 
 /* =========================================================
-   Live Delivery Tracking Styles (Swiggy / Zomato / Uber Style)
+   SpeedyHome Live Delivery Tracking Styles
    ========================================================= */
 
 .delivery-worker-marker {
@@ -432,7 +432,7 @@ header.liquid-header > div:last-child button {
 }
 
 /* =========================================================
-   Mobile Bottom Navigation Bar System (Urban Company / Swiggy Style)
+   SpeedyHome Mobile Bottom Navigation Bar System
    (Applies to mobile screens and mobile app, Desktop stays 100% untouched)
    ========================================================= */
 

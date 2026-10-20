@@ -3,7 +3,7 @@
  * Compatible with Firebase Cloud Functions / Express / Node.js
  * 
  * Supports:
- * 1. Exotel Click-to-Call (Used by Swiggy, Zomato, Ola in India)
+ * 1. Exotel Click-to-Call (Enterprise Telephony Provider)
  * 2. Twilio Programmable Voice & Proxy
  * 3. Inbound Dynamic Relay Webhook
  */

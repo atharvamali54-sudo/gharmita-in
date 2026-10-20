@@ -148,7 +148,7 @@ function getCustomerCoordinates(order) {
 }
 
 // =========================================================
-// Loud Delivery Alert Sound & Vibration System (Swiggy / Zomato style)
+// SpeedyHome Loud Delivery Alert Sound & Vibration System
 // =========================================================
 let audioCtx = null;
 let orderAlertInterval = null;
@@ -181,7 +181,7 @@ function playLoudDeliveryChime() {
         if (!ctx) return;
 
         const now = ctx.currentTime;
-        // High-energy loud delivery notification chord (Zomato/Swiggy chime)
+        // SpeedyHome loud delivery notification chord
         const notes = [
             { freq: 784, start: 0.00, dur: 0.12 },     // G5
             { freq: 988, start: 0.13, dur: 0.12 },     // B5

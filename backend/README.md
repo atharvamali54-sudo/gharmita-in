@@ -1,6 +1,6 @@
-# Gharmitra Number Masking Setup Guide (Swiggy / Zomato Pattern)
+# SpeedyHome Number Masking Setup Guide
 
-या फोल्डरमध्ये Swiggy, Zomato आणि Uber प्रमाणे **नंबर मास्किंग (Call Masking)** प्रत्यक्ष सिम कार्ड कॉलिंगसाठी कसे सेट करायचे याचे मार्गदर्शन दिले आहे.
+या फोल्डरमध्ये **नंबर मास्किंग (Call Masking)** प्रत्यक्ष सिम कार्ड कॉलिंगसाठी कसे सेट करायचे याचे मार्गदर्शन दिले आहे.
 
 ---
 
@@ -17,7 +17,7 @@
 ### पर्याय ब: Cloud Telephony Bridge Call (Exotel / Twilio - प्रत्यक्ष फोन कॉलिंग)
 जेव्हा युझरकडे इंटरनेट नसेल आणि त्याला साध्या सेल्युलर फोनवरून कॉल करायचा असेल:
 
-1. **Exotel (भारतातील #1 कंपनी - Swiggy, Zomato, Ola वापरतात):**
+1. **Exotel (Enterprise Telephony):**
    - [exotel.com](https://exotel.com/) वर जाऊन व्यवसाय खाते सुरू करा.
    - एक व्हर्च्युअल लँडलाईन किंवा मोबाईल नंबर (उदा. `020 7195 XXXX` किंवा `+91 80 4710 XXXX`) खरेदी करा.
    - API Keys (Account SID, API Key, API Token) मिळवा.
