@@ -10,22 +10,24 @@
     <link rel="stylesheet" href="css/common.css">
     <link rel="icon" type="image/png" href="icons/favicon.png">
 </head>
-<body class="bg-slate-50 text-slate-800 font-['Poppins',sans-serif] min-h-screen flex flex-col justify-between">
+<body class="bg-slate-50 text-slate-800 font-['Poppins',sans-serif] min-h-screen flex flex-col justify-between leading-relaxed">
 
     <!-- Header -->
-    <header class="bg-blue-600 text-white py-4 px-6 shadow-md flex justify-between items-center">
-        <a href="./" class="flex items-center space-x-2 text-xl font-bold tracking-wide">
-            <span>🏠</span>
-            <span>SPEEDYHOME<span class="text-blue-200">.online</span></span>
-        </a>
-        <a href="./" class="text-xs bg-white/20 hover:bg-white/30 text-white font-bold px-3 py-1.5 rounded-xl transition">
-            <i class="fa-solid fa-arrow-left mr-1"></i> Home
-        </a>
+    <header class="bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 shadow-sm/50">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center w-full">
+            <a href="../index.html" class="flex items-center space-x-3 text-lg sm:text-xl font-bold tracking-wide">
+                <span class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center text-sm shadow-md shadow-blue-500/20">🏠</span>
+                <span class="text-slate-900 font-black">SPEEDYHOME<span class="text-blue-600">.online</span></span>
+            </a>
+            <a href="../index.html" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-left"></i> <span>Back to Home</span>
+            </a>
+        </div>
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 py-10 space-y-6">
-        <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6 text-sm text-slate-700 leading-relaxed">
+    <main class="max-w-5xl mx-auto px-6 py-16 sm:py-20 space-y-8 w-full">
+        <div class="bg-white p-8 sm:p-12 rounded-3xl shadow-sm border border-slate-100 space-y-8 text-sm sm:text-base text-slate-600 leading-relaxed">
             <div class="border-b border-slate-100 pb-4">
                 <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Legal Agreement</span>
                 <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 mt-2">नियम आणि अटी (Terms & Conditions)</h1>
@@ -39,22 +41,11 @@
                 </p>
             </section>
 
-            <section class="space-y-3">
-                <h2 class="text-base font-bold text-slate-900">२. सेवांचे स्वरूप व जबाबदारी मर्यादा (Nature of Services & Limitation of Liability)</h2>
+            <section class="space-y-2">
+                <h2 class="text-base font-bold text-slate-900">२. सेवांचे स्वरूप (Nature of Services)</h2>
                 <p>
-                    स्पीडीहोम हे घरगुती सेवा (उदा. होम क्लिनिंग, प्लंबिंग, इलेक्ट्रिशियन, पेंटिंग, कारपेंटर इ.) पुरवण्यासाठी ग्राहक आणि स्थानिक स्वतंत्र सेवा भागीदार (Service Partners / Workers) यांना जोडणारे एक ऑन-डिमांड डिजिटल मध्यस्थ व्यासपीठ (Intermediary Marketplace Platform) आहे.
+                    स्पीडीहोम हे घरगुती सेवा (उदा. होम क्लिनिंग, प्लंबिंग, इलेक्ट्रिशियन, पेंटिंग, कारपेंटर इ.) पुरवण्यासाठी ग्राहक आणि स्थानिक स्वतंत्र सेवा भागीदार (Service Partners / Workers) यांना जोडणारे एक ऑन-डिमांड डिजिटल व्यासपीठ (Marketplace Platform) आहे.
                 </p>
-                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-2xl text-xs space-y-2 text-amber-950 font-medium">
-                    <p class="font-bold text-amber-900 text-sm flex items-center gap-1.5">
-                        <i class="fa-solid fa-shield-halved text-amber-600"></i> कायदेशीर जबाबदारी मर्यादा (Legal Disclaimer):
-                    </p>
-                    <p class="text-slate-900 text-xs sm:text-sm font-bold bg-white p-2.5 rounded-xl border border-amber-200">
-                        "स्पीडीहोम हा फक्त ग्राहक आणि स्वतंत्र कारागिरांना जोडणारा प्लॅटफॉर्म आहे, साहित्याची किंवा तांत्रिक नुकसानीची अंतिम जबाबदारी कामगाराची राहील."
-                    </p>
-                    <p class="text-slate-700 text-[11px] leading-relaxed">
-                        कामगारांनी वापरलेले कोणतेही सुटे भाग किंवा साहित्य (Material / Spare Parts), त्यांची गुणवत्ता, वॉरंटी अथवा काम करताना ग्राहकाच्या मालमत्तेचे किंवा उपकरणांचे झालेले कोणतेही भौतिक, विद्युत किंवा तांत्रिक नुकसान यास संबंधित कामगार (Independent Contractor) थेट जबाबदार राहील. स्पीडीहोम कंपनी अशा कोणत्याही नुकसानीची भरपाई देण्यास बांधील राहणार नाही. ग्राहक आणि कामगार यांनी काम सुरू करण्यापूर्वी व साहित्य आणताना परस्पर सहमतीने निर्णय घ्यावा.
-                    </p>
-                </div>
             </section>
 
             <section class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl text-xs space-y-2">
@@ -91,13 +82,13 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-slate-900 text-slate-400 text-xs py-8 px-4 border-t border-slate-800">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+    <footer class="bg-slate-900 text-slate-400 text-xs py-12 px-6 border-t border-slate-800">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-6 text-center sm:text-left">
             <div>
                 <p class="font-bold text-white text-sm">SPEEDYHOME.online</p>
-                <p class="text-[11px] text-slate-500 mt-0.5">Pune City Home Services • © 2026 All Rights Reserved.</p>
+                <p class="text-[11px] text-slate-500 mt-1">Pune City Home Services • © 2026 All Rights Reserved.</p>
             </div>
-            <div class="flex flex-wrap justify-center gap-4 text-xs">
+            <div class="flex flex-wrap justify-center gap-6 text-xs text-slate-400">
                 <a href="about.html" class="hover:text-white transition">About Us</a>
                 <a href="contact.html" class="hover:text-white transition">Contact Us</a>
                 <a href="terms.html" class="hover:text-white transition">Terms & Conditions</a>
@@ -110,3 +101,4 @@
 
 </body>
 </html>
+

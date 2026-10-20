@@ -65,36 +65,26 @@
         }
 
         .gradient-hero {
-
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
-
+            background: radial-gradient(120% 120% at 50% 10%, #1e40af 0%, #1e3a8a 55%, #0f172a 100%);
         }
-
         .card-hover {
-
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
         .card-hover:hover {
-
             transform: translateY(-4px);
-
-            box-shadow: 0 16px 32px -8px rgba(30, 58, 138, 0.15);
-
+            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(37, 99, 235, 0.08);
         }
 
     </style>
 
 </head>
 
-<body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen">
+<body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen leading-relaxed">
 
 
 
     <!-- Top Announcement Bar -->
-
-    <div class="bg-amber-400 text-slate-950 text-xs font-black py-2.5 px-4 text-center flex flex-wrap items-center justify-center gap-2 shadow-sm">
+    <div class="bg-amber-400 text-slate-950 text-xs font-black py-3 px-6 text-center flex flex-wrap items-center justify-center gap-2 shadow-sm">
 
         <span>⏱️ पुण्यात पहिल्यांदाच: नो फिक्स रेट, नो मनमानी बिल! फक्त ₹३ प्रति मिनिट! (२० मिनिटांचे काम = फक्त ₹६० बिल!)</span>
 
@@ -106,9 +96,8 @@
 
     <!-- Main Navigation Header -->
 
-    <header class="bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200/80 shadow-sm">
-
-        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3.5 flex justify-between items-center gap-2">
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 shadow-sm/50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
 
             
 
@@ -116,11 +105,11 @@
 
             <a href="index.html" class="flex items-center space-x-2 sm:space-x-3 shrink-0">
 
-                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center text-base sm:text-xl shadow-md">🏠</div>
+                <div class="w-10 h-10 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-lg shadow-md shadow-blue-500/20">🏠</div>
 
                 <div>
 
-                    <span class="font-black text-lg sm:text-xl tracking-tight text-slate-900">SPEEDYHOME<span class="text-blue-600 text-sm sm:text-base">.online</span></span>
+                    <span class="font-black text-xl tracking-tight text-slate-900">SPEEDYHOME<span class="text-blue-600 text-base">.online</span></span>
 
                     <p class="text-[9px] sm:text-[10px] text-slate-500 font-semibold uppercase tracking-wider flex items-center gap-1">
 
@@ -136,7 +125,7 @@
 
             <!-- Desktop Nav Links -->
 
-            <nav class="hidden md:flex items-center space-x-6 text-xs font-bold text-slate-600">
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-600">
 
                 <a href="#services" class="hover:text-blue-600 transition">Services & Pricing</a>
 
@@ -154,9 +143,9 @@
 
             <!-- Action Buttons -->
 
-            <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            <div class="flex items-center gap-3 shrink-0">
 
-                <a href="gharkam/index.html?role=worker" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition flex items-center gap-1 sm:gap-1.5">
+                <a href="gharkam/index.html?role=worker" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2">
 
                     <i class="fa-solid fa-briefcase text-slate-500 text-xs"></i>
 
@@ -164,7 +153,7 @@
 
                 </a>
 
-                <a href="gharkam/index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[11px] sm:text-xs px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl shadow-md shadow-blue-500/20 transition flex items-center gap-1 sm:gap-1.5">
+                <a href="gharkam/index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition flex items-center gap-2">
 
                     <i class="fa-solid fa-calendar-check text-xs"></i>
 
@@ -188,13 +177,12 @@
 
         <!-- Hero Section -->
 
-        <section class="gradient-hero text-white py-16 sm:py-24 px-4 relative overflow-hidden">
-
-            <div class="max-w-5xl mx-auto text-center space-y-6 relative z-10">
+        <section class="gradient-hero text-white py-20 sm:py-24 lg:py-28 px-6 relative overflow-hidden">
+            <div class="max-w-6xl mx-auto text-center space-y-8 relative z-10">
 
                 
 
-                <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-1.5 rounded-full text-xs font-bold text-amber-300 shadow-inner">
+                <div class="inline-flex items-center gap-2.5 bg-white/10 backdrop-blur-md border border-white/20 px-5 py-2 rounded-full text-xs font-bold text-amber-300 shadow-inner">
 
                     <i class="fa-solid fa-stopwatch text-amber-400"></i> पुण्यात पहिल्यांदाच: Pay-Per-Minute ऑन-डिमांड होम सर्व्हिसेस
 
@@ -212,7 +200,7 @@
 
 
 
-                <p class="text-blue-100 text-sm sm:text-lg max-w-3xl mx-auto font-medium leading-relaxed">
+                <p class="text-blue-100/90 text-base sm:text-lg max-w-2xl mx-auto font-normal leading-relaxed">
 
                     (२० मिनिटांचे काम = फक्त ₹६० बिल! जेवढा वेळ काम, फक्त तेवढेच पैसे).<br class="hidden sm:inline">
 
@@ -224,21 +212,21 @@
 
                 <!-- CTA Grid -->
 
-                <div class="flex flex-wrap justify-center items-center gap-3 pt-4">
+                <div class="flex flex-wrap justify-center items-center gap-4 pt-4">
 
-                    <a href="gharkam/index.html" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm px-7 py-3.5 rounded-2xl shadow-xl transition transform active:scale-95 flex items-center gap-2">
+                    <a href="gharkam/index.html" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm px-8 py-4 rounded-2xl shadow-xl transition transform active:scale-95 flex items-center gap-2.5">
 
                         <i class="fa-solid fa-bolt"></i> ₹३/मिनिटाने आत्ताच बुक करा
 
                     </a>
 
-                    <a href="https://api.whatsapp.com/send?phone=917875160724&text=नमस्कार%20स्पीडीहोम,%20मला%20पुण्यात%20सेवा%20बुक%20करायची%20आहे." target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black text-sm px-6 py-3.5 rounded-2xl shadow-xl transition flex items-center gap-2">
+                    <a href="https://api.whatsapp.com/send?phone=917875160724&text=नमस्कार%20स्पीडीहोम,%20मला%20पुण्यात%20सेवा%20बुक%20करायची%20आहे." target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black text-sm px-7 py-4 rounded-2xl shadow-xl transition flex items-center gap-2.5">
 
                         <i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp वर बुक करा
 
                     </a>
 
-                    <a href="#services" class="bg-white/10 hover:bg-white/20 text-white font-bold text-sm px-6 py-3.5 rounded-2xl border border-white/20 backdrop-blur-md transition flex items-center gap-2">
+                    <a href="#services" class="bg-white/10 hover:bg-white/20 text-white font-bold text-sm px-7 py-4 rounded-2xl border border-white/20 backdrop-blur-md transition flex items-center gap-2.5">
 
                         <i class="fa-solid fa-list-check"></i> सर्व दर पहा
 
@@ -250,37 +238,37 @@
 
                 <!-- Trust Badges Under Hero -->
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto pt-10 text-left">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto pt-14 text-left">
 
-                    <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
+                    <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 shadow-sm hover:bg-white/[0.14] transition-all space-y-2">
 
                         <p class="text-xl font-black text-amber-300">⏱️ ₹३ / मिनिट</p>
 
-                        <p class="text-[11px] text-blue-100 font-medium">जेवढा वेळ काम, तेवढेच पैसे</p>
+                        <p class="text-xs text-blue-100/90 font-medium leading-relaxed">जेवढा वेळ काम, तेवढेच पैसे</p>
 
                     </div>
 
-                    <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
+                    <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 shadow-sm hover:bg-white/[0.14] transition-all space-y-2">
 
                         <p class="text-xl font-black text-emerald-300">📲 QR लाईव्ह टाईमर</p>
 
-                        <p class="text-[11px] text-blue-100 font-medium">दोघांच्या स्क्रीनवर अचूक टाइमर</p>
+                        <p class="text-xs text-blue-100/90 font-medium leading-relaxed">दोघांच्या स्क्रीनवर अचूक टाइमर</p>
 
                     </div>
 
-                    <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
+                    <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 shadow-sm hover:bg-white/[0.14] transition-all space-y-2">
 
                         <p class="text-xl font-black text-yellow-300">🧾 ०% साहित्यावर कमिशन</p>
 
-                        <p class="text-[11px] text-blue-100 font-medium">दुकान पावतीसह १००% खरे बिल</p>
+                        <p class="text-xs text-blue-100/90 font-medium leading-relaxed">दुकान पावतीसह १००% खरे बिल</p>
 
                     </div>
 
-                    <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
+                    <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 shadow-sm hover:bg-white/[0.14] transition-all space-y-2">
 
                         <p class="text-xl font-black text-cyan-300">🛡️ ७ दिवस हमी</p>
 
-                        <p class="text-[11px] text-blue-100 font-medium">मोफत दुरुस्ती गॅरंटी (Pune Verified)</p>
+                        <p class="text-xs text-blue-100/90 font-medium leading-relaxed">मोफत दुरुस्ती गॅरंटी (Pune Verified)</p>
 
                     </div>
 
@@ -296,43 +284,33 @@
 
         <!-- Services & Pricing Catalog (CRITICAL RAZORPAY COMPLIANCE SECTION) -->
 
-        <section id="services" class="py-16 sm:py-20 px-4 max-w-7xl mx-auto">
+        <section id="services" class="py-20 sm:py-24 px-6 max-w-7xl mx-auto">
 
             
 
-            <div class="text-center max-w-3xl mx-auto mb-12 space-y-2">
-
-                <span class="bg-blue-100 text-blue-700 text-xs font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider">
-
+            <div class="text-center max-w-2xl mx-auto mb-16 space-y-4">
+                <span class="inline-block bg-blue-50 text-blue-700 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider border border-blue-100">
                     ⏱️ पारदर्शक ₹३/मिनिट लाईव्ह दर सूची
-
                 </span>
-
-                <h2 class="text-2xl sm:text-4xl font-black text-slate-900">
-
+                <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-3">
                     पुणेकरांसाठी पारदर्शक सेवा व दर (Services & Pricing)
-
                 </h2>
-
-                <p class="text-slate-600 text-xs sm:text-sm">
-
+                <p class="text-slate-500 text-sm sm:text-base leading-relaxed max-w-prose mx-auto">
                     नो फिक्स रेट, नो मनमानी आकार! फक्त प्रत्यक्ष कामाचा वेळ आणि लागलेल्या साहित्याची दुकान पावती.
-
                 </p>
-
             </div>
 
 
 
             <!-- Service Catalog Grid -->
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 
 
 
                 <!-- Service 1: Cleaning -->
 
-                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm card-hover flex flex-col justify-between">
+                <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm card-hover flex flex-col justify-between space-y-6">
 
                     <div class="space-y-4">
 
@@ -354,9 +332,9 @@
 
                         <div>
 
-                            <h3 class="font-black text-lg text-slate-900">Deep Home Cleaning</h3>
+                            <h3 class="font-black text-xl text-slate-900 mb-2">Deep Home Cleaning</h3>
 
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+                            <p class="text-slate-500 text-xs sm:text-sm mt-1 leading-relaxed">
 
                                 Bathroom cleaning, kitchen deep scrubbing, floor sanitization, and full dusting.
 
@@ -364,7 +342,7 @@
 
                         </div>
 
-                        <ul class="text-xs text-slate-600 space-y-1.5 pt-2 border-t border-slate-100">
+                        <ul class="text-xs sm:text-sm text-slate-600 space-y-2.5 pt-4 border-t border-slate-100">
 
                             <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> High-grade eco-friendly cleaning agents</li>
 
@@ -400,7 +378,7 @@
 
                 <!-- Service 2: Electrician -->
 
-                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm card-hover flex flex-col justify-between">
+                <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm card-hover flex flex-col justify-between space-y-6">
 
                     <div class="space-y-4">
 
@@ -422,9 +400,9 @@
 
                         <div>
 
-                            <h3 class="font-black text-lg text-slate-900">Electrician Services</h3>
+                            <h3 class="font-black text-xl text-slate-900 mb-2">Electrician Services</h3>
 
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+                            <p class="text-slate-500 text-xs sm:text-sm mt-1 leading-relaxed">
 
                                 Switchboard repair, fan & light installation, MCB replacement, and short circuit inspection.
 
@@ -432,7 +410,7 @@
 
                         </div>
 
-                        <ul class="text-xs text-slate-600 space-y-1.5 pt-2 border-t border-slate-100">
+                        <ul class="text-xs sm:text-sm text-slate-600 space-y-2.5 pt-4 border-t border-slate-100">
 
                             <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Certified skilled electricians</li>
 
@@ -468,7 +446,7 @@
 
                 <!-- Service 3: Plumbing -->
 
-                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm card-hover flex flex-col justify-between">
+                <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm card-hover flex flex-col justify-between space-y-6">
 
                     <div class="space-y-4">
 
@@ -490,9 +468,9 @@
 
                         <div>
 
-                            <h3 class="font-black text-lg text-slate-900">Plumbing Services</h3>
+                            <h3 class="font-black text-xl text-slate-900 mb-2">Plumbing Services</h3>
 
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+                            <p class="text-slate-500 text-xs sm:text-sm mt-1 leading-relaxed">
 
                                 Tap leakage repair, pipe unclogging, basin & sink fitting, water tank maintenance.
 
@@ -500,7 +478,7 @@
 
                         </div>
 
-                        <ul class="text-xs text-slate-600 space-y-1.5 pt-2 border-t border-slate-100">
+                        <ul class="text-xs sm:text-sm text-slate-600 space-y-2.5 pt-4 border-t border-slate-100">
 
                             <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Experienced local plumbers</li>
 
@@ -536,7 +514,7 @@
 
                 <!-- Service 4: Painting -->
 
-                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm card-hover flex flex-col justify-between">
+                <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm card-hover flex flex-col justify-between space-y-6">
 
                     <div class="space-y-4">
 
@@ -558,9 +536,9 @@
 
                         <div>
 
-                            <h3 class="font-black text-lg text-slate-900">Home Painting Services</h3>
+                            <h3 class="font-black text-xl text-slate-900 mb-2">Home Painting Services</h3>
 
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+                            <p class="text-slate-500 text-xs sm:text-sm mt-1 leading-relaxed">
 
                                 Interior & exterior wall painting, waterproofing, putty and primer finishing.
 
@@ -568,7 +546,7 @@
 
                         </div>
 
-                        <ul class="text-xs text-slate-600 space-y-1.5 pt-2 border-t border-slate-100">
+                        <ul class="text-xs sm:text-sm text-slate-600 space-y-2.5 pt-4 border-t border-slate-100">
 
                             <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Premium branded paints</li>
 
@@ -604,7 +582,7 @@
 
                 <!-- Service 5: Carpentry -->
 
-                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm card-hover flex flex-col justify-between">
+                <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm card-hover flex flex-col justify-between space-y-6">
 
                     <div class="space-y-4">
 
@@ -626,9 +604,9 @@
 
                         <div>
 
-                            <h3 class="font-black text-lg text-slate-900">Carpentry & Furniture</h3>
+                            <h3 class="font-black text-xl text-slate-900 mb-2">Carpentry & Furniture</h3>
 
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+                            <p class="text-slate-500 text-xs sm:text-sm mt-1 leading-relaxed">
 
                                 Door repair, wardrobe & cabinet fix, lock & hinge fitting, modular furniture assembly.
 
@@ -636,7 +614,7 @@
 
                         </div>
 
-                        <ul class="text-xs text-slate-600 space-y-1.5 pt-2 border-t border-slate-100">
+                        <ul class="text-xs sm:text-sm text-slate-600 space-y-2.5 pt-4 border-t border-slate-100">
 
                             <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Skilled local craftsmen</li>
 
@@ -672,7 +650,7 @@
 
                 <!-- Service 6: Electronics -->
 
-                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm card-hover flex flex-col justify-between">
+                <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm card-hover flex flex-col justify-between space-y-6">
 
                     <div class="space-y-4">
 
@@ -694,9 +672,9 @@
 
                         <div>
 
-                            <h3 class="font-black text-lg text-slate-900">Appliance Repair</h3>
+                            <h3 class="font-black text-xl text-slate-900 mb-2">Appliance Repair</h3>
 
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+                            <p class="text-slate-500 text-xs sm:text-sm mt-1 leading-relaxed">
 
                                 TV wall mounting, mixer/grinder, microwave, and washing machine repair.
 
@@ -704,7 +682,7 @@
 
                         </div>
 
-                        <ul class="text-xs text-slate-600 space-y-1.5 pt-2 border-t border-slate-100">
+                        <ul class="text-xs sm:text-sm text-slate-600 space-y-2.5 pt-4 border-t border-slate-100">
 
                             <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Repairs for all major brands</li>
 
@@ -740,7 +718,7 @@
 
                 <!-- Service 7: Locksmith -->
 
-                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm card-hover flex flex-col justify-between">
+                <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm card-hover flex flex-col justify-between space-y-6">
 
                     <div class="space-y-4">
 
@@ -762,9 +740,9 @@
 
                         <div>
 
-                            <h3 class="font-black text-lg text-slate-900">Locksmith Services</h3>
+                            <h3 class="font-black text-xl text-slate-900 mb-2">Locksmith Services</h3>
 
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+                            <p class="text-slate-500 text-xs sm:text-sm mt-1 leading-relaxed">
 
                                 Jammed lock repair, emergency lockout access, new latch & lock installation.
 
@@ -772,7 +750,7 @@
 
                         </div>
 
-                        <ul class="text-xs text-slate-600 space-y-1.5 pt-2 border-t border-slate-100">
+                        <ul class="text-xs sm:text-sm text-slate-600 space-y-2.5 pt-4 border-t border-slate-100">
 
                             <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Emergency immediate service</li>
 
@@ -808,7 +786,7 @@
 
                 <!-- Service 8: Pest Control -->
 
-                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm card-hover flex flex-col justify-between">
+                <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm card-hover flex flex-col justify-between space-y-6">
 
                     <div class="space-y-4">
 
@@ -830,9 +808,9 @@
 
                         <div>
 
-                            <h3 class="font-black text-lg text-slate-900">Pest Control Services</h3>
+                            <h3 class="font-black text-xl text-slate-900 mb-2">Pest Control Services</h3>
 
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+                            <p class="text-slate-500 text-xs sm:text-sm mt-1 leading-relaxed">
 
                                 Cockroach herbal gel treatment, termite prevention spray, bed bug & mosquito control.
 
@@ -840,7 +818,7 @@
 
                         </div>
 
-                        <ul class="text-xs text-slate-600 space-y-1.5 pt-2 border-t border-slate-100">
+                        <ul class="text-xs sm:text-sm text-slate-600 space-y-2.5 pt-4 border-t border-slate-100">
 
                             <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Odorless and safe treatments</li>
 
@@ -876,7 +854,7 @@
 
                 <!-- Service 9: Gardening -->
 
-                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm card-hover flex flex-col justify-between">
+                <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm card-hover flex flex-col justify-between space-y-6">
 
                     <div class="space-y-4">
 
@@ -898,9 +876,9 @@
 
                         <div>
 
-                            <h3 class="font-black text-lg text-slate-900">Gardening & Plant Care</h3>
+                            <h3 class="font-black text-xl text-slate-900 mb-2">Gardening & Plant Care</h3>
 
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+                            <p class="text-slate-500 text-xs sm:text-sm mt-1 leading-relaxed">
 
                                 Balcony & terrace garden maintenance, plant pruning, soil fertilization, pot re-potting.
 
@@ -908,7 +886,7 @@
 
                         </div>
 
-                        <ul class="text-xs text-slate-600 space-y-1.5 pt-2 border-t border-slate-100">
+                        <ul class="text-xs sm:text-sm text-slate-600 space-y-2.5 pt-4 border-t border-slate-100">
 
                             <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Organic fertilizers used</li>
 
@@ -944,9 +922,9 @@
 
                 <!-- Service 10: Moving & Shifting -->
 
-                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm card-hover flex flex-col justify-between sm:col-span-2 lg:col-span-3">
+                <div class="bg-white rounded-3xl p-8 sm:p-10 border border-slate-100 shadow-sm card-hover flex flex-col justify-between sm:col-span-2 lg:col-span-3 space-y-6">
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
 
                         <div class="space-y-3">
 
@@ -1010,87 +988,76 @@
 
         <!-- Razorpay Safe Payment Gateway Showcase -->
 
-        <section id="trust" class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white py-14 px-4 border-y border-slate-800">
+        <section id="trust" class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white py-20 sm:py-24 px-6 border-y border-slate-800">
+            <div class="max-w-6xl mx-auto space-y-12">
 
-            <div class="max-w-6xl mx-auto space-y-8">
-
-                <div class="text-center space-y-2 max-w-2xl mx-auto">
-
-                    <span class="bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-
+                <div class="text-center space-y-4 max-w-2xl mx-auto mb-12">
+                    <span class="inline-block bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
                         100% Safe & Secure Payments
-
                     </span>
-
-                    <h2 class="text-2xl sm:text-3xl font-black">
-
+                    <h2 class="text-2xl sm:text-4xl font-black tracking-tight mb-3">
                         Safe Online Payments - Secured by Razorpay
-
                     </h2>
-
-                    <p class="text-xs sm:text-sm text-slate-300">
-
+                    <p class="text-sm sm:text-base text-slate-300/90 leading-relaxed max-w-prose mx-auto">
                         All online transactions on SpeedyHome are secured via Razorpay payment gateway, fully compliant with Reserve Bank of India (RBI) guidelines.
-
                     </p>
+                </div>
+
+
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+
+                    <div class="bg-slate-800/40 border border-slate-800 p-8 rounded-2xl text-center space-y-4 hover:border-slate-700/80 hover:bg-slate-800/60 transition-all">
+
+                        <div class="text-3xl text-blue-400 mb-2"><i class="fa-solid fa-mobile-screen-button"></i></div>
+
+                        <h4 class="font-bold text-base text-white">UPI Payments</h4>
+
+                        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">Instant 1-click payments via Google Pay, PhonePe, Paytm, and BHIM.</p>
+
+                    </div>
+
+
+
+                    <div class="bg-slate-800/40 border border-slate-800 p-8 rounded-2xl text-center space-y-4 hover:border-slate-700/80 hover:bg-slate-800/60 transition-all">
+
+                        <div class="text-3xl text-emerald-400 mb-2"><i class="fa-solid fa-credit-card"></i></div>
+
+                        <h4 class="font-bold text-base text-white">Cards & NetBanking</h4>
+
+                        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">RuPay, Visa, MasterCard, and NetBanking across all major Indian banks.</p>
+
+                    </div>
+
+
+
+                    <div class="bg-slate-800/40 border border-slate-800 p-8 rounded-2xl text-center space-y-4 hover:border-slate-700/80 hover:bg-slate-800/60 transition-all">
+
+                        <div class="text-3xl text-amber-400 mb-2"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+
+                        <h4 class="font-bold text-base text-white">Cash on Delivery (COD)</h4>
+
+                        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">Convenient option to pay cash directly to the professional after service completion.</p>
+
+                    </div>
+
+
+
+                    <div class="bg-slate-800/40 border border-slate-800 p-8 rounded-2xl text-center space-y-4 hover:border-slate-700/80 hover:bg-slate-800/60 transition-all">
+
+                        <div class="text-3xl text-purple-400 mb-2"><i class="fa-solid fa-rotate-left"></i></div>
+
+                        <h4 class="font-bold text-base text-white">100% Refund Guarantee</h4>
+
+                        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">Direct refund to your bank account within 5 to 7 business days in case of issues.</p>
+
+                    </div>
 
                 </div>
 
 
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-                    <div class="bg-white/5 border border-white/10 p-5 rounded-2xl text-center space-y-2">
-
-                        <div class="text-2xl text-blue-400"><i class="fa-solid fa-mobile-screen-button"></i></div>
-
-                        <h4 class="font-bold text-sm">UPI Payments</h4>
-
-                        <p class="text-[11px] text-slate-400">Instant 1-click payments via Google Pay, PhonePe, Paytm, and BHIM.</p>
-
-                    </div>
-
-
-
-                    <div class="bg-white/5 border border-white/10 p-5 rounded-2xl text-center space-y-2">
-
-                        <div class="text-2xl text-emerald-400"><i class="fa-solid fa-credit-card"></i></div>
-
-                        <h4 class="font-bold text-sm">Cards & NetBanking</h4>
-
-                        <p class="text-[11px] text-slate-400">RuPay, Visa, MasterCard, and NetBanking across all major Indian banks.</p>
-
-                    </div>
-
-
-
-                    <div class="bg-white/5 border border-white/10 p-5 rounded-2xl text-center space-y-2">
-
-                        <div class="text-2xl text-amber-400"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-
-                        <h4 class="font-bold text-sm">Cash on Delivery (COD)</h4>
-
-                        <p class="text-[11px] text-slate-400">Convenient option to pay cash directly to the professional after service completion.</p>
-
-                    </div>
-
-
-
-                    <div class="bg-white/5 border border-white/10 p-5 rounded-2xl text-center space-y-2">
-
-                        <div class="text-2xl text-purple-400"><i class="fa-solid fa-rotate-left"></i></div>
-
-                        <h4 class="font-bold text-sm">100% Refund Guarantee</h4>
-
-                        <p class="text-[11px] text-slate-400">Direct refund to your bank account within 5 to 7 business days in case of issues.</p>
-
-                    </div>
-
-                </div>
-
-
-
-                <div class="flex flex-wrap justify-center items-center gap-6 pt-4 text-xs text-slate-400 border-t border-white/10">
+                <div class="flex flex-wrap justify-center items-center gap-8 pt-8 text-xs sm:text-sm text-slate-400 border-t border-slate-800/80">
 
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i> 256-bit SSL Encrypted</span>
 
@@ -1108,47 +1075,37 @@
 
         <!-- How It Works Section -->
 
-        <section id="how-it-works" class="py-16 sm:py-20 px-4 max-w-6xl mx-auto">
+        <section id="how-it-works" class="py-20 sm:py-24 px-6 max-w-6xl mx-auto">
 
-            <div class="text-center max-w-xl mx-auto mb-12 space-y-2">
-
-                <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider">
-
+            <div class="text-center max-w-2xl mx-auto mb-16 space-y-4">
+                <span class="inline-block bg-blue-100 text-blue-700 text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider">
                     Simple 3-Step Process
-
                 </span>
-
-                <h2 class="text-2xl sm:text-3xl font-black text-slate-900">
-
+                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight mb-3">
                     How SpeedyHome Works
-
                 </h2>
-
-                <p class="text-slate-500 text-xs sm:text-sm">
-
+                <p class="text-slate-500 text-sm sm:text-base leading-relaxed max-w-prose mx-auto">
                     Book a skilled professional for your home service needs in just 2 minutes.
-
                 </p>
-
             </div>
 
 
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
 
                 
 
-                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-center space-y-3 relative">
+                <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition-all text-center space-y-4 relative">
 
-                    <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black text-lg mx-auto shadow-md">
+                    <div class="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black text-xl mx-auto shadow-md mb-2">
 
                         1
 
                     </div>
 
-                    <h3 class="font-bold text-base text-slate-900">१. सेवा निवडा आणि कारागीर बोलवा</h3>
+                    <h3 class="font-bold text-lg text-slate-900 mb-2">१. सेवा निवडा आणि कारागीर बोलवा</h3>
 
-                    <p class="text-xs text-slate-500 leading-relaxed">
+                    <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
 
                         इलेक्ट्रिशियन, प्लंबर किंवा कोणतीही सेवा निवडा. १५ ते २० मिनिटांत व्हेरिफाय स्थानिक कारागीर तुमच्या घरी हजर होतो.
 
@@ -1158,17 +1115,17 @@
 
 
 
-                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-center space-y-3 relative">
+                <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition-all text-center space-y-4 relative">
 
-                    <div class="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center font-black text-lg mx-auto shadow-md">
+                    <div class="w-14 h-14 bg-emerald-600 text-white rounded-2xl flex items-center justify-center font-black text-xl mx-auto shadow-md mb-2">
 
                         2
 
                     </div>
 
-                    <h3 class="font-bold text-base text-slate-900">२. QR स्कॅन करा - लाईव्ह टाइमर चालू</h3>
+                    <h3 class="font-bold text-lg text-slate-900 mb-2">२. QR स्कॅन करा - लाईव्ह टाइमर चालू</h3>
 
-                    <p class="text-xs text-slate-500 leading-relaxed">
+                    <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
 
                         कारागीर आल्यावर तुमच्या फोनवरील QR कोड स्कॅन करतो आणि ₹३/मिनिटाचा लाईव्ह टाइमर स्क्रीनवर सुरू होतो.
 
@@ -1178,17 +1135,17 @@
 
 
 
-                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-center space-y-3 relative">
+                <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition-all text-center space-y-4 relative">
 
-                    <div class="w-12 h-12 bg-purple-600 text-white rounded-2xl flex items-center justify-center font-black text-lg mx-auto shadow-md">
+                    <div class="w-14 h-14 bg-purple-600 text-white rounded-2xl flex items-center justify-center font-black text-xl mx-auto shadow-md mb-2">
 
                         3
 
                     </div>
 
-                    <h3 class="font-bold text-base text-slate-900">३. वेळेनुसार व दुकान पावतीसह बिल द्या</h3>
+                    <h3 class="font-bold text-lg text-slate-900 mb-2">३. वेळेनुसार व दुकान पावतीसह बिल द्या</h3>
 
-                    <p class="text-xs text-slate-500 leading-relaxed">
+                    <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
 
                         काम पूर्ण होताच वेळेनुसार मजुरी आणि साहित्याची खरी दुकान पावती तपासून UPI, रोख किंवा Razorpay ने पेमेंट करा.
 
@@ -1202,9 +1159,8 @@
 
 
 
-            <div class="text-center pt-10">
-
-                <a href="gharkam/index.html" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm px-8 py-3.5 rounded-2xl shadow-lg shadow-blue-500/20 transition transform active:scale-95">
+            <div class="text-center pt-12">
+                <a href="gharkam/index.html" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm px-8 py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition transform active:scale-95">
 
                     <i class="fa-solid fa-calendar-check"></i> Book Your First Service Now
 
@@ -1218,27 +1174,20 @@
 
         <!-- App Download & Share Section -->
 
-        <section class="bg-blue-50/70 border-t border-slate-200 py-12 px-4">
+        <section class="bg-slate-50/80 border-t border-slate-100 py-20 sm:py-24 px-6">
+            <div class="max-w-6xl mx-auto bg-white rounded-3xl p-8 sm:p-12 border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
 
-            <div class="max-w-4xl mx-auto bg-white rounded-3xl p-6 sm:p-10 border border-blue-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-
-                <div class="space-y-2 text-center md:text-left">
-
+                <div class="space-y-3 text-center md:text-left max-w-xl">
                     <span class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">Mobile Ready</span>
-
-                    <h3 class="text-xl sm:text-2xl font-black text-slate-900">Use the SpeedyHome App on Mobile!</h3>
-
-                    <p class="text-xs text-slate-500 max-w-md">
-
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Use the SpeedyHome App on Mobile!</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">
                         Install directly from your browser without large app downloads or get the Android APK.
-
                     </p>
-
                 </div>
 
-                <div class="flex flex-wrap gap-3 shrink-0 justify-center">
+                <div class="flex flex-wrap gap-4 shrink-0 justify-center">
 
-                    <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/SpeedyHome-Secure.apk" download="SpeedyHome-Secure.apk" target="_blank" class="bg-slate-900 hover:bg-black text-white font-bold text-xs py-3 px-5 rounded-2xl shadow transition flex items-center gap-2">
+                    <a href="https://github.com/atharvamali54-sudo/gharmita-in/releases/download/v1.0.0-apk/SpeedyHome-Secure.apk" download="SpeedyHome-Secure.apk" target="_blank" class="bg-slate-900 hover:bg-black text-white font-bold text-xs sm:text-sm py-3.5 px-6 rounded-2xl shadow transition flex items-center gap-2">
 
                         <i class="fa-brands fa-android text-base text-emerald-400"></i>
 
@@ -1246,7 +1195,7 @@
 
                     </a>
 
-                    <a href="gharkam/index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 px-5 rounded-2xl shadow transition flex items-center gap-2">
+                    <a href="gharkam/index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm py-3.5 px-6 rounded-2xl shadow transition flex items-center gap-2">
 
                         <i class="fa-solid fa-globe"></i>
 
@@ -1269,14 +1218,11 @@
     <!-- Comprehensive Corporate Footer with ALL MANDATORY RAZORPAY COMPLIANCE LINKS -->
 
     <footer class="bg-slate-900 text-slate-400 text-xs border-t border-slate-800">
-
-        
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 space-y-10">
+        <div class="max-w-7xl mx-auto px-6 py-16 sm:py-20 space-y-12">
 
             
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10">
 
                 
 
