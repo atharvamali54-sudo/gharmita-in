@@ -391,3 +391,17 @@ html.terms-consent-required #termsConsentModal {
 #authStep1Fields, #authStep2Fields {
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
+
+/* Zero-scroll viewport layout */
+html, body.hero-bg {
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+}
+
+@media (max-height: 600px) {
+    body.hero-bg {
+        overflow-y: auto !important;
+    }
+}

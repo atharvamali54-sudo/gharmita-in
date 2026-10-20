@@ -47,9 +47,9 @@
       })();
   </script>
 </head>
-<body class="hero-bg min-h-screen flex flex-col justify-between text-gray-800">
+<body class="hero-bg h-screen max-h-screen overflow-hidden flex flex-col text-gray-800">
 
-    <header class="liquid-header w-full py-2 sm:py-4 px-2.5 sm:px-6 flex justify-between items-center gap-2 sm:gap-4 border-b border-white/20">
+    <header class="liquid-header w-full py-2 sm:py-2.5 px-3 sm:px-6 flex justify-between items-center gap-2 border-b border-white/20 shrink-0">
         <div class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
             <div class="brand-mark p-1 sm:p-2 rounded-full font-bold text-blue-600 text-sm sm:text-xl shrink-0">🏠 SH</div>
             <div class="min-w-0 overflow-hidden">
@@ -69,15 +69,15 @@
         </div>
     </header>
 
-    <main id="mainAuthContainer" class="flex-grow flex items-center justify-center px-4 sm:px-6 pt-6 pb-16 sm:pb-20 w-full mt-3 transition duration-300">
-        <div class="max-w-md w-full mx-auto glass-card p-6 sm:p-8 rounded-2xl shadow-sm border border-white/60">
+    <main id="mainAuthContainer" class="flex-grow flex items-center justify-center px-3 sm:px-6 py-2 sm:py-3 w-full transition duration-300 overflow-y-auto sm:overflow-hidden">
+        <div class="max-w-md w-full mx-auto glass-card p-4 sm:p-6 rounded-2xl shadow-sm border border-white/60 my-auto">
             
-             <div class="role-switch flex mb-6 p-1 rounded-2xl">
+             <div class="role-switch flex mb-3.5 p-1 rounded-2xl">
                 <button type="button" onclick="setRole('customer')" id="tabCustomer" class="flex-1 py-2.5 text-sm font-bold rounded-xl bg-blue-600 text-white shadow-sm transition">Customer</button>
                 <button type="button" onclick="setRole('worker')" id="tabWorker" class="flex-1 py-2.5 text-sm font-bold rounded-xl text-slate-700 hover:text-slate-900 transition">Worker</button>
             </div>
 
-            <div class="text-center mb-6 space-y-1.5">
+            <div class="text-center mb-3 sm:mb-4 space-y-1">
                 <h2 id="formTitle" class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Customer Signup</h2>
                 <p id="formSub" class="text-xs sm:text-sm text-slate-500">Create account using Email OTP & Password</p>
             </div>
@@ -336,7 +336,7 @@
                 </div>
             </form>
 
-            <div class="text-center mt-6 pb-8">
+            <div class="text-center mt-3 sm:mt-4">
                 <p id="toggleText" class="text-xs sm:text-sm text-slate-600">
                     Already have an account? <a href="#" onclick="toggleMode()" class="text-blue-600 font-bold hover:underline">Sign In</a>
                 </p>
@@ -462,29 +462,6 @@
             </div>
         </div>
     </div>
-
-    <footer class="text-center py-5 text-blue-100 text-xs bg-slate-900/80 backdrop-blur-md border-t border-white/10 space-y-2 px-4">
-        <div class="flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-blue-200">
-            <a href="../index.html" class="hover:text-white transition font-bold text-yellow-300">🏠 Home</a>
-            <span>•</span>
-            <a href="ai-chat.html" class="hover:text-white transition font-bold text-amber-300">🤖 AI Customer Care</a>
-            <span>•</span>
-            <a href="about.html" class="hover:text-white transition underline">About Us</a>
-            <span>•</span>
-            <a href="contact.html" class="hover:text-white transition underline">Contact Us</a>
-            <span>•</span>
-            <a href="terms.html" class="hover:text-white transition underline">Terms & Conditions</a>
-            <span>•</span>
-            <a href="privacy.html" class="hover:text-white transition underline">Privacy Policy</a>
-            <span>•</span>
-            <a href="refund.html" class="hover:text-white transition underline">Refund Policy</a>
-            <span>•</span>
-            <a href="shipping-policy.html" class="hover:text-white transition underline">Service Delivery</a>
-        </div>
-        <p class="text-[11px] text-blue-300/80">
-            &copy; 2026 SpeedyHome Home Services | Pune City • <a href="admin.html" class="underline hover:text-white transition opacity-75" title="Owner Admin Login"><i class="fa-solid fa-user-shield"></i> Admin</a>
-        </p>
-    </footer>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
