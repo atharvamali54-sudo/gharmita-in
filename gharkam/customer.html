@@ -423,23 +423,105 @@
                     </div>
 
                     <!-- 7-Day Workmanship Warranty Badge (Zero Risk, High Trust) -->
-                    <div class="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-2xl flex items-center gap-3 shadow-2xs mt-4">
+                    <div class="p-3 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-2xl flex items-center gap-3 shadow-2xs mt-4">
                         <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shrink-0 shadow-sm">
                             🛡️
                         </div>
                         <div class="text-xs">
                             <h5 class="font-extrabold text-emerald-950 flex items-center gap-1.5">
-                                <span>१००% काम समाधान खात्री (7-Day Warranty)</span>
-                                <span class="text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1.5 py-0.2 rounded">फ्री रिव्हिजिट</span>
+                                <span>100% Satisfaction Guarantee</span>
+                                <span class="text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1.5 py-0.2 rounded">7-Day Guarantee</span>
                             </h5>
                             <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">
-                                कामात काही दोष आढळल्यास ७ दिवसांच्या आत त्याच कामासाठी मोफत रिव्हिजिट. (कामाच्या कारागिरीवर लागू, साहित्याचा खर्च वेगळा).
+                                Free revisit within 7 days if any issue arises in our workmanship.
                             </p>
                         </div>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mt-4 cursor-pointer">
-                        <i class="fa-solid fa-paper-plane"></i> <span>Book Appointment Now</span>
+                    <!-- Payment Method Selection (Web) -->
+                    <div class="rounded-2xl border border-slate-200 bg-white p-3.5 space-y-2.5 shadow-2xs mt-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                            <label class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-credit-card text-blue-600"></i>
+                                <span>Payment Method</span>
+                            </label>
+                            <span class="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+                                Fast &amp; Secure
+                            </span>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label id="webPaymentOptionOnlineLabel" class="cursor-pointer border-2 border-blue-600 bg-blue-50/40 rounded-xl p-3 flex items-start gap-2.5 transition relative block">
+                                <input type="radio" name="webBookingPaymentMethod" id="webPaymentMethodOnlineRadio" value="online" checked onchange="updateBookingPaymentMethod('online')" class="mt-0.5 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                                <div class="flex-1 min-w-0 leading-tight">
+                                    <div class="flex items-center justify-between gap-1 flex-wrap">
+                                        <span class="text-xs font-black text-slate-900 flex items-center gap-1">
+                                            <span>Pay Online</span>
+                                            <span class="text-[11px] text-slate-500 font-normal">(Instant UPI / QR / NetBanking)</span>
+                                        </span>
+                                        <span class="text-[9px] bg-emerald-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider shrink-0 shadow-2xs">
+                                            Fast &amp; Secure
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">UPI (GPay / PhonePe / Paytm), Cards &amp; NetBanking</p>
+
+                                    <div id="webBookingWalletOptionContainer" class="mt-2 pt-2 border-t border-blue-200/60 flex items-center justify-between">
+                                        <label class="flex items-center gap-1.5 cursor-pointer">
+                                            <input type="checkbox" id="webBookingUseWalletCheckbox" onchange="handleBookingWalletToggle()" class="rounded text-blue-600 focus:ring-blue-500 cursor-pointer">
+                                            <span class="text-xs font-bold text-blue-900 flex items-center gap-1">
+                                                <i class="fa-solid fa-wallet text-amber-500 text-xs"></i>
+                                                <span>Use Wallet Balance (<span id="webBookingWalletAvailableText">₹0</span> available)</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label id="webPaymentOptionPayAfterLabel" class="cursor-pointer border-2 border-slate-200 hover:border-slate-300 bg-white rounded-xl p-3 flex items-start gap-2.5 transition relative block">
+                                <input type="radio" name="webBookingPaymentMethod" id="webPaymentMethodPayAfterRadio" value="pay_after" onchange="updateBookingPaymentMethod('pay_after')" class="mt-0.5 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                                <div class="flex-1 min-w-0 leading-tight">
+                                    <div class="flex items-center justify-between gap-1">
+                                        <span class="text-xs font-black text-slate-900">
+                                            Pay After Service <span class="text-[11px] text-slate-500 font-normal">(Cash / Direct UPI to Worker)</span>
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                                        Pay directly once the job is completed to your satisfaction.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 2. Dynamic Price & Bill Breakdown Card (Web) -->
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 space-y-2 text-xs shadow-2xs mt-3">
+                        <div class="flex items-center justify-between font-bold text-slate-700 text-xs uppercase tracking-wider border-b border-slate-200 pb-1">
+                            <span>Bill Summary</span>
+                            <span class="text-[11px] font-semibold text-slate-500 lowercase">(per-minute rate note)</span>
+                        </div>
+
+                        <div class="flex items-center justify-between text-slate-600 text-xs">
+                            <span>Base Visiting / Booking Charge</span>
+                            <span id="webBookingBaseChargeText" class="font-bold text-slate-800">₹99</span>
+                        </div>
+
+                        <div id="webBookingWalletDiscountRow" class="hidden flex items-center justify-between text-emerald-700 font-semibold text-xs">
+                            <span class="flex items-center gap-1">
+                                <i class="fa-solid fa-coins text-amber-500"></i>
+                                <span>Wallet Discount</span>
+                            </span>
+                            <span id="webBookingWalletDiscountText" class="font-bold text-emerald-700">-₹0</span>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1.5 border-t border-slate-200 font-black text-slate-900 text-sm">
+                            <span>Estimated Total to Pay:</span>
+                            <span id="webBookingEstimatedTotalText" class="text-emerald-700 text-base font-black">₹99</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 mt-4 cursor-pointer">
+                        <i id="submitBtnIcon" class="fa-solid fa-lock text-xs"></i>
+                        <span id="submitBtnText">Proceed to Pay ₹99 &amp; Confirm Booking</span>
                     </button>
                 </form>
             </div>
@@ -2030,25 +2112,117 @@
                             </label>
                         </div>
 
-                        <!-- 7-Day Guarantee Badge -->
+                        <!-- 7-Day Workmanship Guarantee Badge -->
                         <div class="p-2 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-xl flex items-center gap-2 shadow-2xs">
                             <div class="w-7 h-7 rounded-lg bg-[#0b5f3a] text-white flex items-center justify-center text-sm shrink-0">
                                 🛡️
                             </div>
                             <div class="flex-1 min-w-0">
                                 <h5 class="font-extrabold text-[11px] text-emerald-950 flex items-center gap-1">
-                                    <span>१००% काम समाधान खात्री</span>
-                                    <span class="text-[8px] bg-emerald-200 text-emerald-900 font-bold px-1 rounded">७ दिवस गॅरंटी</span>
+                                    <span>100% Satisfaction Guarantee</span>
+                                    <span class="text-[8px] bg-emerald-200 text-emerald-900 font-bold px-1 rounded">7-Day Guarantee</span>
                                 </h5>
                                 <p class="text-[10px] text-slate-600 leading-tight truncate">
-                                    काम आवडले नाही किंवा पुन्हा दोष आढळल्यास ७ दिवसांत मोफत रिव्हिजिट!
+                                    Free revisit within 7 days if any issue arises in our workmanship!
                                 </p>
                             </div>
                         </div>
 
-                        <button type="submit" id="apkSubmitBtn" class="w-full bg-[#0b5f3a] hover:bg-[#094c2e] active:scale-[0.99] text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-md shadow-emerald-900/20 transition flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-paper-plane"></i>
-                            <span>Book Appointment Now (फक्त ₹३/मि.)</span>
+                        <!-- 1. Payment Method Selection Component -->
+                        <div class="rounded-2xl border border-slate-200 bg-white p-3 space-y-2.5 shadow-2xs">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                                <label class="text-[11px] font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-credit-card text-emerald-600"></i>
+                                    <span>Payment Method</span>
+                                </label>
+                                <span class="text-[9px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
+                                    Fast &amp; Secure
+                                </span>
+                            </div>
+
+                            <div class="space-y-2">
+                                <!-- Option 1: Pay Online -->
+                                <label id="paymentOptionOnlineLabel" class="cursor-pointer border-2 border-emerald-600 bg-emerald-50/40 rounded-xl p-2.5 flex items-start gap-2.5 transition relative block">
+                                    <input type="radio" name="bookingPaymentMethod" id="paymentMethodOnlineRadio" value="online" checked onchange="updateBookingPaymentMethod('online')" class="mt-0.5 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                    <div class="flex-1 min-w-0 leading-tight">
+                                        <div class="flex items-center justify-between gap-1 flex-wrap">
+                                            <span class="text-xs font-black text-slate-900 flex items-center gap-1">
+                                                <span>Pay Online</span>
+                                                <span class="text-[10px] text-slate-500 font-normal">(Instant UPI / QR / NetBanking)</span>
+                                            </span>
+                                            <span class="text-[9px] bg-emerald-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider shrink-0 shadow-2xs">
+                                                Fast &amp; Secure
+                                            </span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-500 mt-0.5">UPI (GPay / PhonePe / Paytm), Cards &amp; NetBanking</p>
+
+                                        <!-- Wallet Checkbox inside Pay Online -->
+                                        <div id="bookingWalletOptionContainer" class="mt-2 pt-2 border-t border-emerald-200/60 flex items-center justify-between">
+                                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                                <input type="checkbox" id="bookingUseWalletCheckbox" onchange="handleBookingWalletToggle()" class="rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                                <span class="text-[11px] font-bold text-emerald-900 flex items-center gap-1">
+                                                    <i class="fa-solid fa-wallet text-amber-500 text-xs"></i>
+                                                    <span>Use Wallet Balance (<span id="bookingWalletAvailableText">₹0</span> available)</span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Option 2: Pay After Service -->
+                                <label id="paymentOptionPayAfterLabel" class="cursor-pointer border-2 border-slate-200 hover:border-slate-300 bg-white rounded-xl p-2.5 flex items-start gap-2.5 transition relative block">
+                                    <input type="radio" name="bookingPaymentMethod" id="paymentMethodPayAfterRadio" value="pay_after" onchange="updateBookingPaymentMethod('pay_after')" class="mt-0.5 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                    <div class="flex-1 min-w-0 leading-tight">
+                                        <div class="flex items-center justify-between gap-1">
+                                            <span class="text-xs font-black text-slate-900">
+                                                Pay After Service <span class="text-[10px] text-slate-500 font-normal">(Cash / Direct UPI to Worker)</span>
+                                            </span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-500 mt-0.5 leading-snug">
+                                            Pay directly once the job is completed to your satisfaction.
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 2. Dynamic Price & Bill Breakdown Card -->
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-3 space-y-1.5 text-xs shadow-2xs">
+                            <div class="flex items-center justify-between font-bold text-slate-700 text-[11px] uppercase tracking-wider border-b border-slate-200/80 pb-1">
+                                <span>Bill Summary</span>
+                                <span class="text-[10px] font-semibold text-slate-500 lowercase">(per-minute rate note)</span>
+                            </div>
+
+                            <!-- Base Visiting / Booking Charge -->
+                            <div class="flex items-center justify-between text-slate-600">
+                                <span>Base Visiting / Booking Charge</span>
+                                <span id="bookingBaseChargeText" class="font-bold text-slate-800">₹99</span>
+                            </div>
+
+                            <!-- Wallet Discount (if applied) -->
+                            <div id="bookingWalletDiscountRow" class="hidden flex items-center justify-between text-emerald-700 font-semibold">
+                                <span class="flex items-center gap-1">
+                                    <i class="fa-solid fa-coins text-amber-500"></i>
+                                    <span>Wallet Discount</span>
+                                </span>
+                                <span id="bookingWalletDiscountText" class="font-bold text-emerald-700">-₹0</span>
+                            </div>
+
+                            <!-- Estimated Total to Pay -->
+                            <div class="flex items-center justify-between pt-1.5 border-t border-slate-200 font-black text-slate-900 text-sm">
+                                <span>Estimated Total to Pay:</span>
+                                <span id="bookingEstimatedTotalText" class="text-emerald-700 text-base font-black">₹99</span>
+                            </div>
+
+                            <p class="text-[10px] text-slate-400 leading-tight pt-0.5">
+                                * Base charge covers verified doorstep arrival. Work is billed transparently at per-minute rate.
+                            </p>
+                        </div>
+
+                        <!-- 3. Dynamic CTA Button -->
+                        <button type="submit" id="apkSubmitBtn" class="w-full bg-[#0b5f3a] hover:bg-[#094c2e] active:scale-[0.99] text-white font-extrabold text-sm py-3.5 px-5 rounded-xl shadow-md shadow-emerald-900/20 transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i id="apkSubmitBtnIcon" class="fa-solid fa-shield-halved text-xs"></i>
+                            <span id="apkSubmitBtnText">Proceed to Pay ₹99 &amp; Confirm Booking</span>
                         </button>
                     </form>
                 </div>

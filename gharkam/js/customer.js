@@ -2005,6 +2005,140 @@ populateBookingProfile();
         }
         window.payUnpaidDisputeBill = payUnpaidDisputeBill;
 
+        async 
+// ==========================================
+// CHECKOUT PAYMENT METHOD & DYNAMIC BILL BREAKDOWN
+// ==========================================
+const BASE_VISITING_BOOKING_CHARGE = 99;
+let currentBookingPaymentMethod = 'online'; // 'online' | 'pay_after'
+let isBookingWalletApplied = false;
+
+function getBookingPaymentMethod() {
+    const radio = document.querySelector('input[name="bookingPaymentMethod"]:checked') ||
+                  document.querySelector('input[name="webBookingPaymentMethod"]:checked') ||
+                  document.getElementById('paymentMethodOnlineRadio');
+    return radio ? radio.value : currentBookingPaymentMethod;
+}
+window.getBookingPaymentMethod = getBookingPaymentMethod;
+
+function updateBookingPaymentMethod(method) {
+    currentBookingPaymentMethod = method;
+
+    // Sync radio inputs across both forms
+    const apkRadio = document.querySelector(`input[name="bookingPaymentMethod"][value="${method}"]`);
+    if (apkRadio) apkRadio.checked = true;
+    const webRadio = document.querySelector(`input[name="webBookingPaymentMethod"][value="${method}"]`);
+    if (webRadio) webRadio.checked = true;
+
+    // Update container border & highlight styles
+    const apkOnlineLabel = document.getElementById('paymentOptionOnlineLabel');
+    const apkPayAfterLabel = document.getElementById('paymentOptionPayAfterLabel');
+    const webOnlineLabel = document.getElementById('webPaymentOptionOnlineLabel');
+    const webPayAfterLabel = document.getElementById('webPaymentOptionPayAfterLabel');
+
+    if (method === 'online') {
+        if (apkOnlineLabel) apkOnlineLabel.className = "cursor-pointer border-2 border-emerald-600 bg-emerald-50/40 rounded-xl p-2.5 flex items-start gap-2.5 transition relative block";
+        if (apkPayAfterLabel) apkPayAfterLabel.className = "cursor-pointer border-2 border-slate-200 hover:border-slate-300 bg-white rounded-xl p-2.5 flex items-start gap-2.5 transition relative block";
+        if (webOnlineLabel) webOnlineLabel.className = "cursor-pointer border-2 border-blue-600 bg-blue-50/40 rounded-xl p-3 flex items-start gap-2.5 transition relative block";
+        if (webPayAfterLabel) webPayAfterLabel.className = "cursor-pointer border-2 border-slate-200 hover:border-slate-300 bg-white rounded-xl p-3 flex items-start gap-2.5 transition relative block";
+    } else {
+        if (apkOnlineLabel) apkOnlineLabel.className = "cursor-pointer border-2 border-slate-200 hover:border-slate-300 bg-white rounded-xl p-2.5 flex items-start gap-2.5 transition relative block";
+        if (apkPayAfterLabel) apkPayAfterLabel.className = "cursor-pointer border-2 border-emerald-600 bg-emerald-50/40 rounded-xl p-2.5 flex items-start gap-2.5 transition relative block";
+        if (webOnlineLabel) webOnlineLabel.className = "cursor-pointer border-2 border-slate-200 hover:border-slate-300 bg-white rounded-xl p-3 flex items-start gap-2.5 transition relative block";
+        if (webPayAfterLabel) webPayAfterLabel.className = "cursor-pointer border-2 border-blue-600 bg-blue-50/40 rounded-xl p-3 flex items-start gap-2.5 transition relative block";
+    }
+
+    recalculateBookingCheckoutBill();
+}
+window.updateBookingPaymentMethod = updateBookingPaymentMethod;
+
+function handleBookingWalletToggle() {
+    const apkCb = document.getElementById('bookingUseWalletCheckbox');
+    const webCb = document.getElementById('webBookingUseWalletCheckbox');
+    const checked = !!((apkCb && apkCb.checked) || (webCb && webCb.checked));
+
+    if (apkCb) apkCb.checked = checked;
+    if (webCb) webCb.checked = checked;
+
+    isBookingWalletApplied = checked;
+    recalculateBookingCheckoutBill();
+}
+window.handleBookingWalletToggle = handleBookingWalletToggle;
+
+function recalculateBookingCheckoutBill() {
+    const method = getBookingPaymentMethod();
+    const apkCb = document.getElementById('bookingUseWalletCheckbox');
+    const webCb = document.getElementById('webBookingUseWalletCheckbox');
+    const isWalletChecked = !!((apkCb && apkCb.checked) || (webCb && webCb.checked));
+
+    const availableWallet = (typeof customerWalletBalance !== 'undefined' ? customerWalletBalance : 0);
+
+    // Update wallet available displays
+    const apkAvailEl = document.getElementById('bookingWalletAvailableText');
+    const webAvailEl = document.getElementById('webBookingWalletAvailableText');
+    const formattedBal = '₹' + availableWallet.toLocaleString('en-IN');
+    if (apkAvailEl) apkAvailEl.innerText = formattedBal;
+    if (webAvailEl) webAvailEl.innerText = formattedBal;
+
+    // Show/hide wallet option based on balance & method
+    const apkWalletBox = document.getElementById('bookingWalletOptionContainer');
+    const webWalletBox = document.getElementById('webBookingWalletOptionContainer');
+    if (availableWallet > 0 && method === 'online') {
+        if (apkWalletBox) apkWalletBox.classList.remove('hidden');
+        if (webWalletBox) webWalletBox.classList.remove('hidden');
+    } else {
+        if (apkWalletBox) apkWalletBox.classList.add('hidden');
+        if (webWalletBox) webWalletBox.classList.add('hidden');
+    }
+
+    // Calculate discount & total
+    let discount = 0;
+    if (isWalletChecked && availableWallet > 0 && method === 'online') {
+        discount = Math.min(availableWallet, BASE_VISITING_BOOKING_CHARGE);
+    }
+    const totalToPay = Math.max(0, BASE_VISITING_BOOKING_CHARGE - discount);
+
+    // Update Bill Breakdown UI elements
+    const baseTexts = [document.getElementById('bookingBaseChargeText'), document.getElementById('webBookingBaseChargeText')];
+    baseTexts.forEach(el => { if (el) el.innerText = `₹${BASE_VISITING_BOOKING_CHARGE}`; });
+
+    const discountRows = [document.getElementById('bookingWalletDiscountRow'), document.getElementById('webBookingWalletDiscountRow')];
+    const discountTexts = [document.getElementById('bookingWalletDiscountText'), document.getElementById('webBookingWalletDiscountText')];
+
+    discountRows.forEach(row => {
+        if (row) {
+            if (discount > 0) row.classList.remove('hidden');
+            else row.classList.add('hidden');
+        }
+    });
+    discountTexts.forEach(el => { if (el) el.innerText = `-₹${discount}`; });
+
+    const totalTexts = [document.getElementById('bookingEstimatedTotalText'), document.getElementById('webBookingEstimatedTotalText')];
+    totalTexts.forEach(el => { if (el) el.innerText = `₹${totalToPay}`; });
+
+    // Update CTA Button Labels
+    const apkBtnText = document.getElementById('apkSubmitBtnText');
+    const submitBtnText = document.getElementById('submitBtnText');
+
+    let label = '';
+    if (method === 'online') {
+        label = `Proceed to Pay ₹${totalToPay} & Confirm Booking`;
+    } else {
+        label = `Confirm Booking (Pay Later)`;
+    }
+
+    if (apkBtnText) apkBtnText.innerText = label;
+    if (submitBtnText) submitBtnText.innerText = label;
+
+    return {
+        method,
+        baseCharge: BASE_VISITING_BOOKING_CHARGE,
+        walletDiscount: discount,
+        totalToPay
+    };
+}
+window.recalculateBookingCheckoutBill = recalculateBookingCheckoutBill;
+
         async function handleApkFormSubmit(e) {
             if (e) e.preventDefault();
             await handleFormSubmit(e);
@@ -2155,10 +2289,106 @@ populateBookingProfile();
 
             // Normal Booking Flow
             try {
+                const bill = typeof recalculateBookingCheckoutBill === 'function' ? recalculateBookingCheckoutBill() : { method: 'online', totalToPay: 99, walletDiscount: 0 };
+
+            if (bill.method === 'online' && bill.totalToPay > 0) {
+                const RAZORPAY_KEY = window.RAZORPAY_KEY_ID || 'rzp_live_TfQXrLjDz1z9nO';
+                const amountInPaise = Math.round(bill.totalToPay * 100);
+
+                const options = {
+                    key: RAZORPAY_KEY,
+                    amount: amountInPaise,
+                    currency: 'INR',
+                    name: 'SpeedyHome Services Pune',
+                    description: `Doorstep Service Booking (${service})`,
+                    prefill: {
+                        name: name,
+                        contact: mobile,
+                        email: (customerProfile && customerProfile.email) || 'care@speedyhome.online'
+                    },
+                    theme: { color: '#0b5f3a' },
+                    config: {
+                        display: {
+                            blocks: {
+                                upi: {
+                                    name: "Instant UPI / QR (GPay, PhonePe, Paytm)",
+                                    instruments: [{ method: "upi" }]
+                                }
+                            },
+                            sequence: ["block.upi", "block.other"],
+                            preferences: { show_default_blocks: true }
+                        }
+                    },
+                    handler: async function (resp) {
+                        try {
+                            const paymentId = resp.razorpay_payment_id || ('PAY_ONLINE_' + Date.now());
+                            await executeOrderCreation({
+                                isEmergency: false,
+                                paymentMethod: 'online',
+                                paymentId: paymentId,
+                                paymentStatus: 'Paid',
+                                paidAmount: bill.totalToPay,
+                                walletDiscount: bill.walletDiscount,
+                                walletUsed: bill.walletDiscount > 0,
+                                service, name, mobile, area, address, budget, date, time, photoInput
+                            });
+                        } catch (err) {
+                            console.error('[Online Payment Order Save Error]', err);
+                            alert("Error saving booking: " + err.message);
+                        } finally {
+                            resetSubmitButtons(false);
+                        }
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            resetSubmitButtons(false);
+                        }
+                    }
+                };
+
+                try {
+                    if (typeof Razorpay !== 'undefined') {
+                        const rzp = new Razorpay(options);
+                        rzp.on('payment.failed', function (failResp) {
+                            alert("Payment failed: " + (failResp.error ? failResp.error.description : 'Please try again or select Pay After Service.'));
+                            resetSubmitButtons(false);
+                        });
+                        rzp.open();
+                    } else {
+                        const proceed = confirm(`Proceed with secure payment of ₹${bill.totalToPay} to confirm your appointment?`);
+                        if (proceed) {
+                            await options.handler({ razorpay_payment_id: 'PAY_ONLINE_DIRECT_' + Date.now() });
+                        } else {
+                            resetSubmitButtons(false);
+                        }
+                    }
+                } catch(err) {
+                    console.error('[Razorpay Checkout Error]', err);
+                    alert("Error initiating payment: " + err.message);
+                    resetSubmitButtons(false);
+                }
+                return;
+            }
+
+            // Normal Booking Flow (Pay After Service or 100% Wallet Paid)
+            try {
+                const isWalletCovered = (bill.method === 'online' && bill.totalToPay === 0);
                 await executeOrderCreation({
                     isEmergency: false,
+                    paymentMethod: isWalletCovered ? 'online_wallet' : 'pay_after',
+                    paymentStatus: isWalletCovered ? 'Paid (Wallet)' : 'Pay After Service (Cash / Direct UPI)',
+                    isPayAfterService: !isWalletCovered,
+                    paidAmount: isWalletCovered ? 0 : 0,
+                    walletDiscount: bill.walletDiscount,
+                    walletUsed: bill.walletDiscount > 0,
                     service, name, mobile, area, address, budget, date, time, photoInput
                 });
+            } catch (err) {
+                console.error("Booking Error:", err);
+                alert("Error placing booking: " + err.message);
+            } finally {
+                resetSubmitButtons(false);
+            }
             } catch (err) {
                 console.error("Booking Error:", err);
                 alert("बुकिंग करताना अडचण आली: " + err.message);
@@ -2169,7 +2399,7 @@ populateBookingProfile();
         window.handleFormSubmit = handleFormSubmit;
 
         async function executeOrderCreation(params) {
-            const { isEmergency, paymentId, service, name, mobile, area, address, budget, date, time, photoInput } = params;
+            const { isEmergency, paymentId, paymentMethod, paymentStatus, paidAmount, walletDiscount, walletUsed, isPayAfterService, service, name, mobile, area, address, budget, date, time, photoInput } = params;
             let photoUrl = "";
 
             if (photoInput && photoInput.files && photoInput.files.length > 0) {
@@ -2261,6 +2491,10 @@ populateBookingProfile();
                 voiceNoteUrl: currentVoiceNoteDataUrl || "",
                 hasVoiceNote: !!currentVoiceNoteDataUrl,
                 status: "Pending",
+                paymentMethod: paymentMethod || (isEmergency ? 'emergency_sos' : 'pay_after'),
+                paymentStatus: paymentStatus || (isEmergency ? 'Captured' : 'Pay After Service'),
+                paidAmount: typeof paidAmount === 'number' ? paidAmount : (isEmergency ? 50 : 0),
+                baseVisitingCharge: BASE_VISITING_BOOKING_CHARGE,
                 pricingType: "minute_based",
                 ratePerMinute: 3,
                 minBaseFare: 60,
@@ -2300,6 +2534,21 @@ populateBookingProfile();
                 alert("🎉 ₹५० ॲडव्हान्स यशस्वीरित्या जमा झाला!\n\n🚨 १०-मिनिट इमर्जन्सी ऑर्डर नोंदवली गेली आहे! जवळच्या कारागिराला तात्काळ सायरन अलर्ट पाठवला गेला आहे.");
             } else {
                 alert("तुमची अपॉइंटमेंट यशस्वीरीत्या बुक झाली आहे!");
+            }
+
+            // Cleanly close booking sheets and reset form
+            if (typeof closeQuickBookingSheet === 'function') closeQuickBookingSheet();
+            const apkForm = document.getElementById('apkBookingForm');
+            if (apkForm) apkForm.reset();
+            const webForm = document.getElementById('bookingForm');
+            if (webForm) webForm.reset();
+
+            // Redirect cleanly to "My Bookings" with order in Pending state
+            if (typeof customerNavTo === 'function') {
+                customerNavTo('orders');
+            }
+            if (typeof fetchCustomerOrders === 'function') {
+                fetchCustomerOrders();
             }
 
             trackLiveStatus(currentOrderId);
@@ -3266,9 +3515,10 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
             const timeInput = document.getElementById('apkBookingTime');
             const now = new Date();
 
+            setTimeout(() => { if (typeof recalculateBookingCheckoutBill === 'function') recalculateBookingCheckoutBill(); }, 50);
             if (mode === 'instant') {
                 const titleEl = document.getElementById('apkSheetTitle');
-                if (titleEl) titleEl.innerText = '⚡ जलद सेवा बुकिंग (५-१० मि.)';
+                if (titleEl) titleEl.innerText = '⚡ Instant Service Booking (5-10 min)';
                 if (dateInput) {
                     const y = now.getFullYear();
                     const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -3282,7 +3532,7 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                 }
             } else if (mode === 'scheduled') {
                 const titleEl = document.getElementById('apkSheetTitle');
-                if (titleEl) titleEl.innerText = '📅 सोयीनुसार वेळ ठरवून बुकिंग';
+                if (titleEl) titleEl.innerText = '📅 Scheduled Service Booking';
                 if (dateInput && !dateInput.value) {
                     const y = now.getFullYear();
                     const m = String(now.getMonth() + 1).padStart(2, '0');
