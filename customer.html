@@ -1061,308 +1061,426 @@
             </div>
 
             <!-- 3-Column Service Catalog Grid (Photos matching Screenshot 2 & 3) -->
-            <div id="apkCatalogGrid" class="grid grid-cols-3 gap-3.5">
-                
+                        <div id="apkCatalogGrid" class="grid grid-cols-3 gap-3.5">
                 <!-- 1. Painting -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="painting">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="painting">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(18k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-pink-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=240&auto=format&fit=crop&q=80" alt="Painting" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🎨</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(18k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-pink-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=120&auto=format&fit=crop&q=80" alt="Painting" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🎨</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Painting</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">रंगकाम</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Painting</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">रंगकाम</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Painting', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Painting', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 2. Cleaning -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="cleaning">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(66k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-emerald-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=240&auto=format&fit=crop&q=80" alt="Cleaning" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🧹</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(66k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-emerald-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=120&auto=format&fit=crop&q=80" alt="Cleaning" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🧹</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Cleaning</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">घर स्वच्छता</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Cleaning</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">घर सफाई</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 3. AC Repair -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="ac appliances">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="ac appliances">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(51k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-teal-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=240&auto=format&fit=crop&q=80" alt="AC Repair" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>❄️</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(34k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-teal-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=120&auto=format&fit=crop&q=80" alt="AC Repair" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>❄️</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">AC Repair</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">एसी दुरुस्ती</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">AC Repair</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">एसी दुरुस्ती</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('AC Repair', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('AC Repair', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
-                <!-- 4. Appliance Repair -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="appliances">
+                <!-- 4. Appliances -->
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="appliances">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(39k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-purple-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=240&auto=format&fit=crop&q=80" alt="Appliances" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🔌</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.7</span><span class="text-slate-400 font-normal">(22k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-purple-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=120&auto=format&fit=crop&q=80" alt="Appliances" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🔌</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Appliances</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">घरगुती उपकरणे</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Appliances</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">उपकरण दुरुस्ती</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Appliance Repair', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Appliances', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 5. Plumbing -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="plumbing">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="plumbing">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(75k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-blue-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=240&auto=format&fit=crop&q=80" alt="Plumbing" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🚰</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(52k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-blue-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=120&auto=format&fit=crop&q=80" alt="Plumbing" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🪠</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Plumbing</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">प्लंबिंग कामे</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Plumbing</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">प्लंबिंग काम</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Plumbing', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Plumbing', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 6. Electrician -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="electric">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="electric">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(84k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-yellow-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=240&auto=format&fit=crop&q=80" alt="Electrician" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>💡</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(48k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-yellow-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=120&auto=format&fit=crop&q=80" alt="Electrician" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>⚡</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Electrician</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">इलेक्ट्रिशियन</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Electrician</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">इलेक्ट्रिशियन</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Electrician', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Electrician', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 7. Carpenter -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="carpentry">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="carpentry">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(29k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-amber-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=240&auto=format&fit=crop&q=80" alt="Carpenter" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🪚</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(19k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-amber-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1504148455328-c376907d081c?w=120&auto=format&fit=crop&q=80" alt="Carpenter" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🪚</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Carpenter</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">सुतारकाम</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Carpenter</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">सुतारकाम</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Carpenter', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Carpenter', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 8. Masonry -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="other">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(14k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-stone-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=240&auto=format&fit=crop&q=80" alt="Masonry" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🧱</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(14k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-stone-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?w=120&auto=format&fit=crop&q=80" alt="Masonry" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🧱</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Masonry</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">गवंडी काम</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Masonry</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">बांधकाम (गवंडी)</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Masonry', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Masonry', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 9. Locksmith -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="other">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(22k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-amber-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1558002038-1055907df827?w=240&auto=format&fit=crop&q=80" alt="Locksmith" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🔑</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(8k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-amber-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1582139329536-e7284fece509?w=120&auto=format&fit=crop&q=80" alt="Locksmith" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🔑</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Locksmith</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">कुलूप दुरुस्ती</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Locksmith</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">कुलूप दुरुस्ती</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Locksmith', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Locksmith', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 10. Pest Control -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning other">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="cleaning other">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(19k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-lime-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=240&auto=format&fit=crop&q=80" alt="Pest Control" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🐜</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(16k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-lime-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?w=120&auto=format&fit=crop&q=80" alt="Pest Control" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🦟</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Pest Control</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">कीटक नियंत्रण</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Pest Control</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">पेस्ट कंट्रोल</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Pest Control', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Pest Control', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 11. Gardening -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="other">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.7</span><span class="text-slate-400 font-normal">(12k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-green-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=240&auto=format&fit=crop&q=80" alt="Gardening" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🌱</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(12k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-green-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1592417817098-8f3d69104a47?w=120&auto=format&fit=crop&q=80" alt="Gardening" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🌿</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Gardening</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">बागकाम</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Gardening</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">बागकाम</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Gardening', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Gardening', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 12. Glass & Aluminium -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="carpentry other">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(16k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-sky-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=240&auto=format&fit=crop&q=80" alt="Glass & Aluminium" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🪟</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.7</span><span class="text-slate-400 font-normal">(9k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-sky-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=120&auto=format&fit=crop&q=80" alt="Glass & Aluminium" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🪟</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Glass &amp; Aluminium</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">काच व ॲल्युमिनियम</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Glass &amp; Aluminium</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">काच व ॲल्युमिनियम</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Glass & Aluminium', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Glass & Aluminium', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 13. TV & DTH -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="appliances electric other">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="appliances electric">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(28k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-indigo-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=240&auto=format&fit=crop&q=80" alt="TV & DTH" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>📺</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.8</span><span class="text-slate-400 font-normal">(21k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-indigo-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=120&auto=format&fit=crop&q=80" alt="TV & DTH" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>📺</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">TV &amp; DTH</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">टीव्ही व डिश फिटिंग</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">TV &amp; DTH</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">टीव्ही व डिश फिटिंग</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('TV & DTH', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('TV & DTH', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 14. Moving & Shifting -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="other">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="other">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.7</span><span class="text-slate-400 font-normal">(11k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-orange-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=240&auto=format&fit=crop&q=80" alt="Moving & Shifting" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>📦</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.7</span><span class="text-slate-400 font-normal">(11k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-orange-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=120&auto=format&fit=crop&q=80" alt="Moving & Shifting" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>📦</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Moving &amp; Shifting</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">सामान वाहतूक</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Moving &amp; Shifting</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">सामान वाहतूक</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Moving & Shifting', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Moving & Shifting', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
 
                 <!-- 15. Bathroom Services -->
-                <div class="apk-catalog-card bg-white rounded-2xl p-3 flex flex-col justify-between relative shadow-2xs border border-slate-200 hover:shadow-sm transition" data-category="cleaning plumbing">
+                <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="cleaning plumbing">
                     <div>
-                        <div class="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full w-fit mb-1 border border-amber-200/60">
-                            <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(45k)</span>
+                        <!-- Category Image Filling Top Half Smoothly with rounded-t-xl -->
+                        <div class="relative w-full h-20 sm:h-24 bg-cyan-50 rounded-t-xl overflow-hidden flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1584622781564-1d987f7333c1?w=240&auto=format&fit=crop&q=80" alt="Bathroom Services" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🚿</span>';">
+                            <!-- Rating Pill Badge -->
+                            <div class="absolute top-1.5 left-1.5 flex items-center gap-1 text-[9px] font-black text-amber-600 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-full shadow-2xs border border-amber-200/60">
+                                <span>★</span><span>4.9</span><span class="text-slate-400 font-normal">(45k)</span>
+                            </div>
                         </div>
-                        <div class="apk-card-img-box w-[72px] h-[72px] mx-auto my-1 rounded-2xl bg-cyan-50 overflow-hidden shadow-inner flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1584622781564-1d987f7333c1?w=120&auto=format&fit=crop&q=80" alt="Bathroom Services" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'text-3xl\'>🚿</span>';">
+
+                        <!-- Card Body (Title & Subtitle) -->
+                        <div class="p-2 sm:p-2.5">
+                            <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Bathroom Services</h4>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">बाथरूम काम</p>
                         </div>
-                        <h4 class="text-[11px] font-black text-slate-900 leading-tight line-clamp-2 mt-1">Bathroom Services</h4>
-                        <p class="text-[9px] text-slate-400 font-medium">बाथरूम काम</p>
                     </div>
-                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
-                        <span class="inline-flex items-center text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹३/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Bathroom Services', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+
+                    <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
+                    <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Bathroom Services', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
                 </div>
-
             </div>
 
             </main><!-- /#apkHomeView -->
@@ -1379,7 +1497,7 @@
                     </button>
                     <div>
                         <h2 class="text-base font-black text-slate-900 leading-tight">My Bookings</h2>
-                        <p class="text-[11px] text-slate-500 font-medium">चालू आणि मागील ऑर्डर्सचा तपशील</p>
+                        <p class="text-[11px] text-slate-500 font-medium">Active and past bookings history</p>
                     </div>
                 </div>
                 <button type="button" onclick="fetchCustomerOrders()" class="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-blue-600 flex items-center justify-center text-xs transition cursor-pointer active:scale-95" title="Refresh Orders">
@@ -1390,7 +1508,7 @@
             <!-- Orders List Container (Rendered directly using active session) -->
             <div id="ordersListContainer" class="space-y-3 pb-8 min-h-[300px]">
                 <p class="text-xs text-slate-400 text-center py-12">
-                    <i class="fa-solid fa-spinner fa-spin mr-1"></i> ऑर्डर्स शोधत आहोत...
+                    <i class="fa-solid fa-spinner fa-spin mr-1"></i> Loading your bookings...
                 </p>
             </div>
         </div><!-- /#apkOrdersView -->
@@ -1406,16 +1524,16 @@
                 </button>
                 <div>
                     <h2 class="text-base font-black text-slate-900 leading-tight">SpeedyHome Money</h2>
-                    <p class="text-[11px] text-slate-500 font-medium">वॉलेट शिल्लक व VIP लॉयल्टी रिवॉर्ड्स</p>
+                    <p class="text-[11px] text-slate-500 font-medium">Wallet Balance & VIP Loyalty Rewards</p>
                 </div>
             </div>
 
             <!-- Balance Card -->
             <div class="rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 p-4 shadow-md flex items-center justify-between">
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-amber-950/80">उपलब्ध वॉलेट शिल्लक</span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-950/80">Available Wallet Balance</span>
                     <div class="text-3xl font-black mt-0.5">₹<span id="apkMoneyBalance">०</span></div>
-                    <span class="text-[10px] text-amber-950/90 font-medium">पुढील कोणत्याही बुकिंगमध्ये आपोआप वजा होईल</span>
+                    <span class="text-[10px] text-amber-950/90 font-medium">Auto-applied on your next booking</span>
                 </div>
                 <div class="w-12 h-12 rounded-2xl bg-white/25 flex items-center justify-center text-2xl shadow-inner">
                     🪙
@@ -1425,31 +1543,31 @@
             <!-- VIP Progress Inside Money View -->
             <div class="rounded-2xl border border-slate-200 p-4 space-y-2.5 bg-white shadow-xs">
                 <div class="flex items-center justify-between text-xs font-bold text-slate-800">
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-crown text-amber-500"></i> VIP प्रोग्रेस (३-ऑर्डर टप्पा)</span>
-                    <span id="apkMoneyMilestone" class="text-amber-600 font-extrabold">० / ३ पूर्ण</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-crown text-amber-500"></i> VIP Milestone (3 Orders)</span>
+                    <span id="apkMoneyMilestone" class="text-amber-600 font-extrabold">0 / 3 Completed</span>
                 </div>
                 <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200/50">
                     <div id="apkMoneyProgressBar" class="bg-gradient-to-r from-amber-400 to-amber-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
                 </div>
                 <p id="apkMoneySubText" class="text-[11px] text-slate-500 leading-relaxed font-medium">
-                    पात्रता अट: पहिल्या २ ऑर्डर्सचे एकूण बिल किमान ₹५,००० (उदा. ₹३k + ₹३k) असणे आवश्यक आहे. २ ऑर्डर्स एकूण ₹५,००० पेक्षा कमी असल्यास ऑफर लागू होणार नाही.
+                    Eligibility: Minimum ₹5,000 total bill across your first 2 orders. 10% cashback is credited to your wallet upon completing the 3rd order.
                 </p>
             </div>
 
             <!-- Passbook / Recent Transactions -->
             <div class="rounded-2xl border border-slate-200 p-4 space-y-3 bg-white shadow-xs">
                 <div class="flex items-center justify-between">
-                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">अलीकडील व्यवहार (Transactions)</h4>
-                    <span class="text-[10px] text-slate-400 font-medium">पासबुक</span>
+                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Recent Transactions</h4>
+                    <span class="text-[10px] text-slate-400 font-medium">Passbook</span>
                 </div>
                 <div id="apkMoneyTransactionsList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
-                    <p class="text-xs text-slate-400 text-center py-6">कोणताही व्यवहार आढळला नाही.</p>
+                    <p class="text-xs text-slate-400 text-center py-6">No transactions found.</p>
                 </div>
             </div>
 
             <!-- Quick Action: Book Service -->
             <button type="button" onclick="customerNavTo('home')" class="w-full bg-[#0b5f3a] hover:bg-emerald-800 text-white font-extrabold py-3 px-4 rounded-2xl shadow-sm transition text-xs flex items-center justify-center gap-2 cursor-pointer">
-                <i class="fa-solid fa-plus"></i> नवीन सेवा बुक करा
+                <i class="fa-solid fa-plus"></i> Book a New Service
             </button>
         </div><!-- /#apkMoneyView -->
 
@@ -2402,7 +2520,7 @@
 
 
     <!-- Customer AI Care Floating Action Button (FAB) -->
-    <button type="button" onclick="openAiCareSupportModal('customer')" id="customerAiCareFab" class="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 px-4 sm:px-5 rounded-full shadow-2xl hover:shadow-indigo-500/50 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer border-2 border-white/40" title="24x7 AI Customer Care & Booking Assistant">
+    <button type="button" onclick="openAiCareSupportModal('customer')" id="customerAiCareFab" class="fixed bottom-24 right-5 sm:right-6 z-40 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 px-4 sm:px-5 rounded-full shadow-2xl hover:shadow-indigo-500/50 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer border-2 border-white/40" title="24x7 AI Customer Care & Booking Assistant">
         <div class="relative">
             <i class="fa-solid fa-robot text-lg text-amber-300"></i>
             <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-indigo-700 animate-pulse"></span>

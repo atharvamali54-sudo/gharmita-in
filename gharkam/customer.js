@@ -3004,18 +3004,20 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
 
             const keys = Object.keys(orders || {});
             if (keys.length === 0) {
-                container.innerHTML = `
+                const emptyHtml = `
                     <div class="text-center py-8 px-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                         <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl">
                             <i class="fa-solid fa-box-open"></i>
                         </div>
-                        <p class="text-xs font-bold text-slate-700">मोबाईल नंबर ${escapeHtml(searchedMobile)} वर कोणतीही ऑर्डर सापडली नाही.</p>
-                        <p class="text-[11px] text-slate-500">तुम्ही नवीन अपॉइंटमेंट बुक करू शकता.</p>
-                        <button type="button" onclick="customerNavTo('home')" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-xl transition">
-                            नवीन अपॉइंटमेंट बुक करा
+                        <p class="text-xs font-bold text-slate-700">No orders found for mobile ${escapeHtml(searchedMobile)}</p>
+                        <p class="text-[11px] text-slate-500">You can book a new service appointment anytime.</p>
+                        <button type="button" onclick="customerNavTo('home')" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-xl transition cursor-pointer">
+                            Book New Service
                         </button>
                     </div>
                 `;
+                if (container) container.innerHTML = emptyHtml;
+                if (desktopContainer) desktopContainer.innerHTML = emptyHtml;
                 return;
             }
 
@@ -3039,22 +3041,23 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                 activeHeader.className = "flex items-center gap-2 pt-1 pb-1";
                 activeHeader.innerHTML = `
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">चालू ऑर्डर्स (Active & Live Orders - ${activeOrders.length})</h4>
+                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Active & Live Orders (${activeOrders.length})</h4>
                 `;
-                container.appendChild(activeHeader); if (desktopContainer) desktopContainer.appendChild(activeHeader.cloneNode(true));
+                if (container) container.appendChild(activeHeader);
+                if (desktopContainer) desktopContainer.appendChild(activeHeader.cloneNode(true));
 
                 activeOrders.forEach(({ id: orderId, data: order }) => {
                     let badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
-                    let statusLabel = "ऑर्डर प्राप्त (Pending)";
+                    let statusLabel = "Pending";
                     if (order.status === 'Accepted') {
                         badgeClass = "bg-blue-100 text-blue-800 border-blue-300";
-                        statusLabel = "कारागिराने स्वीकारली (Accepted)";
+                        statusLabel = "Accepted";
                     } else if (order.status === 'On The Way') {
                         badgeClass = "bg-indigo-100 text-indigo-800 border-indigo-300";
-                        statusLabel = "मार्गस्थ आहे (On The Way)";
+                        statusLabel = "On The Way";
                     } else if (order.status === 'In Progress') {
                         badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
-                        statusLabel = "काम चालू आहे (In Progress)";
+                        statusLabel = "In Progress";
                     }
 
                     const card = document.createElement('div');
@@ -3062,31 +3065,32 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                     card.innerHTML = `
                         <div class="flex items-center justify-between border-b pb-2 border-blue-100">
                             <span class="font-black text-slate-900 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-wrench text-blue-600"></i> ${escapeHtml(order.service || 'सर्व्हिस')}
+                                <i class="fa-solid fa-wrench text-blue-600"></i> ${escapeHtml(order.service || 'Service')}
                             </span>
                             <span class="px-2.5 py-1 rounded-full font-bold text-[10px] border ${badgeClass}">
                                 ${statusLabel}
                             </span>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-slate-600">
-                            <p><strong>ऑर्डर आयडी:</strong> <span class="font-mono font-bold text-slate-800">#${orderId.slice(-6).toUpperCase()}</span></p>
-                            <p><strong>बजेट:</strong> <span class="text-emerald-700 font-extrabold">${escapeHtml(order.budget || '-')}</span></p>
-                            <p><strong>तारीख:</strong> ${escapeHtml(order.date || '-')} (${escapeHtml(order.time || '-')})</p>
-                            <p><strong>परिसर:</strong> ${escapeHtml(order.area || '-')}</p>
-                            ${order.workerName ? `<p class="col-span-2 text-indigo-700 font-bold"><i class="fa-solid fa-helmet-safety mr-1"></i> कारागीर: ${escapeHtml(order.workerName)}</p>` : ''}
+                            <p><strong>Order ID:</strong> <span class="font-mono font-bold text-slate-800">#${orderId.slice(-6).toUpperCase()}</span></p>
+                            <p><strong>Budget:</strong> <span class="text-emerald-700 font-extrabold">${escapeHtml(order.budget || '-')}</span></p>
+                            <p><strong>Date & Time:</strong> ${escapeHtml(order.date || '-')} (${escapeHtml(order.time || '-')})</p>
+                            <p><strong>Location:</strong> ${escapeHtml(order.area || '-')}</p>
+                            ${order.workerName ? `<p class="col-span-2 text-indigo-700 font-bold"><i class="fa-solid fa-helmet-safety mr-1"></i> Worker: ${escapeHtml(order.workerName)}</p>` : ''}
                         </div>
                         ${order.startOtp && order.status !== 'In Progress' ? `
                             <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 flex items-center justify-between">
-                                <span class="text-[11px] font-bold text-amber-900"><i class="fa-solid fa-shield-halved text-amber-600 mr-1"></i> सुरक्षा स्टार्ट पिन:</span>
+                                <span class="text-[11px] font-bold text-amber-900"><i class="fa-solid fa-shield-halved text-amber-600 mr-1"></i> Start OTP PIN:</span>
                                 <span class="font-mono font-black text-sm tracking-widest bg-white px-2.5 py-1 rounded-lg border border-amber-300 text-amber-900">${order.startOtp}</span>
                             </div>
                         ` : ''}
                         <button onclick="trackSelectedOrder('${orderId}')" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-location-crosshairs text-amber-300"></i>
-                            <span>थेट ट्रॅक करा (Live Tracking Status)</span>
+                            <span>Live Tracking</span>
                         </button>
                     `;
-                    container.appendChild(card); if (desktopContainer) desktopContainer.appendChild(card.cloneNode(true));
+                    if (container) container.appendChild(card);
+                    if (desktopContainer) desktopContainer.appendChild(card.cloneNode(true));
                 });
             }
 
@@ -3096,18 +3100,19 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                 pastHeader.className = "flex items-center gap-2 pt-3 pb-1";
                 pastHeader.innerHTML = `
                     <i class="fa-solid fa-history text-slate-400"></i>
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider">मागील ऑर्डर्स (Past Orders - ${pastOrders.length})</h4>
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider">Past Orders (${pastOrders.length})</h4>
                 `;
-                container.appendChild(pastHeader); if (desktopContainer) desktopContainer.appendChild(pastHeader.cloneNode(true));
+                if (container) container.appendChild(pastHeader);
+                if (desktopContainer) desktopContainer.appendChild(pastHeader.cloneNode(true));
 
                 pastOrders.forEach(({ id: orderId, data: order }) => {
                     const isDisputed = (order.status === 'Payment Dispute' || order.isPaymentDisputed) && !order.isDisputeResolved && order.paymentStatus !== 'Paid';
                     const isCompleted = order.status === 'Completed';
                     let badgeClass = isCompleted ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200";
-                    let statusText = isCompleted ? "पूर्ण झाले (Completed)" : "रद्द केले (Cancelled)";
+                    let statusText = isCompleted ? "Completed" : "Cancelled";
                     if (isDisputed) {
                         badgeClass = "bg-rose-100 text-rose-800 border-rose-300 font-black animate-pulse";
-                        statusText = "⚠️ पेमेंट बाकी / वाद (Payment Due)";
+                        statusText = "Payment Due";
                     }
 
                     const card = document.createElement('div');
@@ -3116,27 +3121,27 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                         : "bg-slate-50 border border-slate-200 p-3.5 rounded-2xl space-y-2 text-xs hover:border-slate-300 transition";
                     card.innerHTML = `
                         <div class="flex items-center justify-between border-b pb-2 ${isDisputed ? 'border-rose-200' : 'border-slate-200'}">
-                            <span class="font-bold text-slate-800"><i class="fa-solid fa-wrench text-slate-500"></i> ${escapeHtml(order.service || 'सर्व्हिस')}</span>
+                            <span class="font-bold text-slate-800"><i class="fa-solid fa-wrench text-slate-500"></i> ${escapeHtml(order.service || 'Service')}</span>
                             <span class="px-2 py-0.5 rounded-full font-bold text-[10px] border ${badgeClass}">${statusText}</span>
                         </div>
                         <div class="grid grid-cols-2 gap-1.5 text-slate-600">
-                            <p><strong>आयडी:</strong> <span class="font-mono">#${orderId.slice(-6).toUpperCase()}</span></p>
-                            <p><strong>बजेट:</strong> <span class="font-bold ${isDisputed ? 'text-rose-600' : 'text-emerald-600'}">${escapeHtml(order.budget || '-')}</span></p>
-                            <p><strong>तारीख:</strong> ${escapeHtml(order.date || '-')}</p>
-                            <p><strong>परिसर:</strong> ${escapeHtml(order.area || '-')}</p>
+                            <p><strong>Order ID:</strong> <span class="font-mono">#${orderId.slice(-6).toUpperCase()}</span></p>
+                            <p><strong>Budget:</strong> <span class="font-bold ${isDisputed ? 'text-rose-600' : 'text-emerald-600'}">${escapeHtml(order.budget || '-')}</span></p>
+                            <p><strong>Date:</strong> ${escapeHtml(order.date || '-')}</p>
+                            <p><strong>Location:</strong> ${escapeHtml(order.area || '-')}</p>
                         </div>
                         ${isDisputed ? `
                         <div class="bg-white border border-rose-200 rounded-xl p-2.5 space-y-1 text-slate-800">
                             <p class="text-rose-700 font-bold flex items-center gap-1">
-                                <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> मागील थकीत रक्कम: ₹${order.unpaidAmount || order.finalAmount || order.orderAmount || 500}
+                                <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Unpaid Balance: ₹${order.unpaidAmount || order.finalAmount || order.orderAmount || 500}
                             </p>
-                            <p class="text-[11px] text-slate-600 font-semibold italic">तक्रार: "${escapeHtml(order.disputeReason || 'कामाचे बिल देणे बाकी')}"</p>
+                            <p class="text-[11px] text-slate-600 font-semibold italic">Reason: "${escapeHtml(order.disputeReason || 'Payment pending for completed service')}"</p>
                             <div class="pt-1 flex flex-wrap gap-2">
                                 <button type="button" onclick="payUnpaidDisputeBill('${orderId}', ${order.unpaidAmount || order.finalAmount || order.orderAmount || 160})" class="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-black px-3 py-1.5 rounded-lg text-[11px] inline-flex items-center gap-1 shadow-xs cursor-pointer active:scale-95">
-                                    <i class="fa-solid fa-credit-card"></i> <span>₹${order.unpaidAmount || order.finalAmount || order.orderAmount || 160} त्वरित भरा (Pay Now)</span>
+                                    <i class="fa-solid fa-credit-card"></i> <span>Pay ₹${order.unpaidAmount || order.finalAmount || order.orderAmount || 160} Now</span>
                                 </button>
                                 <a href="tel:7875160724" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] inline-flex items-center gap-1 shadow-xs">
-                                    <i class="fa-solid fa-phone"></i> कॉल (7875160724)
+                                    <i class="fa-solid fa-phone"></i> Call Support (7875160724)
                                 </a>
                             </div>
                         </div>
@@ -3148,11 +3153,12 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                                 </button>
                             ` : ''}
                             <button onclick="trackSelectedOrder('${orderId}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-1 px-3 rounded-lg text-[11px] transition">
-                                सविस्तर पहा
+                                View Details
                             </button>
                         </div>
                     `;
-                    container.appendChild(card);
+                    if (container) container.appendChild(card);
+                    if (desktopContainer) desktopContainer.appendChild(card.cloneNode(true));
                 });
             }
         }
@@ -4264,14 +4270,14 @@ function updateCustomerVipStampsUI() {
     const apkMoneySub = document.getElementById('apkMoneySubText');
 
     if (apkMoneyBal) apkMoneyBal.innerText = customerWalletBalance.toLocaleString('en-IN');
-    if (apkMoneyMilestone) apkMoneyMilestone.innerText = `${cycle} / ३ पूर्ण (${customerCompletedOrdersCount} एकूण)`;
+    if (apkMoneyMilestone) apkMoneyMilestone.innerText = `${cycle} / 3 Completed (${customerCompletedOrdersCount} total)`;
     if (apkMoneyProgress) apkMoneyProgress.style.width = `${percent}%`;
     if (apkMoneySub) {
         apkMoneySub.innerText = (cycle === 2 && !isCycleEligible)
-            ? '⚠️ पहिल्या २ ऑर्डर्सचे एकूण बिल किमान ₹५,००० पेक्षा कमी असल्याने या ३ ऱ्या ऑर्डरवर कॅशबॅक लागू होणार नाही.'
+            ? '⚠️ Total bill of first 2 orders is under ₹5,000. Cashback is not applicable on the 3rd order.'
             : (cycle === 2 && isCycleEligible)
-            ? '🎉 तुमची पात्रता पूर्ण झाली आहे! ३ री ऑर्डर पूर्ण होताच १०% कॅशबॅक थेट वॉलेटमध्ये जमा होईल.'
-            : 'पात्रता अट: पहिल्या २ ऑर्डर्सचे एकूण बिल किमान ₹५,००० (उदा. ₹३,००० + ₹३,०००) असणे आवश्यक आहे. २ ऑर्डर्स ₹५,००० पेक्षा कमी असल्यास ऑफर लागू होणार नाही.';
+            ? '🎉 Milestone unlocked! 10% cashback will be credited to your wallet upon completing your 3rd order.'
+            : 'Eligibility: Minimum ₹5,000 combined bill across first 2 orders. 10% cashback is credited to your wallet after 3rd order.';
     }
 
     if (modalSub) {
@@ -4284,17 +4290,23 @@ function updateCustomerVipStampsUI() {
 }
 
 function renderCustomerWalletTransactions() {
-    const container = document.getElementById('modalWalletTransactionsList');
-    if (!container) return;
+    const containers = [
+        document.getElementById('modalWalletTransactionsList'),
+        document.getElementById('apkMoneyTransactionsList')
+    ].filter(Boolean);
+
+    if (containers.length === 0) return;
 
     if (!customerWalletTransactions || customerWalletTransactions.length === 0) {
-        container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">कोणताही व्यवहार आढळला नाही.</p>';
+        const emptyHtml = '<p class="text-xs text-slate-400 text-center py-4">No transactions found.</p>';
+        containers.forEach(c => c.innerHTML = emptyHtml);
         return;
     }
 
-    container.innerHTML = customerWalletTransactions.slice(0, 15).map(t => {
+    const txHtml = customerWalletTransactions.slice(0, 15).map(t => {
         const isCredit = t.type === 'CREDIT';
-        const dateStr = t.timestamp ? new Date(t.timestamp).toLocaleDateString('mr-IN', { day: 'numeric', month: 'short' }) : '';
+        const dateStr = t.timestamp ? new Date(t.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '';
+        const defaultReason = isCredit ? 'Cashback Credited' : 'Wallet Debited';
         return `
             <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-white text-xs shadow-2xs">
                 <div class="flex items-center gap-2">
@@ -4302,7 +4314,7 @@ function renderCustomerWalletTransactions() {
                         ${isCredit ? '↓' : '↑'}
                     </span>
                     <div>
-                        <strong class="font-bold text-slate-800 block leading-tight">${escapeHtml(t.reason || (isCredit ? 'कॅशबॅक जमा' : 'वॉलेट वापर'))}</strong>
+                        <strong class="font-bold text-slate-800 block leading-tight">${escapeHtml(t.reason || defaultReason)}</strong>
                         <span class="text-[10px] text-slate-400">${dateStr}</span>
                     </div>
                 </div>
@@ -4312,6 +4324,8 @@ function renderCustomerWalletTransactions() {
             </div>
         `;
     }).join('');
+
+    containers.forEach(c => c.innerHTML = txHtml);
 }
 
 function openCustomerWalletModal() {
