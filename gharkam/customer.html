@@ -818,23 +818,23 @@
                 </div>
             </div>
 
-            <!-- Row 2: Prominent Delivery Address Selector (Home ⌄ Sinhagad Road, Pune) -->
-            <button type="button" onclick="openApkAddressSelectorModal()" class="w-full flex items-center justify-between gap-3 bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl px-3.5 py-2.5 text-left group cursor-pointer transition active:scale-[0.99] shadow-inner">
-                <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <div class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 shadow-xs font-black">
-                        <i class="fa-solid fa-location-dot text-xs"></i>
+            <!-- Row 2: Modern Clean Lightweight Address Selector Pill -->
+            <button type="button" onclick="openApkAddressSelectorModal()" class="w-full flex items-center justify-between gap-3 bg-white/95 hover:bg-white backdrop-blur-md border border-white/40 rounded-2xl px-3.5 py-2.5 text-left group cursor-pointer transition-all active:scale-[0.99] shadow-sm hover:shadow">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs font-black text-xs">
+                        <i class="fa-solid fa-location-dot"></i>
                     </div>
                     <div class="truncate leading-tight min-w-0 flex-1">
                         <div class="flex items-center gap-1.5">
-                            <span class="font-black text-xs text-white tracking-wide">Home</span>
-                            <i class="fa-solid fa-chevron-down text-[10px] text-amber-300 group-hover:translate-y-0.5 transition-transform"></i>
-                            <span class="text-[9px] bg-emerald-500/40 text-emerald-100 px-1.5 py-0.2 rounded font-semibold uppercase">Pune</span>
+                            <span class="font-black text-xs text-slate-900 tracking-wide">Home</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 group-hover:translate-y-0.5 transition-transform"></i>
+                            <span class="text-[9px] bg-emerald-100/70 text-emerald-800 px-1.5 py-0.5 rounded font-semibold uppercase">Pune</span>
                         </div>
-                        <p id="apkHeaderAddressText" class="text-[11px] text-emerald-100 font-medium truncate mt-0.5">Sinhagad Road, Pune</p>
+                        <p id="apkHeaderAddressText" class="text-[11px] text-slate-500 font-medium truncate mt-0.5">Sinhagad Road, Pune</p>
                     </div>
                 </div>
                 <div class="text-right shrink-0">
-                    <span class="text-[10px] font-bold text-amber-300 group-hover:underline flex items-center gap-1">बदला <i class="fa-solid fa-angle-right text-[9px]"></i></span>
+                    <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-xl transition flex items-center gap-1 border border-emerald-200/60 shadow-2xs">Change <i class="fa-solid fa-angle-right text-[9px]"></i></span>
                 </div>
             </button>
         </header>
@@ -1022,10 +1022,10 @@
             <div class="space-y-2">
                 <div class="flex items-center justify-between px-0.5">
                     <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">
-                        सर्व सेवा (ALL SERVICES)
+                        All Services
                     </h3>
-                    <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                        १-टॅप + बुकिंग
+                    <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
+                        Instant Booking
                     </span>
                 </div>
 
@@ -1061,7 +1061,7 @@
             </div>
 
             <!-- 3-Column Service Catalog Grid (Photos matching Screenshot 2 & 3) -->
-                        <div id="apkCatalogGrid" class="grid grid-cols-3 gap-3.5">
+                                    <div id="apkCatalogGrid" class="grid grid-cols-3 gap-3.5">
                 <!-- 1. Painting -->
                 <div class="apk-catalog-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group" data-category="painting">
                     <div>
@@ -1074,16 +1074,16 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Painting</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">रंगकाम</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Wall & Home</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹1/min</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Painting', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1102,16 +1102,16 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Cleaning</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">घर स्वच्छता</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Deep Cleaning</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹1/min</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Cleaning', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1130,17 +1130,17 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">AC Repair</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">एसी दुरुस्ती</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Service & Gas</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('AC Repair', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹2/min</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('AC Repair', '₹2/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
@@ -1158,17 +1158,17 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Appliances</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">घरगुती उपकरणे</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Repair & Fix</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Appliances', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹2/min</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Appliances', '₹2/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
@@ -1186,16 +1186,16 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Plumbing</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">प्लंबिंग कामे</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Pipes & Fixtures</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹1/min</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Plumbing', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1214,16 +1214,16 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Electrician</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">इलेक्ट्रिशियन</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Wiring & Switches</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹1/min</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Electrician', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1242,16 +1242,16 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Carpenter</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">सुतारकाम</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Woodwork & Repairs</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹1/min</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Carpenter', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1270,17 +1270,17 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Masonry</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">गवंडी काम</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Tiles & Brickwork</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Masonry', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹2/min</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Masonry', '₹2/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
@@ -1298,16 +1298,16 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Locksmith</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">कुलूप दुरुस्ती</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Locks & Padlocks</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹1/min</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Locksmith', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1326,17 +1326,17 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Pest Control</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">कीटक नियंत्रण</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Termite & Cockroach</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Pest Control', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹2/min</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Pest Control', '₹2/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
@@ -1354,16 +1354,16 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Gardening</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">बागकाम</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Lawn & Plant Care</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹1/min</span>
                         <button type="button" onclick="quickSelectApkCatalogService('Gardening', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1382,17 +1382,17 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Glass &amp; Aluminium</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">काच व ॲल्युमिनियम</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Windows & Sliding</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Glass & Aluminium', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹2/min</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Glass & Aluminium', '₹2/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
@@ -1410,16 +1410,16 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">TV &amp; DTH</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">टीव्ही व डिश फिटिंग</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Setup & Mounting</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹1/min</span>
                         <button type="button" onclick="quickSelectApkCatalogService('TV & DTH', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
@@ -1438,17 +1438,17 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Moving &amp; Shifting</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">सामान वाहतूक</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Packers & Movers</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Moving & Shifting', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹3/min</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Moving & Shifting', '₹3/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
@@ -1466,17 +1466,17 @@
                             </div>
                         </div>
 
-                        <!-- Card Body (Title & Subtitle) -->
+                        <!-- Card Body (Clean English Title & Subtitle) -->
                         <div class="p-2 sm:p-2.5">
                             <h4 class="text-[11px] sm:text-xs font-black text-slate-900 leading-tight line-clamp-1">Bathroom Services</h4>
-                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">बाथरूम काम</p>
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium">Deep Scrub & Clean</p>
                         </div>
                     </div>
 
                     <!-- Card Footer: Prominent Green Rate Pill + Add Button -->
                     <div class="flex items-center justify-between px-2 sm:px-2.5 pb-2 sm:pb-2.5 pt-1 border-t border-slate-100/80">
-                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹१/मि.</span>
-                        <button type="button" onclick="quickSelectApkCatalogService('Bathroom Services', '₹1/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
+                        <span class="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shadow-2xs">₹2/min</span>
+                        <button type="button" onclick="quickSelectApkCatalogService('Bathroom Services', '₹2/min')" class="apk-add-btn w-6 h-6 rounded-full bg-[#0b5f3a] text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-emerald-700 cursor-pointer" title="Add">
                             +
                         </button>
                     </div>
@@ -1723,20 +1723,20 @@
                                     <i class="fa-solid fa-wrench text-emerald-700 mr-0.5"></i> सेवा (Service) *
                                 </label>
                                 <select id="apkServiceSelect" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold py-2 px-2 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:bg-white transition truncate cursor-pointer">
-                                    <option value="Plumbing">🔧 Plumbing (प्लंबिंग)</option>
-                                    <option value="Electrician">⚡ Electrician (इलेक्ट्रिशियन)</option>
-                                    <option value="Carpenter">🪚 Carpenter (सुतारकाम)</option>
-                                    <option value="Painting">🎨 Painting (रंगकाम)</option>
-                                    <option value="Cleaning">🧹 Cleaning (सफाई)</option>
-                                    <option value="AC Repair">❄️ AC Repair (एसी दुरुस्ती)</option>
-                                    <option value="Appliance Repair">🔌 Appliance Repair (उपकरणे)</option>
-                                    <option value="Masonry">🧱 Masonry (बांधकाम)</option>
-                                    <option value="Locksmith">🔑 Locksmith (कुलूप)</option>
-                                    <option value="Pest Control">🦟 Pest Control (पेस्ट कंट्रोल)</option>
-                                    <option value="Gardening">🌿 Gardening (बागकाम)</option>
-                                    <option value="Glass & Aluminium">🪟 Glass & Aluminium</option>
-                                    <option value="TV & DTH">📺 TV & DTH</option>
-                                    <option value="Moving & Shifting">📦 Moving & Shifting</option>
+                                    <option value="Plumbing">🔧 Plumbing</option>
+                                    <option value="Electrician">⚡ Electrician</option>
+                                    <option value="Carpenter">🪚 Carpenter</option>
+                                    <option value="Painting">🎨 Painting</option>
+                                    <option value="Cleaning">🧹 Cleaning</option>
+                                    <option value="AC Repair">❄️ AC Repair</option>
+                                    <option value="Appliances">🔌 Appliances</option>
+                                    <option value="Masonry">🧱 Masonry</option>
+                                    <option value="Locksmith">🔑 Locksmith</option>
+                                    <option value="Pest Control">🦟 Pest Control</option>
+                                    <option value="Gardening">🌿 Gardening</option>
+                                    <option value="Glass & Aluminium">🪟 Glass &amp; Aluminium</option>
+                                    <option value="TV & DTH">📺 TV &amp; DTH</option>
+                                    <option value="Moving & Shifting">📦 Moving &amp; Shifting</option>
                                     <option value="Bathroom Services">🚿 Bathroom Services</option>
                                 </select>
                             </div>
@@ -2190,7 +2190,7 @@
                     <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
                         <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Your Past & Active Orders
                     </h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">तुमच्या चालू आणि मागील सर्व ऑर्डर्सची माहिती व थेट ट्रॅकिंग</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Active and past bookings history with live tracking</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="fetchCustomerOrders()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer" title="Refresh">
@@ -2457,17 +2457,17 @@
                     <i class="fa-solid fa-wallet"></i>
                 </div>
                 <div>
-                    <h3 class="font-black text-slate-900 text-lg">स्पीडीहोम वॉलेट व VIP रिवॉर्ड्स</h3>
-                    <p class="text-xs text-slate-500">तुमची जमा शिल्लक व कॅशबॅक तपशील</p>
+                    <h3 class="font-black text-slate-900 text-lg">SpeedyHome Wallet & VIP Rewards</h3>
+                    <p class="text-xs text-slate-500">Your wallet balance and cashback history</p>
                 </div>
             </div>
 
             <!-- Balance Card -->
             <div class="rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 p-4 shadow-md flex items-center justify-between">
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-amber-950/80">उपलब्ध वॉलेट शिल्लक</span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-950/80">Available Wallet Balance</span>
                     <div class="text-2xl font-black mt-0.5">₹<span id="modalWalletBalance">०</span></div>
-                    <span class="text-[10px] text-amber-950/80">पुढील बुकिंगमध्ये आपोआप वजा होईल</span>
+                    <span class="text-[10px] text-amber-950/80">Auto-applied on your next booking</span>
                 </div>
                 <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl">
                     🪙
@@ -2477,27 +2477,27 @@
             <!-- VIP Progress Inside Modal -->
             <div class="rounded-2xl border border-slate-200 p-3.5 space-y-2 bg-slate-50/70">
                 <div class="flex items-center justify-between text-xs font-bold text-slate-700">
-                    <span>👑 VIP प्रोग्रेस (३-ऑर्डर टप्पा)</span>
-                    <span id="modalVipMilestoneText" class="text-amber-600 font-extrabold">० / ३ पूर्ण</span>
+                    <span>👑 VIP Milestone (3 Orders)</span>
+                    <span id="modalVipMilestoneText" class="text-amber-600 font-extrabold">0 / 3 Completed</span>
                 </div>
                 <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
                     <div id="modalVipProgressBar" class="bg-amber-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
                 </div>
                 <p id="modalVipSubText" class="text-[11px] text-slate-500 leading-relaxed">
-                    पात्रता अट: पहिल्या २ ऑर्डर्सचे एकूण बिल किमान ₹५,००० (उदा. ₹३k + ₹३k) असणे आवश्यक आहे. २ ऑर्डर्स एकूण ₹५,००० पेक्षा कमी असल्यास (उदा. ₹२k + ₹२k) ही ऑफर लागू होणार नाही.
+                    Eligibility: Minimum ₹5,000 total bill across your first 2 orders. 10% cashback is credited to your wallet upon completing the 3rd order.
                 </p>
             </div>
 
             <!-- Passbook / Recent Transactions -->
             <div class="space-y-2">
-                <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">अलीकडील व्यवहार (Recent Transactions)</h4>
+                <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Recent Transactions</h4>
                 <div id="modalWalletTransactionsList" class="max-h-40 overflow-y-auto space-y-1.5 pr-1">
-                    <p class="text-xs text-slate-400 text-center py-4">कोणताही व्यवहार आढळला नाही.</p>
+                    <p class="text-xs text-slate-400 text-center py-4">No transactions found.</p>
                 </div>
             </div>
 
             <button type="button" onclick="closeCustomerWalletModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-1.5 cursor-pointer">
-                समजले (Close)
+                Close
             </button>
         </div>
     </div>
@@ -2520,7 +2520,7 @@
 
 
     <!-- Customer AI Care Floating Action Button (FAB) -->
-    <button type="button" onclick="openAiCareSupportModal('customer')" id="customerAiCareFab" class="fixed bottom-24 right-5 sm:right-6 z-40 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 px-4 sm:px-5 rounded-full shadow-2xl hover:shadow-indigo-500/50 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer border-2 border-white/40" title="24x7 AI Customer Care & Booking Assistant">
+    <button type="button" onclick="openAiCareSupportModal('customer')" id="customerAiCareFab" class="fixed bottom-28 right-4 sm:right-6 z-40 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-2.5 px-3.5 sm:py-3 sm:px-5 rounded-full shadow-2xl hover:shadow-indigo-500/50 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer border-2 border-white/40" title="24x7 AI Customer Care & Booking Assistant">
         <div class="relative">
             <i class="fa-solid fa-robot text-lg text-amber-300"></i>
             <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-indigo-700 animate-pulse"></span>

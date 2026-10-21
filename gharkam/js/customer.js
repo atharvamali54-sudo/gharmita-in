@@ -2938,10 +2938,10 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                         <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-xl shadow-inner">
                             <i class="fa-solid fa-lock"></i>
                         </div>
-                        <h3 class="font-bold text-slate-800 text-sm">लॉगिन आवश्यक आहे</h3>
-                        <p class="text-xs text-slate-500 max-w-xs mx-auto">तुमच्या चालू आणि मागील ऑर्डर्स पाहण्यासाठी कृपया आधी लॉगिन करा.</p>
+                        <h3 class="font-bold text-slate-800 text-sm">Sign In Required</h3>
+                        <p class="text-xs text-slate-500 max-w-xs mx-auto">Please sign in with your mobile number to view your active and past bookings history.</p>
                         <a href="index.html" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-5 rounded-xl shadow transition">
-                            <i class="fa-solid fa-right-to-bracket"></i> लॉगिन करा
+                            <i class="fa-solid fa-right-to-bracket"></i> Sign In / Register
                         </a>
                     </div>
                 `;
@@ -2989,7 +2989,7 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                     searchBtn.disabled = false;
                     searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> <span>Search</span>';
                 }
-                const errHtml = '<p class="text-xs text-red-500 text-center py-8">ऑर्डर्स लोड करताना अडचण आली: ' + escapeHtml(error.message) + '</p>';
+                const errHtml = '<p class="text-xs text-red-500 text-center py-8">Unable to load orders: ' + escapeHtml(error.message) + '</p>';
                 if (container) container.innerHTML = errHtml;
                 if (desktopContainer) desktopContainer.innerHTML = errHtml;
             });
@@ -3257,7 +3257,7 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
             }
             const titleEl = document.getElementById('apkSheetTitle');
             if (titleEl) {
-                titleEl.innerText = `${serviceName} बुकिंग`;
+                titleEl.innerText = `Book ${serviceName}`;
             }
             openQuickBookingSheet();
         }
@@ -4261,7 +4261,7 @@ function updateCustomerVipStampsUI() {
 
     if (webStatusText) webStatusText.innerText = statusMsg;
     if (apkStatusText) apkStatusText.innerText = statusMsg;
-    if (modalMilestone) modalMilestone.innerText = `${cycle} / ३ पूर्ण (${customerCompletedOrdersCount} एकूण)`;
+    if (modalMilestone) modalMilestone.innerText = `${cycle} / 3 Completed (${customerCompletedOrdersCount} total)`;
     if (modalProgress) modalProgress.style.width = `${percent}%`;
     
     const apkMoneyBal = document.getElementById('apkMoneyBalance');
