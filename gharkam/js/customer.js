@@ -3220,8 +3220,7 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
             } else if (target === 'profile') {
                 if (typeof openApkProfileView === 'function') openApkProfileView();
             } else if (target === 'help') {
-                if (typeof openAiCareSupportModal === 'function') openAiCareSupportModal('customer');
-                else if (typeof openCustomerSupportModal === 'function') openCustomerSupportModal();
+                if (typeof openCustomerSupportModal === 'function') openCustomerSupportModal();
             }
         }
 
@@ -4619,18 +4618,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // AI Care Customer Support Drawer & Chat Modal Handlers
 // =========================================================
 function openAiCareSupportModal(role) {
-    const modal = document.getElementById('aiCareDrawerModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+    if (typeof openCustomerSupportModal === 'function') {
+        openCustomerSupportModal();
     }
 }
 
 function closeAiCareSupportModal() {
-    const modal = document.getElementById('aiCareDrawerModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+    if (typeof closeCustomerSupportModal === 'function') {
+        closeCustomerSupportModal();
     }
 }
 
