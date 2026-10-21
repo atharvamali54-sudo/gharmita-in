@@ -66,6 +66,9 @@
                 </div>
             </div>
             <div class="w-full md:w-auto flex flex-wrap items-center justify-start md:justify-end gap-1.5 sm:gap-2">
+                <button type="button" onclick="openAiCareSupportModal('customer')" class="ai-care-header-btn bg-white/15 hover:bg-white/25 active:scale-95 text-white font-bold text-xs py-2 px-3.5 rounded-xl transition border border-white/20 flex items-center gap-1.5 shrink-0 cursor-pointer" title="AI Support & Care">
+                    <i class="fa-solid fa-headset text-amber-300"></i> <span>AI Care</span>
+                </button>
                 <button onclick="showPwaInstallModal()" class="pwa-install-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 px-3 rounded-xl transition shadow flex items-center gap-1.5 shrink-0">
                     <i class="fa-solid fa-download"></i> <span>Install App</span>
                 </button>
@@ -802,6 +805,12 @@
 
                 <!-- Right Action Icons: Rounded White Wallet Pill + Profile Avatar Pill -->
                 <div class="flex items-center gap-2 shrink-0">
+                    <!-- AI Care / Support Button -->
+                    <button type="button" onclick="openAiCareSupportModal('customer')" class="ai-care-header-btn bg-white/15 hover:bg-white/25 active:scale-95 text-white font-bold text-xs py-1 px-2.5 rounded-full transition shadow-xs flex items-center gap-1.5 border border-white/30 cursor-pointer" title="AI Support">
+                        <i class="fa-solid fa-headset text-amber-300 text-xs"></i>
+                        <span class="text-[11px] font-bold tracking-tight">AI Care</span>
+                    </button>
+
                     <!-- Wallet Pill (White bg, rounded-full, yellow wallet icon, ₹0) -->
                     <button type="button" onclick="openCustomerWalletModal()" id="apkWalletBtn" class="bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs py-1 px-3 rounded-full transition shadow-xs flex items-center gap-1.5 border border-white/40 cursor-pointer active:scale-95">
                         <i class="fa-solid fa-wallet text-amber-500 text-[11px]"></i>
@@ -975,13 +984,13 @@
                 <div class="relative z-10 flex items-center justify-between gap-2">
                     <div class="space-y-1.5 max-w-[65%]">
                         <span class="inline-flex items-center gap-1 bg-amber-400 text-slate-950 font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
-                            <i class="fa-solid fa-bolt text-slate-900"></i> जलद घरपोच सेवा
+                            <i class="fa-solid fa-bolt text-slate-900"></i> Fast Doorstep Service
                         </span>
                         <h2 class="text-[17px] font-black text-white leading-tight drop-shadow-xs">
                             One professional,<br>16+ home services
                         </h2>
                         <p class="text-[11px] text-emerald-100/90 font-medium leading-relaxed">
-                            फक्त ₹३ प्रति मिनिट • ५-१० मिनिटांत कारागीर घरी
+                            Starting from ₹1/min • Professional at your door in 5-10 mins
                         </p>
                     </div>
 
@@ -1000,7 +1009,7 @@
                             <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded-full shadow-2xs">5-10 min</span>
                         </div>
                         <h3 class="font-black text-xs text-white leading-tight">Get Instant Service</h3>
-                        <p class="text-[10px] text-emerald-100 font-medium mt-0.5">₹३/मि. • तात्काळ घरी</p>
+                        <p class="text-[10px] text-emerald-100 font-medium mt-0.5">Instant Doorstep Visit (5-10 min)</p>
                     </button>
 
                     <!-- Schedule for Later Card -->
@@ -1010,7 +1019,7 @@
                             <span class="text-[9px] bg-emerald-50 text-emerald-800 font-bold px-1.5 py-0.5 rounded-full border border-emerald-200">Slot</span>
                         </div>
                         <h3 class="font-black text-xs text-slate-900 leading-tight">Schedule for Later</h3>
-                        <p class="text-[10px] text-slate-500 font-medium mt-0.5">सोयीनुसार वेळ ठरवा</p>
+                        <p class="text-[10px] text-slate-500 font-medium mt-0.5">Pick your preferred slot</p>
                     </button>
                 </div>
             </div>
@@ -1019,7 +1028,7 @@
             <div class="space-y-2">
                 <div class="flex items-center justify-between px-0.5">
                     <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">
-                        All Services
+                        All Services (Instant Booking)
                     </h3>
                     <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
                         Instant Booking
@@ -1480,6 +1489,42 @@
                 </div>
             </div>
 
+                        <!-- Main Stats (3-Column Grid) -->
+            <div class="grid grid-cols-3 divide-x divide-slate-100 py-3 border-y border-slate-100 text-center bg-slate-50/60 rounded-2xl mx-1 sm:mx-4">
+                <div class="flex flex-col items-center px-1">
+                    <span class="text-sm font-black text-emerald-800 flex items-center gap-1">🌿 15 Lakh+</span>
+                    <span class="text-[9px] text-slate-500 font-semibold mt-0.5">Families in Pune</span>
+                </div>
+                <div class="flex flex-col items-center px-1">
+                    <span class="text-sm font-black text-amber-600 flex items-center gap-1">⭐ 3 Lakh+</span>
+                    <span class="text-[9px] text-slate-500 font-semibold mt-0.5">Rated Reviews</span>
+                </div>
+                <div class="flex flex-col items-center px-1">
+                    <span class="text-sm font-black text-indigo-700 flex items-center gap-1">🛡️ 7-Day</span>
+                    <span class="text-[9px] text-slate-500 font-semibold mt-0.5">Revisit Guarantee</span>
+                </div>
+            </div>
+
+            <!-- Sleek Single Horizontal Trust Strip -->
+            <div class="rounded-xl bg-slate-50 border border-slate-200/60 p-3.5 mx-4 shadow-2xs">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 text-center sm:text-left text-xs font-bold text-slate-700">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-sm shrink-0">🛡️</span>
+                        <span class="text-[11px] sm:text-xs text-slate-800 font-bold whitespace-nowrap">Police &amp; Aadhaar Verified</span>
+                    </div>
+                    <span class="hidden sm:inline text-slate-300 font-normal">•</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-sm shrink-0">⏱️</span>
+                        <span class="text-[11px] sm:text-xs text-slate-800 font-bold whitespace-nowrap">100% Transparent Billing</span>
+                    </div>
+                    <span class="hidden sm:inline text-slate-300 font-normal">•</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-sm shrink-0">🤝</span>
+                        <span class="text-[11px] sm:text-xs text-slate-800 font-bold whitespace-nowrap">7-Day Guarantee</span>
+                    </div>
+                </div>
+            </div>
+
             </main><!-- /#apkHomeView -->
 
         <!-- ==========================================
@@ -1494,7 +1539,7 @@
                     </button>
                     <div>
                         <h2 class="text-base font-black text-slate-900 leading-tight">My Bookings</h2>
-                        <p class="text-[11px] text-slate-500 font-medium">Active and past bookings history</p>
+                        <p class="text-[11px] text-slate-500 font-medium">Active & past bookings history</p>
                     </div>
                 </div>
                 <button type="button" onclick="fetchCustomerOrders()" class="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-blue-600 flex items-center justify-center text-xs transition cursor-pointer active:scale-95" title="Refresh Orders">
@@ -1520,7 +1565,7 @@
                     <i class="fa-solid fa-arrow-left text-xs"></i>
                 </button>
                 <div>
-                    <h2 class="text-base font-black text-slate-900 leading-tight">SpeedyHome Money</h2>
+                    <h2 class="text-base font-black text-slate-900 leading-tight">SpeedyHome Wallet</h2>
                     <p class="text-[11px] text-slate-500 font-medium">Wallet Balance & VIP Loyalty Rewards</p>
                 </div>
             </div>
@@ -1528,7 +1573,7 @@
             <!-- Balance Card -->
             <div class="rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 p-4 shadow-md flex items-center justify-between">
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-amber-950/80">Available Wallet Balance</span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-950/80">Available Balance</span>
                     <div class="text-3xl font-black mt-0.5">₹<span id="apkMoneyBalance">०</span></div>
                     <span class="text-[10px] text-amber-950/90 font-medium">Auto-applied on your next booking</span>
                 </div>
@@ -1564,7 +1609,7 @@
 
             <!-- Quick Action: Book Service -->
             <button type="button" onclick="customerNavTo('home')" class="w-full bg-[#0b5f3a] hover:bg-emerald-800 text-white font-extrabold py-3 px-4 rounded-2xl shadow-sm transition text-xs flex items-center justify-center gap-2 cursor-pointer">
-                <i class="fa-solid fa-plus"></i> Book a New Service
+                <i class="fa-solid fa-plus"></i> + Book a New Service
             </button>
         </div><!-- /#apkMoneyView -->
 
@@ -2187,7 +2232,7 @@
                     <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
                         <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Your Past & Active Orders
                     </h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Active and past bookings history with live tracking</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Active & past bookings history with live tracking</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="fetchCustomerOrders()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer" title="Refresh">
@@ -2515,5 +2560,33 @@
     </div>
 </div>
 
+
+    <!-- Customer AI Care Dedicated Support Drawer / Chat Modal -->
+    <div id="aiCareDrawerModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm items-center justify-center sm:justify-end p-2 sm:p-4 transition-opacity duration-300">
+        <div id="aiCareDrawerCard" class="bg-white rounded-3xl sm:rounded-2xl w-full max-w-md h-[90vh] max-h-[680px] shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 transform scale-100">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 p-4 text-white flex items-center justify-between shadow-md shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-white/15 text-amber-300 flex items-center justify-center text-lg shadow-inner">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm sm:text-base leading-tight">SpeedyHome AI Support</h3>
+                        <p class="text-[11px] text-blue-200">Customer Support &amp; Booking Assistant</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="ai-chat.html" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition" title="Open Full Screen">
+                        <i class="fa-solid fa-up-right-from-square"></i>
+                    </a>
+                    <button type="button" onclick="closeAiCareSupportModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm transition cursor-pointer" title="Close AI Care">✕</button>
+                </div>
+            </div>
+            <!-- Live Chat Viewport / Iframe -->
+            <div class="flex-grow w-full h-full bg-slate-50 relative overflow-hidden">
+                <iframe id="aiCareIframe" src="ai-chat.html" class="w-full h-full border-0"></iframe>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

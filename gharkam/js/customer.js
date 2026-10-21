@@ -3049,15 +3049,9 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
                 activeOrders.forEach(({ id: orderId, data: order }) => {
                     let badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
                     let statusLabel = "Pending";
-                    if (order.status === 'Accepted') {
-                        badgeClass = "bg-blue-100 text-blue-800 border-blue-300";
-                        statusLabel = "Accepted";
-                    } else if (order.status === 'On The Way') {
+                    if (order.status === 'Accepted' || order.status === 'On The Way' || order.status === 'In Progress') {
                         badgeClass = "bg-indigo-100 text-indigo-800 border-indigo-300";
                         statusLabel = "On The Way";
-                    } else if (order.status === 'In Progress') {
-                        badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
-                        statusLabel = "In Progress";
                     }
 
                     const card = document.createElement('div');
@@ -3220,7 +3214,8 @@ _Sent securely via SpeedyHome Family Safety Shield._`;
             } else if (target === 'profile') {
                 if (typeof openApkProfileView === 'function') openApkProfileView();
             } else if (target === 'help') {
-                if (typeof openCustomerSupportModal === 'function') openCustomerSupportModal();
+                if (typeof openAiCareSupportModal === 'function') openAiCareSupportModal('customer');
+                else if (typeof openCustomerSupportModal === 'function') openCustomerSupportModal();
             }
         }
 
@@ -4618,13 +4613,21 @@ document.addEventListener('DOMContentLoaded', () => {
 // AI Care Customer Support Drawer & Chat Modal Handlers
 // =========================================================
 function openAiCareSupportModal(role) {
-    if (typeof openCustomerSupportModal === 'function') {
+    const modal = document.getElementById('aiCareDrawerModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    } else if (typeof openCustomerSupportModal === 'function') {
         openCustomerSupportModal();
     }
 }
 
 function closeAiCareSupportModal() {
-    if (typeof closeCustomerSupportModal === 'function') {
+    const modal = document.getElementById('aiCareDrawerModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    } else if (typeof closeCustomerSupportModal === 'function') {
         closeCustomerSupportModal();
     }
 }
