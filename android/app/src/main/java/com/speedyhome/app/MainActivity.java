@@ -1,4 +1,4 @@
-package com.gharmitra.app;
+package com.speedyhome.app;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -66,7 +66,7 @@ public class MainActivity extends Activity {
         String defaultUA = settings.getUserAgentString();
         // Remove '; wv' and 'Version/X.X' so Razorpay and web gateways recognize standard Chrome Mobile and display UPI
         String cleanedUA = defaultUA.replace("; wv", "").replaceAll("Version\\/\\d+\\.\\d+\\s*", "");
-        settings.setUserAgentString(cleanedUA + " SpeedyHomeApp/1.0 GharmitraApp/1.0");
+        settings.setUserAgentString(cleanedUA + " SpeedyHomeApp/1.0");
 
         // Native app interface bridge for reliable web-app detection
         webView.addJavascriptInterface(new Object(), "SpeedyHomeNative");
@@ -95,7 +95,7 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 progressBar.setVisibility(View.GONE);
-                view.evaluateJavascript("try { document.documentElement.classList.add('is-mobile-app'); sessionStorage.setItem('gharmitra_mobile_app_mode', 'true'); } catch(e){}", null);
+                view.evaluateJavascript("try { document.documentElement.classList.add('is-mobile-app'); sessionStorage.setItem('speedyhome_mobile_app_mode', 'true'); sessionStorage.setItem('gharmitra_mobile_app_mode', 'true'); } catch(e){}", null);
             }
         });
 
